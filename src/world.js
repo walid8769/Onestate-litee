@@ -91,21 +91,46 @@ export function createWorld(T, scene) {
     const mesh=new T.Mesh(new T.PlaneGeometry(w,d),material);
     mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y,z);mesh.receiveShadow=true;scene.add(mesh);return mesh;
   };
-  plane(720,720,0,0,groundMat,-.2);
+  function createCityTerrain(){
+    const size=1000,segments=120,positions=[],uvs=[],indices=[];
+    for(let iz=0;iz<=segments;iz++){
+      const z=-size/2+size*iz/segments;
+      for(let ix=0;ix<=segments;ix++){
+        const x=-size/2+size*ix/segments;
+        const radius=Math.hypot(x,z);
+        const t=T.MathUtils.clamp((radius-245)/165,0,1);
+        const smooth=t*t*(3-2*t);
+        const hills=Math.max(4,15+12*Math.sin(x*.014)*Math.cos(z*.012)+8*Math.sin((x+z)*.022)+5*Math.cos((x-z)*.019));
+        const y=-.2+smooth*hills;
+        positions.push(x,y,z);
+        uvs.push(ix/segments,iz/segments);
+        if(ix<segments&&iz<segments){
+          const a=iz*(segments+1)+ix,b=a+1,c0=a+segments+1,d=c0+1;
+          indices.push(a,c0,b,b,c0,d);
+        }
+      }
+    }
+    const geometry=new T.BufferGeometry();
+    geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));
+    geometry.setAttribute('uv',new T.Float32BufferAttribute(uvs,2));
+    geometry.setIndex(indices);geometry.computeVertexNormals();
+    const terrain=new T.Mesh(geometry,groundMat);terrain.receiveShadow=true;scene.add(terrain);
+  }
+  createCityTerrain();
 
   // Continuous road network with clean flat geometry; all buildings and vehicles are loaded GLB assets.
   for(let p=-210;p<=210;p+=70){
-    plane(720,17,0,p,roadMat,-.105);plane(17,720,p,0,roadMat,-.105);
+    plane(520,17,0,p,roadMat,-.105);plane(17,520,p,0,roadMat,-.105);
     for(const s of [-1,1]){
-      plane(720,2.5,0,p+s*10.2,sidewalkMat,-.045);
-      plane(2.5,720,p+s*10.2,0,sidewalkMat,-.045);
+      plane(520,2.5,0,p+s*10.2,sidewalkMat,-.045);
+      plane(2.5,520,p+s*10.2,0,sidewalkMat,-.045);
       const curbH=.18;
-      const horizontalCurb=new T.Mesh(new T.BoxGeometry(720,curbH,.25),curbMat);
+      const horizontalCurb=new T.Mesh(new T.BoxGeometry(520,curbH,.25),curbMat);
       horizontalCurb.position.set(0,-.015,p+s*8.62);horizontalCurb.castShadow=true;horizontalCurb.receiveShadow=true;scene.add(horizontalCurb);
-      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,720),curbMat);
+      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,520),curbMat);
       verticalCurb.position.set(p+s*8.62,-.015,0);verticalCurb.castShadow=true;verticalCurb.receiveShadow=true;scene.add(verticalCurb);
     }
-    for(let q=-340;q<350;q+=18){
+    for(let q=-250;q<260;q+=18){
       plane(5.5,.13,q,p,markingMat,-.045);
       plane(.13,5.5,p,q,markingMat,-.045);
     }
