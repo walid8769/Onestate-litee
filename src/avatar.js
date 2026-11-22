@@ -85,7 +85,7 @@ export async function upgradeAvatar(root, renderer) {
       const clip = actions[state] || idle;
       if (!clip) return;
       const next = mixer.clipAction(clip);
-      next.timeScale = state === 'run' ? 1.45 : 1;
+      next.timeScale = state === 'run' ? 4.1 : state === 'walk' ? 2.15 : 1;
       if (active.action !== next) {
         next.reset().fadeIn(.2).play();
         active.action?.fadeOut(.2);
