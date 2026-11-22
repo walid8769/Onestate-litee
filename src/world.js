@@ -2,7 +2,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
 import { createUrbanBuilding } from './architecture.js';
 
-const KIT='https://raw.githubusercontent.com/kayquer/kit-cidade-lowpoly/main/models';
 const REAL_CAR='https://cdn.3dassets.dev/assets/18684/v1/model.glb';
 const REAL_SUV='https://cdn.3dassets.dev/assets/18686/v1/model.glb';
 const REAL_VAN='https://cdn.3dassets.dev/assets/18680/v1/model.glb';
@@ -26,29 +25,11 @@ const BUILDING_ASSETS={
   fuelstation:['https://tevy.dev/models/fuel-station/v2/lod0.glb','https://tevy.dev/models/fuel-station/v2/lod1.glb','https://tevy.dev/models/fuel-station/v2/lod2.glb']
 };
 const FILES={
-  house:`${KIT}/residencial/casa_sobrado.glb`,
-  apartment:`${KIT}/residencial/predio_apartamentos.glb`,
-  tower:`${KIT}/residencial/predio_alto.glb`,
-  shop:`${KIT}/comercial/loja_esquina.glb`,
-  market:`${KIT}/comercial/mercado.glb`,
-  bank:`${KIT}/comercial/banco.glb`,
-  office:`${KIT}/comercial/escritorio.glb`,
-  restaurant:`${KIT}/comercial/restaurante.glb`,
-  mall:`${KIT}/comercial/shopping.glb`,
-  hotel:`${KIT}/comercial/hotel.glb`,
-  police:`${KIT}/publicos/policia.glb`,
-  firestation:`${KIT}/publicos/bombeiros.glb`,
-  hospital:`${KIT}/publicos/hospital.glb`,
-  cityhall:`${KIT}/publicos/prefeitura.glb`,
-  factory:`${KIT}/industrial/fabrica.glb`,
-  warehouse:`${KIT}/industrial/galpao.glb`,
   car:REAL_CAR,
   electric:REAL_SUV,
   ambulance:REAL_VAN,
-  bus:REAL_VAN,
   tree:'https://tevy.dev/models/european-beech/v1/lod2.glb',
   tree2:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
-  shrubs:`${KIT}/vegetacao/arbustos.glb`,
   lamp:'https://tevy.dev/models/city-street-lamp/v1/lod1.glb',
   bench:'https://tevy.dev/models/empty-mall-bench/v1/lod0.glb',
   signal:'https://tevy.dev/models/traffic-light/v1/lod1.glb',
