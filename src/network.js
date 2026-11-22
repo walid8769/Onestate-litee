@@ -84,6 +84,7 @@ export class NetworkClient {
         if (this.socket !== socket) return;
         this.connected = false;
         this.socket = null;
+        this.lastPosition = null;
         this.onEvent({ type: 'disconnected', code: event.code, reason: event.reason });
         this.scheduleReconnect();
       });
