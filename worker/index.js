@@ -53,7 +53,7 @@ export class GameRoom {
       return new Response(null, { status: 101, webSocket: client });
     }
     socket.accept();
-    const player = { id, name, x: 0, z: 0, yaw: 0, lastMove: 0, server };
+    const player = { id, name, x: 0, z: 0, yaw: 0, lastMove: Date.now(), server };
     this.sessions.set(socket, player);
     socket.addEventListener("message", event => this.onMessage(socket, event.data));
     socket.addEventListener("close", () => this.onClose(socket));
@@ -84,12 +84,25 @@ export class GameRoom {
     try { data = JSON.parse(raw); } catch { return; }
     if (data.type !== "move") return;
     const now = Date.now();
-    if (now - player.lastMove < 45) return;
-    player.lastMove = now;
+    const elapsedMs = now - player.lastMove;
+    if (elapsedMs < 45) return;
     const x = Number(data.x), z = Number(data.z), yaw = Number(data.yaw);
     if (![x, z, yaw].every(Number.isFinite)) return;
-    player.x = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, x));
-    player.z = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, z));
+    const targetX = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, x));
+    const targetZ = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, z));
+    const dx = targetX - player.x, dz = targetZ - player.z;
+    const distance = Math.hypot(dx, dz);
+    const elapsed = Math.min(.5, Math.max(.045, elapsedMs / 1000));
+    const maxStep = 42 * elapsed + 1.75;
+    if (distance > maxStep) {
+      const scale = maxStep / distance;
+      player.x += dx * scale;
+      player.z += dz * scale;
+    } else {
+      player.x = targetX;
+      player.z = targetZ;
+    }
+    player.lastMove = now;
     player.yaw = Math.max(-Math.PI * 4, Math.min(Math.PI * 4, yaw));
     this.broadcast({ type: "player_moved", player: this.publicPlayer(player) }, socket);
   }
