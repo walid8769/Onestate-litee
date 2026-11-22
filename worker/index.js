@@ -209,8 +209,16 @@ export class AccountStore {
   async fetch(request) {
     const url = new URL(request.url);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: AUTH_CORS });
+    const contentLength = Number(request.headers.get("content-length") || 0);
+    if (contentLength > 8192) return authReply({ error: "الطلب كبير جداً" }, 413);
     if (url.pathname === "/api/jobs" && request.method === "GET") return authReply({ jobs: AUTH_JOBS });
     if (url.pathname === "/api/auth/register" && request.method === "POST") {
+      const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+      const registerWindow = Math.floor(Date.now() / 600000);
+      const registerKey = `register-attempt:${ip}:${registerWindow}`;
+      const registerAttempts = (await this.storage.get(registerKey)) || 0;
+      if (registerAttempts >= 5) return authReply({ error: "وصلت إلى حد إنشاء الحسابات، حاول بعد عشر دقائق" }, 429);
+      await this.storage.put(registerKey, registerAttempts + 1, { expirationTtl: 660 });
       const body = await request.json().catch(() => null);
       const username = String(body?.username || "").trim();
       const displayName = String(body?.displayName || username).trim().slice(0, 20);
