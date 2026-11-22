@@ -104,12 +104,12 @@ export class NetworkClient {
     }, delay);
   }
 
-  move(x, z, yaw) {
+  move(x, z, yaw, running = false) {
     const now = performance.now();
     if (!this.connected || !this.socket || this.socket.readyState !== WebSocket.OPEN || now - this.lastSend < 100) return;
     if (this.socket.bufferedAmount > 128000) return;
     this.lastSend = now;
-    try { this.socket.send(JSON.stringify({ type: 'move', x, z, yaw })); }
+    try { this.socket.send(JSON.stringify({ type: 'move', x, z, yaw, running: Boolean(running) })); }
     catch (error) { console.warn('[OneState Lite] Move packet failed', error); }
   }
 
