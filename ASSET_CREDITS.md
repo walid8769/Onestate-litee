@@ -19,6 +19,16 @@ The realistic city buildings are CC0 GLB models by Tevy, loaded from pinned mode
 
 All are released under CC0 1.0. The game uses their published LOD GLB files through Three.js GLTFLoader.
 
+Additional CC0 city props from Tevy:
+- European Beech: https://tevy.dev/models/european-beech
+- Ginkgo Tree: https://tevy.dev/models/ginkgo-tree
+- City Street Lamp: https://tevy.dev/models/city-street-lamp
+- Glass Bus Shelter: https://tevy.dev/models/glass-bus-shelter
+- Traffic Light: https://tevy.dev/models/traffic-light
+- Empty Mall Bench: https://tevy.dev/models/empty-mall-bench
+- Public Waste Bin: https://tevy.dev/models/waste-bin
+- Fire Hydrant: https://tevy.dev/models/fire-hydrant
+
 ## Vehicles
 
 - Executive sedan, Touring SUV and Panel delivery van from 3DAssets.dev's Vehicle Collection HD.
