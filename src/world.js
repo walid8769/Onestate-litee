@@ -3,7 +3,7 @@ import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161
 import { createUrbanBuilding } from './architecture.js';
 
 const REAL_CAR='https://tevy.dev/models/family-sedan/v1/lod1.glb';
-const REAL_SUV='https://tevy.dev/models/estate-car/v1/lod1.glb';
+const REAL_SUV='https://tevy.dev/models/suv/v1/lod1.glb';
 const REAL_VAN='https://tevy.dev/models/family-minivan/v1/lod1.glb';
 const REAL_COUPE='https://tevy.dev/models/muscle-car/v1/lod1.glb';
 const REAL_CITY_CAR='https://tevy.dev/models/city-taxi/v1/lod1.glb';
@@ -34,7 +34,7 @@ const BUILDING_ASSETS={
 };
 const FILES={
   car:REAL_CAR,
-  electric:REAL_SUV,
+  suv:REAL_SUV,
   ambulance:REAL_AMBULANCE,
   bus:REAL_BUS,
   van:REAL_VAN,
@@ -311,7 +311,7 @@ export function createWorld(T, scene) {
   function createVehicleFallback(key,dims,emergency=false){
     const [width,height,length]=dims;
     const group=new T.Group();
-    const paintColor=key==='policecar'?0x172f50:key==='ambulance'?0xe7e9e5:key==='bus'?0x277e82:key==='coupe'?0x9b3029:key==='electric'?0x8cabb2:key==='van'?0xb8b9b5:0x536c7b;
+    const paintColor=key==='policecar'?0x172f50:key==='ambulance'?0xe7e9e5:key==='bus'?0x277e82:key==='coupe'?0x9b3029:key==='suv'?0x8cabb2:key==='van'?0xb8b9b5:0x536c7b;
     const paint=new T.MeshPhysicalMaterial({color:paintColor,metalness:.48,roughness:.3,clearcoat:.8,clearcoatRoughness:.22});
     const glass=new T.MeshPhysicalMaterial({color:0x1c3440,metalness:.22,roughness:.12,transparent:true,opacity:.88});
     const rubber=new T.MeshStandardMaterial({color:0x111417,roughness:.94});
@@ -357,7 +357,7 @@ export function createWorld(T, scene) {
     return group;
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const dims=key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
+    const dims=key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='suv'?[2.14,1.7,4.65]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
     let loaded=await place(key,x,z,...dims,rotation);
     if(!loaded){
       loaded=createVehicleFallback(key,dims,emergency);
@@ -399,11 +399,11 @@ export function createWorld(T, scene) {
     return model;
   }
   const carPlan=[
-    ['car',31,-12,.05,false],['electric',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],
+    ['car',31,-12,.05,false],['suv',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],
     ['saloon',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
     ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],['bus',130,35,0,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
-    ['car',-170,-30,Math.PI/2,false],['citycar',157,-117,0,false],['saloon',169,-117,0,false],['coupe',181,-117,0,false],['electric',193,-117,0,false]
+    ['car',-170,-30,Math.PI/2,false],['citycar',157,-117,0,false],['saloon',169,-117,0,false],['coupe',181,-117,0,false],['suv',193,-117,0,false]
   ];
   for(const [key,x,z,rot,emergency] of carPlan)coreJobs.push(car(key,x,z,rot,emergency));
   const trafficLoop=[[-280,-280],[280,-280],[280,280],[-280,280]];
