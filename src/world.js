@@ -158,7 +158,8 @@ export function createWorld(T, scene) {
       const gltf=await load(key);
       const model=cloneSkeleton(gltf.scene);
       fitModel(model,w,h,d);
-      if(gltf.animations?.length){const mixer=new T.AnimationMixer(model);for(const clip of gltf.animations)mixer.clipAction(clip).play();model.userData.mixer=mixer;}
+      const wheelClip=gltf.animations?.find(clip=>/wheel-roll/i.test(clip.name));
+      if(wheelClip){const mixer=new T.AnimationMixer(model);mixer.clipAction(wheelClip).play();model.userData.mixer=mixer;}
       model.position.x+=x;model.position.z+=z;model.rotation.y=rotation;
       scene.add(model);
       return model;
