@@ -264,7 +264,7 @@ scene.fog=new THREE.Fog(0x9eb8c9,170,520);
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,900);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
 const touchViewport=()=>innerWidth<700||matchMedia('(pointer: coarse)').matches;
-renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.4:1.8));
+renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.7:2));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
