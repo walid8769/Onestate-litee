@@ -6,7 +6,11 @@ function makeStore() {
   const data = new Map();
   const storage = {
     async get(key) { return structuredClone(data.get(key)); },
-    async put(key, value) { data.set(key, structuredClone(value)); },
+    async put(key, value) {
+      if (key && typeof key === "object" && value === undefined) {
+        for (const [entryKey, entryValue] of Object.entries(key)) data.set(entryKey, structuredClone(entryValue));
+      } else data.set(key, structuredClone(value));
+    },
     async delete(key) { return data.delete(key); }
   };
   return { store: new AccountStore({ storage }), data };
