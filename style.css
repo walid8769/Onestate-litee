@@ -83,3 +83,7 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
 .mission-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .mission-actions button:disabled{opacity:.45}
 @media(max-width:700px){.mission-toggle{top:calc(env(safe-area-inset-top) + 116px)}.mission-panel{top:calc(env(safe-area-inset-top) + 158px)}}
+
+.server-count{display:block;margin-top:5px;font-size:10px;font-weight:800;color:#aab5bd;font-variant-numeric:tabular-nums}
+.server-count[data-state=online]{color:#9bd6a9}
+.server-count[data-state=full]{color:#f0a27c}
