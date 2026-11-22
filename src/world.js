@@ -63,6 +63,7 @@ export function createWorld(T, scene) {
   const groundMat=mat(0x64765b,1);
   const roadMat=mat(0x30363b,.96);
   const sidewalkMat=mat(0xbcb9ae,.94);
+  const curbMat=mat(0x777b79,.9);
   // CC0 PBR surface maps from Poly Haven; small 1K maps keep mobile memory bounded.
   const textureLoader=new T.TextureLoader();
   const textureBase='https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/';
@@ -98,6 +99,11 @@ export function createWorld(T, scene) {
     for(const s of [-1,1]){
       plane(720,2.5,0,p+s*10.2,sidewalkMat,-.045);
       plane(2.5,720,p+s*10.2,0,sidewalkMat,-.045);
+      const curbH=.18;
+      const horizontalCurb=new T.Mesh(new T.BoxGeometry(720,curbH,.25),curbMat);
+      horizontalCurb.position.set(0,-.015,p+s*8.62);horizontalCurb.castShadow=true;horizontalCurb.receiveShadow=true;scene.add(horizontalCurb);
+      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,720),curbMat);
+      verticalCurb.position.set(p+s*8.62,-.015,0);verticalCurb.castShadow=true;verticalCurb.receiveShadow=true;scene.add(verticalCurb);
     }
     for(let q=-340;q<350;q+=18){
       plane(5.5,.13,q,p,markingMat,-.045);
