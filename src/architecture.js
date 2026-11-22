@@ -67,10 +67,11 @@ export function createUrbanBuilding(T, key, width, height, depth) {
     }
     mesh.instanceMatrix.needsUpdate=true;frameH.instanceMatrix.needsUpdate=true;frameV.instanceMatrix.needsUpdate=true;
     mesh.castShadow=false;group.add(mesh,frameH,frameV);
+    const rear=new T.Group();rear.scale.z=-1;group.add(rear);
+    rear.add(mesh.clone(),frameH.clone(),frameV.clone());
   };
   makeWindows(floors,frontCols,width-.8,false);
   // Rear glass is a mirrored front facade; side windows are rotated ninety degrees.
-  const back = new T.Group(); back.position.z=-depth-.07; back.scale.z=-1; group.add(back);
   const sideWindowGeo=new T.PlaneGeometry(winW,winH);
   for(const side of [-1,1]){
     const mesh=new T.InstancedMesh(sideWindowGeo,glass, floors*sideCols);
