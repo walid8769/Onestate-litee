@@ -10,18 +10,18 @@ export default {
     }
     if (url.pathname === "/api/missions/complete" && request.method === "POST") {
       const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
-      if (!token) return new Response("Authentication required", { status: 401 });
+      if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const accountStore = env.ACCOUNT_STORE.get(accountId);
       const auth = await accountStore.fetch(new Request("https://accounts.internal/api/auth/resolve", { method: "POST", headers: { Authorization: "Bearer " + token } }));
-      if (!auth.ok) return new Response("Session expired", { status: 401 });
+      if (!auth.ok) return Response.json({ error: "انتهت الجلسة" }, { status: 401, headers: AUTH_CORS });
       const identity = await auth.json();
       const body = await request.clone().json().catch(() => null);
       const server = body?.server;
-      if (!SERVERS.has(server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400 });
+      if (!SERVERS.has(server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400, headers: AUTH_CORS });
       const roomId = env.GAME_ROOMS.idFromName(server);
       const positionResponse = await env.GAME_ROOMS.get(roomId).fetch("https://room.internal/player-position/" + encodeURIComponent(identity.id));
-      if (!positionResponse.ok) return Response.json({ error: "يجب أن تكون متصلاً بالسيرفر لإكمال المهمة" }, { status: 409 });
+      if (!positionResponse.ok) return Response.json({ error: "يجب أن تكون متصلاً بالسيرفر لإكمال المهمة" }, { status: 409, headers: AUTH_CORS });
       const position = await positionResponse.json();
       const headers = new Headers(request.headers);
       headers.set("X-Player-X", String(position.x));
