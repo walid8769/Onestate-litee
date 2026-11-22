@@ -9,10 +9,84 @@ const loading=$('#loading'), menu=$('#menu'), game=$('#game');
 let selectedServer='ME1';
 const playerNameInput=$('#player-name');
 const realtimeUrlInput=$('#realtime-url');
+const passwordInput=$('#account-password');
+const accountStatus=$('#account-status');
+const jobSelect=$('#job-select');
+let sessionToken='';
+let currentAccount=null;
 try{
   playerNameInput.value=localStorage.getItem('onestate-player-name')||'لاعب';
   realtimeUrlInput.value=localStorage.getItem('onestate-realtime-url')||new URLSearchParams(location.search).get('realtime')||window.ONESTATE_REALTIME_URL||'';
+  sessionToken=localStorage.getItem('onestate-session-token')||'';
 }catch{}
+function setAccountStatus(message,state=''){
+  accountStatus.textContent=message;
+  accountStatus.dataset.state=state;
+}
+async function accountApi(path,method='GET',body=null){
+  const base=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
+  if(!base)throw new Error('أدخل رابط خدمة اللعب الجماعي أولاً');
+  const headers={'content-type':'application/json'};
+  if(sessionToken)headers.authorization='Bearer '+sessionToken;
+  const response=await fetch(new URL(path,base),{method,headers,body:body?JSON.stringify(body):undefined});
+  const data=await response.json().catch(()=>({error:'استجابة غير مفهومة من الخادم'}));
+  if(!response.ok)throw new Error(data.error||'تعذر إكمال الطلب');
+  return data;
+}
+async function refreshAccount(){
+  const result=await accountApi('/api/profile');
+  currentAccount=result.account;
+  $('#cash-value').textContent=Number(currentAccount.cash||0).toLocaleString('en-US');
+  $('#level-value').textContent=String(currentAccount.level||1);
+  $('#job-label').textContent=({citizen:'مواطن',police:'الشرطة',medic:'الإسعاف',mechanic:'ميكانيكي',taxi:'سائق أجرة',bus:'سائق حافلة',delivery:'التوصيل'})[currentAccount.job]||'مواطن';
+  const jobsResult=await accountApi('/api/jobs');
+  jobSelect.innerHTML='';
+  for(const job of jobsResult.jobs||[]){
+    const option=document.createElement('option');
+    option.value=job.id;option.textContent=job.name;jobSelect.append(option);
+  }
+  jobSelect.value=currentAccount.job||'citizen';
+  jobSelect.disabled=false;
+  setAccountStatus('تم تسجيل الدخول وحفظ الشخصية','success');
+}
+async function authenticate(mode){
+  const username=(playerNameInput.value||'').trim();
+  const password=passwordInput.value||'';
+  try{
+    setAccountStatus(mode==='register'?'جارٍ إنشاء الحساب...':'جارٍ تسجيل الدخول...');
+    const result=await accountApi(mode==='register'?'/api/auth/register':'/api/auth/login','POST',{
+      username,displayName:username,password
+    });
+    sessionToken=result.token;
+    try{
+      localStorage.setItem('onestate-session-token',sessionToken);
+      localStorage.setItem('onestate-player-name',username);
+      localStorage.setItem('onestate-realtime-url',realtimeUrlInput.value.trim());
+    }catch{}
+    passwordInput.value='';
+    await refreshAccount();
+  }catch(error){setAccountStatus(error.message||'تعذر الاتصال بالخادم','error');}
+}
+$('#account-register').addEventListener('click',()=>authenticate('register'));
+$('#account-login').addEventListener('click',()=>authenticate('login'));
+$('#account-logout').addEventListener('click',async()=>{
+  try{if(sessionToken)await accountApi('/api/auth/logout','POST');}catch{}
+  sessionToken='';currentAccount=null;
+  try{localStorage.removeItem('onestate-session-token');}catch{}
+  jobSelect.disabled=true;setAccountStatus('تم تسجيل الخروج');
+});
+jobSelect.addEventListener('change',async()=>{
+  if(!sessionToken)return;
+  try{
+    const result=await accountApi('/api/profile/job','POST',{job:jobSelect.value});
+    currentAccount=result.account;
+    $('#job-label').textContent=jobSelect.selectedOptions[0]?.textContent||'مواطن';
+    setAccountStatus('تم حفظ وظيفتك في الشخصية','success');
+  }catch(error){setAccountStatus(error.message||'تعذر حفظ الوظيفة','error');}
+});
+if(sessionToken){
+  refreshAccount().catch(()=>{sessionToken='';try{localStorage.removeItem('onestate-session-token');}catch{};setAccountStatus('انتهت الجلسة، سجّل الدخول من جديد','error');});
+}
 const remotePlayers=new Map();
 const networkStatus=$('#network-status');
 const realtime=new NetworkClient(handleNetworkEvent);
