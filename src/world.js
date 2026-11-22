@@ -193,28 +193,30 @@ export function createWorld(T, scene, renderer) {
       if(BUILDING_ASSETS[key]){
         try{
           const urls=BUILDING_ASSETS[key];
-          const middleGltf=await loadUrl(urls[1]);
+          // Load the full-resolution facade first. The old path showed LOD1 immediately
+          // and silently stayed with procedural boxes whenever that first request failed.
+          const highGltf=await loadUrl(urls[0]);
+          const high=cloneSkeleton(highGltf.scene);
+          fitModel(high,w,h,d);
           const lod=new T.LOD();
-          const middle=cloneSkeleton(middleGltf.scene);
-          fitModel(middle,w,h,d);
-          lod.addLevel(middle,0);
+          lod.addLevel(high,0);
           lod.position.set(x,0,z);lod.rotation.y=rotation;lod.updateMatrixWorld(true);scene.add(lod);
-          Promise.all([loadUrl(urls[0]).catch(()=>null),loadUrl(urls[2]).catch(()=>null)]).then(([highGltf,farGltf])=>{
-            const high=highGltf?cloneSkeleton(highGltf.scene):middle;
-            if(high!==middle)fitModel(high,w,h,d);
-            const far=farGltf?cloneSkeleton(farGltf.scene):null;
-            if(far){
+          // Stream lighter versions only after the real building is already visible.
+          Promise.all([loadUrl(urls[1]).catch(()=>null),loadUrl(urls[2]).catch(()=>null)]).then(([middleGltf,farGltf])=>{
+            if(middleGltf){
+              const middle=cloneSkeleton(middleGltf.scene);
+              fitModel(middle,w,h,d);
+              lod.addLevel(middle,68);
+            }
+            if(farGltf){
+              const far=cloneSkeleton(farGltf.scene);
               fitModel(far,w,h,d);
               far.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
+              lod.addLevel(far,145);
             }
-            lod.clear();
-            lod.levels.length=0;
-            lod.addLevel(high,0);
-            if(high!==middle)lod.addLevel(middle,72);
-            if(far)lod.addLevel(far,145);
-          }).catch(error=>console.warn('[OneState LOD] upgrade failed:',key,error));
+          }).catch(error=>console.warn('[OneState LOD] distance models failed:',key,error));
           return lod;
-        }catch(error){console.warn('[OneState buildings] realistic GLB failed; using detailed procedural architecture:',key,error);}
+        }catch(error){console.warn('[OneState buildings] high-detail GLB failed; using detailed procedural architecture:',key,error);}
       }
       const fallback=createUrbanBuilding(T,key,w,h,d);
       fallback.position.set(x,0,z);
