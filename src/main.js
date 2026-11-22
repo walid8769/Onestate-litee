@@ -110,6 +110,7 @@ if(sessionToken){
 }
 const remotePlayers=new Map();
 const networkStatus=$('#network-status');
+const chatToggle=$('#chat-toggle'),chatPanel=$('#chat-panel'),chatMessages=$('#chat-messages'),chatForm=$('#chat-form'),chatInput=$('#chat-input');
 const realtime=new NetworkClient(handleNetworkEvent);
 function createAvatar(bodyColor=0x087b9e,pantsColor=0x202a38){
   const root=new THREE.Group();
@@ -168,7 +169,37 @@ function clearRemotePlayers(){
   for(const item of remotePlayers.values())disposeAvatarGroup(item.group);
   remotePlayers.clear();
 }
+function appendChatMessage(event){
+  const item=document.createElement('p');item.className='chat-message';
+  const time=document.createElement('time');
+  const stamp=Number(event.timestamp)||Date.now();
+  time.textContent=new Date(stamp).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'});
+  const name=document.createElement('strong');name.textContent=String(event.name||'لاعب');
+  const message=document.createTextNode(String(event.message||''));
+  item.append(time,name,message);chatMessages.append(item);
+  while(chatMessages.children.length>50)chatMessages.firstElementChild.remove();
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+}
+function appendChatNotice(message){
+  const item=document.createElement('p');item.className='chat-message';
+  item.textContent=message;item.style.color='#d6b879';chatMessages.append(item);
+  while(chatMessages.children.length>50)chatMessages.firstElementChild.remove();
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+}
+chatToggle.addEventListener('click',()=>{
+  chatPanel.classList.toggle('hidden');
+  if(!chatPanel.classList.contains('hidden'))chatInput.focus();
+});
+$('#chat-close').addEventListener('click',()=>chatPanel.classList.add('hidden'));
+chatForm.addEventListener('submit',event=>{
+  event.preventDefault();
+  const message=chatInput.value.trim();
+  if(!message)return;
+  if(!realtime.sendChat(message)){appendChatNotice('تعذر الإرسال — تحقق من اتصال السيرفر.');return;}
+  chatInput.value='';
+});
 function handleNetworkEvent(event){
+  if(event.type==='chat')appendChatMessage(event);
   if(event.type==='connected'){networkStatus.textContent='متصل';networkStatus.dataset.state='online';}
   if(event.type==='auth_required'){
     networkStatus.textContent='انتهت الجلسة';networkStatus.dataset.state='offline';
@@ -448,7 +479,7 @@ $('#exit').addEventListener('click',async()=>{
   await savePlayerPosition();
   realtime.close();
   for(const p of remotePlayers.values())disposeAvatarGroup(p.group);
-  remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;
+  remotePlayers.clear();chatPanel.classList.add('hidden');activeVehicle=null;vehicleSpeed=0;player.visible=true;
   vehicleButton.textContent='قيادة';vehicleButton.style.display='';
   runButton.textContent='ركض';vehiclePanel.style.display='none';
   game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();
