@@ -82,6 +82,38 @@ document.querySelector('#exit').addEventListener('click',()=>{
 });
 
 const districtLabel=document.querySelector('#district-label');
+const mapCanvas=document.querySelector('#mini-map');
+const mapCtx=mapCanvas.getContext('2d');
+function drawMiniMap(){
+  const ctx=mapCtx,w=mapCanvas.width,h=mapCanvas.height,scale=1.15;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#53634f';ctx.fillRect(0,0,w,h);
+  ctx.save();
+  ctx.translate(w/2-player.position.x*scale,h/2-player.position.z*scale);
+  ctx.strokeStyle='#30383c';ctx.lineWidth=13;
+  for(let p=-210;p<=210;p+=70){
+    ctx.beginPath();ctx.moveTo(-300,p);ctx.lineTo(300,p);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(p,-300);ctx.lineTo(p,300);ctx.stroke();
+  }
+  ctx.strokeStyle='#a6a49a';ctx.lineWidth=2;
+  for(let p=-210;p<=210;p+=70){
+    ctx.beginPath();ctx.moveTo(-300,p-8);ctx.lineTo(300,p-8);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(p-8,-300);ctx.lineTo(p-8,300);ctx.stroke();
+  }
+  ctx.fillStyle='#8b999b';
+  for(const d of districts){
+    for(let x=-1;x<=1;x++)for(let z=-1;z<=1;z++){
+      const bx=d.cx+x*19,bz=d.cz+z*19;
+      if(Math.abs(bx)<19&&Math.abs(bz)<19)continue;
+      ctx.fillRect(bx-5,bz-5,10,10);
+    }
+  }
+  ctx.restore();
+  ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-yaw);
+  ctx.fillStyle='#ffe16b';ctx.strokeStyle='#20252b';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(0,-10);ctx.lineTo(7,8);ctx.lineTo(0,5);ctx.lineTo(-7,8);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.restore();
+}
 function updateDistrict(){
   let nearest=districts[0],best=Infinity;
   for(const d of districts){
@@ -91,6 +123,7 @@ function updateDistrict(){
   districtLabel.textContent=best<105?nearest.name:'أطراف المدينة';
 }
 const clock=new THREE.Clock();
+let mapTimer=0;
 function animate(){
   requestAnimationFrame(animate);
   const dt=Math.min(clock.getDelta(),.04);
@@ -106,6 +139,8 @@ function animate(){
   camera.position.lerp(player.position.clone().add(offset),.12);
   camera.lookAt(player.position.x,1.4,player.position.z);
   updateDistrict();
+  mapTimer+=dt;
+  if(mapTimer>.12){drawMiniMap();mapTimer=0}
   renderer.render(scene,camera);
 }
 animate();
