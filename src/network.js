@@ -12,7 +12,7 @@ export class NetworkClient {
     this.reconnectTimer = null;
   }
 
-  connect(baseUrl, server, name = 'لاعب') {
+  connect(baseUrl, server, name = 'لاعب', token = '') {
     this.close();
     if (!baseUrl) {
       this.onEvent({ type: 'offline', message: 'خدمة اللعب الجماعي غير مربوطة' });
@@ -21,6 +21,7 @@ export class NetworkClient {
     this.baseUrl = baseUrl;
     this.server = server;
     this.playerName = String(name).slice(0, 20);
+    this.token = String(token || '');
     this.shouldReconnect = true;
     this.reconnectAttempts = 0;
     this.openSocket();
@@ -35,6 +36,7 @@ export class NetworkClient {
       url.pathname = `/ws/${this.server}`;
       url.search = '';
       url.searchParams.set('name', this.playerName);
+      if (this.token) url.searchParams.set('token', this.token);
       const socket = new WebSocket(url);
       this.socket = socket;
       socket.addEventListener('open', () => {
