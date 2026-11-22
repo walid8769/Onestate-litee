@@ -1,12 +1,13 @@
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
+import { createUrbanBuilding } from './architecture.js';
 
-const REAL_CAR='https://cdn.3dassets.dev/assets/18684/v1/model.glb';
-const REAL_SUV='https://cdn.3dassets.dev/assets/18686/v1/model.glb';
-const REAL_VAN='https://cdn.3dassets.dev/assets/18680/v1/model.glb';
-const REAL_COUPE='https://cdn.3dassets.dev/assets/32488/v1/model.glb';
-const REAL_CITY_CAR='https://cdn.3dassets.dev/assets/32487/v1/model.glb';
-const REAL_SALOON='https://cdn.3dassets.dev/assets/32490/v1/model.glb';
+const REAL_CAR='https://tevy.dev/models/family-sedan/v1/lod1.glb';
+const REAL_SUV='https://tevy.dev/models/estate-car/v1/lod1.glb';
+const REAL_VAN='https://tevy.dev/models/family-minivan/v1/lod1.glb';
+const REAL_COUPE='https://tevy.dev/models/muscle-car/v1/lod1.glb';
+const REAL_CITY_CAR='https://tevy.dev/models/city-taxi/v1/lod1.glb';
+const REAL_SALOON='https://tevy.dev/models/family-sedan/v1/lod1.glb';
 const REAL_AMBULANCE='https://tevy.dev/models/ambulance/v1/lod1.glb';
 const REAL_BUS='https://tevy.dev/models/city-bus/v1/lod1.glb';
 const BUILDING_ASSETS={
@@ -201,10 +202,13 @@ export function createWorld(T, scene) {
             if(far)lod.addLevel(far,145);
           }).catch(error=>console.warn('[OneState LOD] upgrade failed:',key,error));
           return lod;
-        }catch(error){console.warn('[OneState buildings] realistic GLB failed:',key,error);}
+        }catch(error){console.warn('[OneState buildings] realistic GLB failed; using detailed procedural architecture:',key,error);}
       }
-      console.warn('[OneState buildings] skipped unavailable realistic model:',key);
-      return null;
+      const fallback=createUrbanBuilding(T,key,w,h,d);
+      fallback.position.set(x,0,z);
+      fallback.rotation.y=rotation;
+      scene.add(fallback);
+      return fallback;
     }
     try{
       const gltf=await load(key);
