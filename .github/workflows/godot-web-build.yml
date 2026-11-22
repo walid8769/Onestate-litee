@@ -1,0 +1,33 @@
+name: Build Godot Web Preview
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "godot/**"
+      - ".github/workflows/godot-web-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Godot Web export
+        uses: barichello/godot-ci:4.4.1
+        with:
+          working-directory: godot
+          args: --headless --verbose --export-release "Web" ../build/index.html
+
+      - name: Upload Web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: onestate-godot-web
+          path: build/
+          if-no-files-found: error
+          retention-days: 7
