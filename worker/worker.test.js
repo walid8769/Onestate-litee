@@ -65,7 +65,7 @@ test("mission rewards require the right destination and a minimum duration", asy
   const started = await start.json();
 
   const account = data.get("user:mission_test");
-  account.activeMission.startedAt = Date.now() - 60000;
+  account.serverProfiles.ME1.activeMission.startedAt = Date.now() - 60000;
   await data.set("user:mission_test", account);
 
   const tooFar = await store.fetch(new Request("https://accounts.test/api/missions/complete", {
@@ -183,4 +183,43 @@ test("local chat is sanitized, proximity-scoped and rate-limited", () => {
   room.onMessage(socketA, JSON.stringify({ type: "chat", message: "رسالة متكررة" }));
   assert.equal(socketA.messages.length, 1);
   assert.equal(socketB.messages.length, 1);
+});
+
+
+test("ME1, ME2 and ME3 keep separate cash, jobs, missions and saved locations", async () => {
+  const { store, data } = makeStore();
+  const registered = await store.fetch(new Request("https://accounts.test/api/auth/register", {
+    method: "POST",
+    headers: { "content-type": "application/json", "X-Game-Server": "ME1" },
+    body: JSON.stringify({ username: "server_split", displayName: "Split", password: "SafePass_987" })
+  }));
+  const { token } = await registered.json();
+
+  const changeMe2Job = await store.fetch(new Request("https://accounts.test/api/profile/job", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: "Bearer " + token, "X-Game-Server": "ME2" },
+    body: JSON.stringify({ job: "police" })
+  }));
+  assert.equal((await changeMe2Job.json()).account.job, "police");
+
+  const me1 = await store.fetch(new Request("https://accounts.test/api/profile", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME1" }
+  }));
+  const me2 = await store.fetch(new Request("https://accounts.test/api/profile", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME2" }
+  }));
+  const me3 = await store.fetch(new Request("https://accounts.test/api/profile", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME3" }
+  }));
+  assert.equal((await me1.json()).account.job, "citizen");
+  assert.equal((await me2.json()).account.job, "police");
+  assert.equal((await me3.json()).account.job, "citizen");
+
+  const stored = data.get("user:server_split");
+  stored.serverProfiles.ME2.cash = 9999;
+  await data.set("user:server_split", stored);
+  const reloadedMe1 = await store.fetch(new Request("https://accounts.test/api/profile", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME1" }
+  }));
+  assert.equal((await reloadedMe1.json()).account.cash, 2500);
 });
