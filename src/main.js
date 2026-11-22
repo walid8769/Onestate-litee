@@ -426,7 +426,7 @@ const pedestrians=pedestrianSpecs.map((spec,index)=>{
   const group=createAvatar(spec.color,spec.pants);group.userData.remote=true;
   group.position.set(spec.start[0],0,spec.start[1]);
   scene.add(group);upgradeAvatar(group,renderer,spec.variant||'casual');
-  return {group,path:spec.path,index:0,phase:index*.9,speed:1.05+index*.08};
+  return {group,path:spec.path,index:0,phase:index*.9,speed:1.05+index*.08,idleFor:2.5+(index%4)*1.7,idleClock:0,looking:false};
 });
 
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
@@ -579,16 +579,29 @@ function animate(){
     tree.object.rotation.x=Math.cos(wind*.83)*tree.amplitude*.42;
   }
   for(const npc of pedestrians){
-    const target=npc.path[npc.index],dx=target[0]-npc.group.position.x,dz=target[1]-npc.group.position.z;
-    const distance=Math.hypot(dx,dz);
-    if(distance<.55)npc.index=(npc.index+1)%npc.path.length;
-    else{
-      const step=Math.min(distance,npc.speed*dt);
-      npc.group.position.x+=dx/distance*step;npc.group.position.z+=dz/distance*step;
-      npc.group.rotation.y=Math.atan2(dx,dz);npc.phase+=dt*7;
+    let state='walk';
+    if(npc.idleClock>0){
+      npc.idleClock=Math.max(0,npc.idleClock-dt);
+      state=npc.looking?'look':'idle';
+    }else{
+      const target=npc.path[npc.index],dx=target[0]-npc.group.position.x,dz=target[1]-npc.group.position.z;
+      const distance=Math.hypot(dx,dz);
+      if(distance<.65){
+        npc.index=(npc.index+1)%npc.path.length;
+        npc.idleClock=npc.idleFor;
+        npc.looking=Math.random()>.35;
+        state=npc.looking?'look':'idle';
+      }else{
+        const step=Math.min(distance,npc.speed*dt);
+        npc.group.position.x+=dx/distance*step;npc.group.position.z+=dz/distance*step;
+        const desired=Math.atan2(dx,dz);
+        const delta=Math.atan2(Math.sin(desired-npc.group.rotation.y),Math.cos(desired-npc.group.rotation.y));
+        npc.group.rotation.y+=delta*Math.min(1,dt*7);
+        npc.phase+=dt*7;
+      }
     }
-    updateAvatar(npc.group,'walk',dt,npc.speed/1.3);
-    if(!npc.group.userData.realAvatarLoaded){
+    updateAvatar(npc.group,state,dt,npc.speed/1.3);
+    if(!npc.group.userData.realAvatarLoaded&&state==='walk'){
       const swing=Math.sin(npc.phase)*.32;
       npc.group.userData.arms[0].rotation.x=swing;npc.group.userData.arms[1].rotation.x=-swing;
       npc.group.userData.legs[0].rotation.x=-swing;npc.group.userData.legs[1].rotation.x=swing;
