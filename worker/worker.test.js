@@ -176,7 +176,7 @@ test("local chat is sanitized, proximity-scoped and rate-limited", () => {
   room.visiblePlayers.set(socketA, new Set(["b"]));
   room.visiblePlayers.set(socketB, new Set(["a"]));
 
-  room.onMessage(socketA, JSON.stringify({ type: "chat", message: "  مرحباً\\nبالمدينة  " }));
+  room.onMessage(socketA, JSON.stringify({ type: "chat", message: "  مرحباً\nبالمدينة  " }));
   assert.equal(socketA.messages.length, 1);
   assert.equal(socketB.messages.length, 1);
   assert.equal(socketB.messages[0].message, "مرحباً بالمدينة");
