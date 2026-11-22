@@ -184,7 +184,7 @@ export function createWorld(T, scene, renderer) {
     const fitted=new T.Box3().setFromObject(model);
     const center=fitted.getCenter(new T.Vector3());
     model.position.x-=center.x;model.position.z-=center.z;model.position.y-=fitted.min.y;
-    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const materials=Array.isArray(o.material)?o.material:[o.material];for(const material of materials){for(const map of [material.map,material.normalMap,material.roughnessMap,material.metalnessMap,material.aoMap])if(map)map.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());}}});
     return model;
   }
   const architecturalKeys=new Set(['house','villa','cottage','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','supermarket','factory','warehouse','fuelstation']);
