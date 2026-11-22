@@ -131,7 +131,6 @@ export function createWorld(T, scene) {
 
   // Distinct asset instances; load shared source files once and clone for every placement.
   const coreJobs=[];
-  const decorJobs=[];
   for(const p of buildingPlan)coreJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
   for(const p of landmarkPlan)coreJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
   // A central plaza, lawn islands and a small coastal water edge.
