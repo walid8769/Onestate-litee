@@ -16,7 +16,12 @@
     <h1>مدينتك، قصتك.</h1>
     <p class="subtitle">ادخل إلى عالم OneState Lite وابدأ رحلتك.</p>
     <section class="server-panel">
-      <h2>اختر السيرفر</h2>
+      <h2>بيانات الدخول</h2>
+      <label class="field-label" for="player-name">اسم اللاعب</label>
+      <input id="player-name" class="menu-input" maxlength="20" autocomplete="nickname" value="لاعب" placeholder="اكتب اسمك داخل اللعبة">
+      <label class="field-label" for="realtime-url">رابط خدمة اللعب الجماعي (إعداد مرة واحدة)</label>
+      <input id="realtime-url" class="menu-input" type="url" inputmode="url" autocomplete="url" placeholder="https://اسم-الخدمة.workers.dev">
+      <h2 class="server-heading">اختر السيرفر</h2>
       <div class="servers">
         <button class="server active" data-server="ME1"><b>ME1</b><small>الشرق الأوسط 1</small></button>
         <button class="server" data-server="ME2"><b>ME2</b><small>الشرق الأوسط 2</small></button>
@@ -49,7 +54,7 @@
     <button id="run" class="run">ركض</button>
     <button id="exit" class="exit">القائمة</button>
   </div>
-  <!-- Set ONESTATE_REALTIME_URL to the deployed realtime Worker URL before main.js. -->
+  <!-- Optional Worker URL can be configured once in the menu and is saved locally. -->
   <script>window.ONESTATE_REALTIME_URL = window.ONESTATE_REALTIME_URL || '';</script>
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js"}}</script>
   <script type="module" src="./src/main.js"></script>
