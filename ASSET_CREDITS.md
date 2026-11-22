@@ -41,11 +41,6 @@ Additional CC0 city props from Tevy:
 - Outdoor HDRI from Poly Haven: https://polyhaven.com
 - Licence: CC0 1.0 Universal.
 
-## Street furniture and vegetation
-
-- Source: https://github.com/kayquer/kit-cidade-lowpoly
-- Licence: CC0 1.0 Universal.
-- Only the remaining street furniture and vegetation props are loaded from this pack; its low-poly buildings are no longer used.
 
 ## Player character
 
