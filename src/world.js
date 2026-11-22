@@ -188,8 +188,17 @@ export function createWorld(T, scene) {
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const model=await place(key,x,z,key==='bus'?7:4.8,key==='bus'?4.3:2.8,key==='bus'?13:6.5,rotation);
-    if(!model)return null;
+    const loaded=await place(key,x,z,key==='bus'?7:4.8,key==='bus'?4.3:2.8,key==='bus'?13:6.5,rotation);
+    if(!loaded)return null;
+    // 3DAssets vehicle models face +Z; the driving rig uses -Z as forward.
+    const model=new T.Group();
+    model.position.copy(loaded.position);
+    model.rotation.y=rotation;
+    scene.remove(loaded);
+    loaded.position.set(0,0,0);
+    loaded.rotation.y=Math.PI;
+    model.add(loaded);
+    scene.add(model);
     model.userData={vehicle:true,emergency,speed:0,steer:0};
     if(emergency){
       const red=new T.MeshStandardMaterial({color:0xd92735,emissive:0x4a0508});
