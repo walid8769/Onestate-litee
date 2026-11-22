@@ -27,45 +27,46 @@ export default {
 };
 
 export class GameRoom {
-  constructor(state, env) {
+  constructor(state) {
     this.state = state;
-    this.env = env;
     this.sessions = new Map();
+    this.server = "unknown";
   }
 
   async fetch(request) {
     const url = new URL(request.url);
     if (url.pathname === "/status") {
-      const players = [...this.sessions.values()].map(p => ({ id: p.id, name: p.name, x: p.x, z: p.z, yaw: p.yaw }));
-      return Response.json({ server: this.state.id?.name || "room", online: players.length, capacity: MAX_PLAYERS, players });
+      return Response.json({ server: this.server, online: this.sessions.size, capacity: MAX_PLAYERS });
     }
     if (request.headers.get("Upgrade") !== "websocket") return new Response("WebSocket upgrade required", { status: 426 });
     const server = url.pathname.split("/").pop();
     if (!SERVERS.has(server)) return new Response("Unknown server", { status: 404 });
+    this.server = server;
     const pair = new WebSocketPair();
     const client = pair[0], socket = pair[1];
-    socket.accept();
     const id = crypto.randomUUID();
     const name = (url.searchParams.get("name") || "لاعب").trim().slice(0, 20) || "لاعب";
     if (this.sessions.size >= MAX_PLAYERS) {
+      socket.accept();
       socket.send(JSON.stringify({ type: "error", code: "SERVER_FULL", message: "السيرفر ممتلئ" }));
       socket.close(1013, "Server full");
       return new Response(null, { status: 101, webSocket: client });
     }
-    this.sessions.set(socket, { id, name, x: 0, z: 36, yaw: 0, lastMove: 0, server });
+    socket.accept();
+    const player = { id, name, x: 0, z: 36, yaw: 0, lastMove: 0, server };
+    this.sessions.set(socket, player);
+    socket.addEventListener("message", event => this.onMessage(socket, event.data));
+    socket.addEventListener("close", () => this.onClose(socket));
+    socket.addEventListener("error", () => this.onClose(socket));
     socket.send(JSON.stringify({ type: "welcome", id, server, online: this.sessions.size, capacity: MAX_PLAYERS }));
-    this.broadcast({ type: "player_joined", player: this.publicPlayer(this.sessions.get(socket)) }, socket);
-    this.sendSnapshot(socket);
+    const players = [...this.sessions.entries()].filter(([s]) => s !== socket).map(([, p]) => this.publicPlayer(p));
+    socket.send(JSON.stringify({ type: "snapshot", players }));
+    this.broadcast({ type: "player_joined", player: this.publicPlayer(player), online: this.sessions.size }, socket);
     return new Response(null, { status: 101, webSocket: client });
   }
 
   publicPlayer(p) {
     return { id: p.id, name: p.name, x: p.x, z: p.z, yaw: p.yaw };
-  }
-
-  sendSnapshot(socket) {
-    const players = [...this.sessions.entries()].filter(([s]) => s !== socket).map(([, p]) => this.publicPlayer(p));
-    socket.send(JSON.stringify({ type: "snapshot", players }));
   }
 
   broadcast(message, except = null) {
@@ -76,11 +77,11 @@ export class GameRoom {
     }
   }
 
-  async webSocketMessage(socket, message) {
+  onMessage(socket, raw) {
     const player = this.sessions.get(socket);
     if (!player) return;
     let data;
-    try { data = JSON.parse(message); } catch { return; }
+    try { data = JSON.parse(raw); } catch { return; }
     if (data.type !== "move") return;
     const now = Date.now();
     if (now - player.lastMove < 45) return;
@@ -93,14 +94,10 @@ export class GameRoom {
     this.broadcast({ type: "player_moved", player: this.publicPlayer(player) }, socket);
   }
 
-  async webSocketClose(socket) {
+  onClose(socket) {
     const player = this.sessions.get(socket);
     if (!player) return;
     this.sessions.delete(socket);
     this.broadcast({ type: "player_left", id: player.id, online: this.sessions.size });
-  }
-
-  async webSocketError(socket) {
-    await this.webSocketClose(socket);
   }
 }
