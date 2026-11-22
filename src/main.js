@@ -1,5 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/RGBELoader.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js';
+import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/loaders/RGBELoader.js';
 import { createWorld } from './world.js';
 import { NetworkClient } from './network.js';
 import { upgradeAvatar, updateAvatar } from './avatar.js';
