@@ -274,7 +274,7 @@ const AUTH_JOBS = [
 const AUTH_CORS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET,POST,OPTIONS",
-  "access-control-allow-headers": "content-type,authorization",
+  "access-control-allow-headers": "content-type,authorization,x-game-server",
   "access-control-max-age": "86400"
 };
 const AUTH_ENCODER = new TextEncoder();
@@ -299,18 +299,31 @@ function constantTimeEqual(a, b) {
   for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return diff === 0;
 }
-function publicAccount(account) {
-  return {
-    id: account.id,
-    username: account.username,
-    displayName: account.displayName,
-    cash: account.cash,
-    job: account.job,
-    level: account.level,
-    xp: account.xp,
+function defaultServerProfile() {
+  return { cash: 2500, job: "citizen", level: 1, xp: 0, spawnX: 0, spawnZ: 0, activeMission: null };
+}
+function ensureServerProfiles(account) {
+  if (account.serverProfiles) return false;
+  const previousServer = SERVERS.has(account.lastServer) ? account.lastServer : "ME1";
+  const legacy = {
+    cash: Number(account.cash) || 2500,
+    job: AUTH_JOBS.some(job => job.id === account.job) ? account.job : "citizen",
+    level: Math.max(1, Number(account.level) || 1),
+    xp: Math.max(0, Number(account.xp) || 0),
     spawnX: Number(account.spawnX) || 0,
-    spawnZ: Number(account.spawnZ) || 0
+    spawnZ: Number(account.spawnZ) || 0,
+    activeMission: account.activeMission || null
   };
+  account.serverProfiles = {};
+  for (const server of SERVERS) account.serverProfiles[server] = server === previousServer ? legacy : defaultServerProfile();
+  return true;
+}
+function publicAccount(account, server = "ME1") {
+  const selected = SERVERS.has(server) ? server : "ME1";
+  const profile = account.serverProfiles?.[selected] || defaultServerProfile();
+  return { id: account.id, username: account.username, displayName: account.displayName, server: selected,
+    cash: profile.cash, job: profile.job, level: profile.level, xp: profile.xp,
+    spawnX: Number(profile.spawnX) || 0, spawnZ: Number(profile.spawnZ) || 0 };
 }
 export class AccountStore {
   constructor(state) {
@@ -328,7 +341,10 @@ export class AccountStore {
     }
     const username = await this.storage.get("id:" + session.id);
     if (!username) return null;
-    return await this.storage.get("user:" + username);
+    const account = await this.storage.get("user:" + username);
+    if (!account) return null;
+    if (ensureServerProfiles(account)) await this.storage.put("user:" + username, account);
+    return account;
   }
 
   async fetch(request) {
@@ -361,12 +377,7 @@ export class AccountStore {
         displayName,
         passwordSalt: salt,
         passwordHash: await passwordHash(password, salt),
-        cash: 2500,
-        job: "citizen",
-        level: 1,
-        xp: 0,
-        spawnX: 0,
-        spawnZ: 0,
+        serverProfiles: Object.fromEntries([...SERVERS].map(server => [server, defaultServerProfile()])),
         createdAt: Date.now()
       };
       const token = crypto.randomUUID() + crypto.randomUUID();
@@ -377,7 +388,7 @@ export class AccountStore {
         ["id:" + account.id]: normalized,
         ["session:" + token]: { id: account.id, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 }
       });
-      return authReply({ token, account: publicAccount(account) }, 201);
+      return authReply({ token, account: publicAccount(account, request.headers.get("X-Game-Server")) }, 201);
     }
     if (url.pathname === "/api/auth/login" && request.method === "POST") {
       const body = await request.json().catch(() => null);
@@ -396,7 +407,7 @@ export class AccountStore {
       if (!constantTimeEqual(candidate, account.passwordHash)) return authReply({ error: "بيانات الدخول غير صحيحة" }, 401);
       const token = crypto.randomUUID() + crypto.randomUUID();
       await this.storage.put("session:" + token, { id: account.id, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 });
-      return authReply({ token, account: publicAccount(account) });
+      return authReply({ token, account: publicAccount(account, request.headers.get("X-Game-Server")) });
     }
     if (url.pathname === "/api/auth/logout" && request.method === "POST") {
       const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
@@ -405,15 +416,15 @@ export class AccountStore {
     }
     if (url.pathname === "/api/auth/me" && request.method === "GET") {
       const account = await this.userFromRequest(request);
-      return account ? authReply({ account: publicAccount(account) }) : authReply({ error: "انتهت الجلسة" }, 401);
+      return account ? authReply({ account: publicAccount(account, request.headers.get("X-Game-Server")) }) : authReply({ error: "انتهت الجلسة" }, 401);
     }
     if (url.pathname === "/api/auth/resolve" && request.method === "POST") {
       const account = await this.userFromRequest(request);
-      return account ? authReply(publicAccount(account)) : authReply({ error: "انتهت الجلسة" }, 401);
+      return account ? authReply(publicAccount(account, request.headers.get("X-Game-Server"))) : authReply({ error: "انتهت الجلسة" }, 401);
     }
     if (url.pathname === "/api/profile" && request.method === "GET") {
       const account = await this.userFromRequest(request);
-      return account ? authReply({ account: publicAccount(account) }) : authReply({ error: "سجل الدخول أولاً" }, 401);
+      return account ? authReply({ account: publicAccount(account, request.headers.get("X-Game-Server")) }) : authReply({ error: "سجل الدخول أولاً" }, 401);
     }
     if (url.pathname === "/api/profile/save-position" && request.method === "POST") {
       const account = await this.userFromRequest(request);
@@ -422,29 +433,33 @@ export class AccountStore {
       const x = Number(request.headers.get("X-Player-X"));
       const z = Number(request.headers.get("X-Player-Z"));
       if (!SERVERS.has(server) || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "تعذر التحقق من موقع اللاعب" }, 400);
-      account.spawnX = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, x));
-      account.spawnZ = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, z));
-      account.lastServer = server;
+      const profile = account.serverProfiles[server];
+      profile.spawnX = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, x));
+      profile.spawnZ = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, z));
       await this.storage.put("user:" + account.username, account);
-      return authReply({ account: publicAccount(account) });
+      return authReply({ account: publicAccount(account, server) });
     }
 
     if (url.pathname === "/api/missions" && request.method === "GET") {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
-      const missions = AUTH_MISSIONS.filter(item => item.job === account.job);
-      return authReply({ missions, activeMission: account.activeMission || null });
+      const server = request.headers.get("X-Game-Server") || "ME1";
+      const profile = account.serverProfiles[server] || account.serverProfiles.ME1;
+      const missions = AUTH_MISSIONS.filter(item => item.job === profile.job);
+      return authReply({ missions, activeMission: profile.activeMission || null });
     }
     if (url.pathname === "/api/missions/start" && request.method === "POST") {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
-      if (account.activeMission) return authReply({ error: "لديك مهمة نشطة بالفعل" }, 409);
       const body = await request.json().catch(() => null);
-      const mission = AUTH_MISSIONS.find(item => item.id === body?.missionId && item.job === account.job);
+      const serverProfile = account.serverProfiles[body?.server];
+      if (!serverProfile) return authReply({ error: "اختر سيرفراً صالحاً" }, 400);
+      if (serverProfile.activeMission) return authReply({ error: "لديك مهمة نشطة بالفعل" }, 409);
+      const mission = AUTH_MISSIONS.find(item => item.id === body?.missionId && item.job === serverProfile.job);
       if (!mission) return authReply({ error: "المهمة غير متاحة لوظيفتك" }, 400);
       if (!SERVERS.has(body?.server)) return authReply({ error: "اختر سيرفراً صالحاً" }, 400);
       const missionToken = crypto.randomUUID() + crypto.randomUUID();
-      account.activeMission = {
+      serverProfile.activeMission = {
         id: mission.id,
         token: missionToken,
         server: body.server,
@@ -452,42 +467,46 @@ export class AccountStore {
         expiresAt: Date.now() + 30 * 60 * 1000
       };
       await this.storage.put("user:" + account.username, account);
-      return authReply({ mission, missionToken, startedAt: account.activeMission.startedAt });
+      return authReply({ mission, missionToken, startedAt: serverProfile.activeMission.startedAt });
     }
     if (url.pathname === "/api/missions/cancel" && request.method === "POST") {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
-      account.activeMission = null;
+      const server = request.headers.get("X-Game-Server") || "ME1";
+      const profile = account.serverProfiles[server] || account.serverProfiles.ME1;
+      profile.activeMission = null;
       await this.storage.put("user:" + account.username, account);
       return authReply({ ok: true });
     }
     if (url.pathname === "/api/missions/complete" && request.method === "POST") {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
-      const active = account.activeMission;
+      const server = request.headers.get("X-Player-Server") || request.headers.get("X-Game-Server") || "ME1";
+      const profile = account.serverProfiles[server] || account.serverProfiles.ME1;
+      const active = profile.activeMission;
       const body = await request.json().catch(() => null);
       if (!active || !body?.missionToken || body.missionToken !== active.token) return authReply({ error: "لا توجد مهمة صالحة للإكمال" }, 409);
       if (active.expiresAt < Date.now()) {
-        account.activeMission = null;
+        profile.activeMission = null;
         await this.storage.put("user:" + account.username, account);
         return authReply({ error: "انتهت مهلة المهمة" }, 410);
       }
-      const mission = AUTH_MISSIONS.find(item => item.id === active.id && item.job === account.job);
+      const mission = AUTH_MISSIONS.find(item => item.id === active.id && item.job === profile.job);
       if (!mission) return authReply({ error: "المهمة لم تعد متاحة" }, 409);
       if (Date.now() - active.startedAt < mission.minSeconds * 1000) return authReply({ error: "أكمل وقت المهمة أولاً" }, 425);
       const server = request.headers.get("X-Player-Server");
       const x = Number(request.headers.get("X-Player-X")), z = Number(request.headers.get("X-Player-Z"));
       if (server !== active.server || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "عد إلى السيرفر الذي بدأت فيه المهمة" }, 409);
       if (Math.hypot(x - mission.destination.x, z - mission.destination.z) > 12) return authReply({ error: "اقترب من نقطة تسليم المهمة" }, 409);
-      account.cash = Math.max(0, Number(account.cash) || 0) + mission.reward;
-      account.xp = Math.max(0, Number(account.xp) || 0) + mission.xp;
-      while (account.xp >= account.level * 500) {
-        account.xp -= account.level * 500;
-        account.level += 1;
+      profile.cash = Math.max(0, Number(profile.cash) || 0) + mission.reward;
+      profile.xp = Math.max(0, Number(profile.xp) || 0) + mission.xp;
+      while (profile.xp >= profile.level * 500) {
+        profile.xp -= profile.level * 500;
+        profile.level += 1;
       }
-      account.activeMission = null;
+      profile.activeMission = null;
       await this.storage.put("user:" + account.username, account);
-      return authReply({ account: publicAccount(account), reward: mission.reward, xp: mission.xp });
+      return authReply({ account: publicAccount(account, server), reward: mission.reward, xp: mission.xp });
     }
     if (url.pathname === "/api/profile/job" && request.method === "POST") {
       const account = await this.userFromRequest(request);
@@ -495,10 +514,12 @@ export class AccountStore {
       const body = await request.json().catch(() => null);
       const job = AUTH_JOBS.find(item => item.id === body?.job);
       if (!job) return authReply({ error: "الوظيفة غير متاحة" }, 400);
-      account.job = job.id;
-      account.activeMission = null;
+      const server = request.headers.get("X-Game-Server") || "ME1";
+      const profile = account.serverProfiles[server] || account.serverProfiles.ME1;
+      profile.job = job.id;
+      profile.activeMission = null;
       await this.storage.put("user:" + account.username, account);
-      return authReply({ account: publicAccount(account) });
+      return authReply({ account: publicAccount(account, server) });
     }
     return authReply({ error: "المسار غير موجود" }, 404);
   }
