@@ -188,7 +188,7 @@ function animate(){
   if(direction.lengthSq()>1)direction.normalize();
   if(activeVehicle){
     const throttle=THREE.MathUtils.clamp(-moveY,-1,1);
-    const maxSpeed=running?31:22;
+    const maxSpeed=activeVehicle.userData.type==='bus'?(running?20:15):(running?31:22);
     vehicleSpeed=THREE.MathUtils.damp(vehicleSpeed,throttle*maxSpeed,throttle===0?3.4:1.9,dt);
     if(Math.abs(throttle)<.05)vehicleSpeed=THREE.MathUtils.damp(vehicleSpeed,0,1.8,dt);
     speedReadout.textContent=String(Math.round(Math.abs(vehicleSpeed)*3.6));
