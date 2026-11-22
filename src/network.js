@@ -109,6 +109,19 @@ export class NetworkClient {
     catch (error) { console.warn('[OneState Lite] Move packet failed', error); }
   }
 
+  sendChat(message) {
+    const text = String(message || '').trim().slice(0, 160);
+    if (!text || !this.connected || !this.socket || this.socket.readyState !== WebSocket.OPEN) return false;
+    if (this.socket.bufferedAmount > 128000) return false;
+    try {
+      this.socket.send(JSON.stringify({ type: 'chat', message: text }));
+      return true;
+    } catch (error) {
+      console.warn('[OneState Lite] Chat send failed', error);
+      return false;
+    }
+  }
+
   close() {
     this.shouldReconnect = false;
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
