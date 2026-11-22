@@ -9,6 +9,27 @@ export default {
     if (url.pathname === "/api/health") {
       return Response.json({ status: "ok", service: "onestate-realtime", servers: [...SERVERS], capacityPerServer: MAX_PLAYERS });
     }
+    if (url.pathname === "/api/profile/save-position" && request.method === "POST") {
+      const token = (request.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "").trim();
+      if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
+      const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
+      const accountStore = env.ACCOUNT_STORE.get(accountId);
+      const auth = await accountStore.fetch(new Request("https://accounts.internal/api/auth/resolve", { method: "POST", headers: { Authorization: "Bearer " + token } }));
+      if (!auth.ok) return Response.json({ error: "انتهت الجلسة" }, { status: 401, headers: AUTH_CORS });
+      const identity = await auth.json();
+      const body = await request.clone().json().catch(() => null);
+      const server = body?.server;
+      if (!SERVERS.has(server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400, headers: AUTH_CORS });
+      const roomId = env.GAME_ROOMS.idFromName(server);
+      const positionResponse = await env.GAME_ROOMS.get(roomId).fetch("https://room.internal/player-position/" + encodeURIComponent(identity.id));
+      if (!positionResponse.ok) return Response.json({ error: "يجب أن تكون متصلاً لحفظ موقعك" }, { status: 409, headers: AUTH_CORS });
+      const position = await positionResponse.json();
+      const headers = new Headers(request.headers);
+      headers.set("X-Player-X", String(position.x));
+      headers.set("X-Player-Z", String(position.z));
+      headers.set("X-Player-Server", server);
+      return accountStore.fetch(new Request(request, { headers }));
+    }
     if (url.pathname === "/api/missions/complete" && request.method === "POST") {
       const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
       if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
@@ -30,7 +51,7 @@ export default {
       headers.set("X-Player-Server", server);
       return accountStore.fetch(new Request(request, { headers }));
     }
-    if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/profile" || url.pathname === "/api/profile/job" || url.pathname === "/api/jobs" || url.pathname.startsWith("/api/missions")) {
+    if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/profile" || url.pathname === "/api/profile/job" || url.pathname === "/api/profile/save-position" || url.pathname === "/api/jobs" || url.pathname.startsWith("/api/missions")) {
       const id = env.ACCOUNT_STORE.idFromName("global-accounts");
       return env.ACCOUNT_STORE.get(id).fetch(request);
     }
@@ -57,6 +78,8 @@ export default {
       const headers = new Headers(request.headers);
       headers.set("X-Player-Id", identity.id);
       headers.set("X-Player-Name", identity.displayName);
+      headers.set("X-Player-Spawn-X", String(identity.spawnX || 0));
+      headers.set("X-Player-Spawn-Z", String(identity.spawnZ || 0));
       const authenticatedRequest = new Request(request, { headers });
       const id = env.GAME_ROOMS.idFromName(match[1]);
       return env.GAME_ROOMS.get(id).fetch(authenticatedRequest);
@@ -104,7 +127,9 @@ export class GameRoom {
       return new Response(null, { status: 101, webSocket: client });
     }
     socket.accept();
-    const player = { id, name, x: 0, z: 0, yaw: 0, lastMove: Date.now(), server };
+    const spawnX = Number(request.headers.get("X-Player-Spawn-X")) || 0;
+    const spawnZ = Number(request.headers.get("X-Player-Spawn-Z")) || 0;
+    const player = { id, name, x: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnX)), z: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnZ)), yaw: 0, lastMove: Date.now(), server };
     this.sessions.set(socket, player);
     socket.addEventListener("message", event => this.onMessage(socket, event.data));
     socket.addEventListener("close", () => this.onClose(socket));
@@ -266,7 +291,9 @@ function publicAccount(account) {
     cash: account.cash,
     job: account.job,
     level: account.level,
-    xp: account.xp
+    xp: account.xp,
+    spawnX: Number(account.spawnX) || 0,
+    spawnZ: Number(account.spawnZ) || 0
   };
 }
 export class AccountStore {
@@ -365,6 +392,20 @@ export class AccountStore {
       const account = await this.userFromRequest(request);
       return account ? authReply({ account: publicAccount(account) }) : authReply({ error: "سجل الدخول أولاً" }, 401);
     }
+    if (url.pathname === "/api/profile/save-position" && request.method === "POST") {
+      const account = await this.userFromRequest(request);
+      if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
+      const server = request.headers.get("X-Player-Server");
+      const x = Number(request.headers.get("X-Player-X"));
+      const z = Number(request.headers.get("X-Player-Z"));
+      if (!SERVERS.has(server) || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "تعذر التحقق من موقع اللاعب" }, 400);
+      account.spawnX = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, x));
+      account.spawnZ = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, z));
+      account.lastServer = server;
+      await this.storage.put("user:" + account.username, account);
+      return authReply({ account: publicAccount(account) });
+    }
+
     if (url.pathname === "/api/missions" && request.method === "GET") {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
