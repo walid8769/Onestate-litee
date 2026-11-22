@@ -33,7 +33,7 @@ export class NetworkClient {
     if (this.token) {
       this.preflight = true;
       try {
-        const check = await fetch(new URL('/api/auth/me', this.baseUrl), { headers: { authorization: 'Bearer ' + this.token } });
+        const check = await fetch(new URL('/api/auth/me', this.baseUrl), { headers: { authorization: 'Bearer ' + this.token, 'x-game-server': this.server } });
         if (!this.shouldReconnect) return;
         if (!check.ok) {
           this.shouldReconnect = false;
