@@ -24,6 +24,15 @@ function request(path, method = "GET", body = null, token = "") {
   });
 }
 
+test("public service and agency careers are available", async () => {
+  const { store } = makeStore();
+  const response = await store.fetch(request("/api/jobs"));
+  assert.equal(response.status, 200);
+  const { jobs } = await response.json();
+  const ids = new Set(jobs.map(job => job.id));
+  for (const id of ["police", "medic", "army", "fbi", "council"]) assert.ok(ids.has(id), id + " career missing");
+});
+
 test("register, login and profile persist without exposing password hashes", async () => {
   const { store } = makeStore();
   const registered = await store.fetch(request("/api/auth/register", "POST", {
