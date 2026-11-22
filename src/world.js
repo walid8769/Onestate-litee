@@ -53,6 +53,7 @@ const FILES={
   citycar:REAL_CITY_CAR,
   saloon:REAL_SALOON,
   policecar:REAL_POLICE,
+  fbiSUV:REAL_SUV,
   fireengine:REAL_FIRE_ENGINE,
   tree:'https://tevy.dev/models/european-beech/v1/lod2.glb',
   tree2:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
@@ -271,10 +272,10 @@ export function createWorld(T, scene, renderer) {
   });
 
   const landmarkPlan=[
-    {key:'cityhall',x:-54,z:-54,w:25,h:24,d:25},
-    {key:'police',x:54,z:-54,w:19,h:14,d:19},
-    {key:'hospital',x:-54,z:54,w:24,h:15,d:24},
-    {key:'firestation',x:54,z:54,w:21,h:15,d:21},
+    {key:'cityhall',x:-54,z:-54,w:36,h:31.22,d:34},
+    {key:'police',x:54,z:-54,w:31.18,h:19.36,d:29.5},
+    {key:'hospital',x:-54,z:54,w:54,h:32.34,d:38.5},
+    {key:'firestation',x:54,z:54,w:30.84,h:32,d:18.4},
     {key:'fuelstation',x:105,z:-35,w:16,h:6,d:13},
     {key:'supermarket',x:105,z:-105,w:30,h:8,d:22},
     {key:'publicHousing',x:-245,z:-180,w:42,h:14,d:10},
@@ -304,12 +305,18 @@ export function createWorld(T, scene, renderer) {
   }
   // Repeated 12 m CC0 fence modules define a clear military perimeter.
   for(let x=366;x<=474;x+=12){
-    coreJobs.push(place('sidewalkFence',x,430,1.2,2.2,12,Math.PI/2));
+    // Leave a 24 m opening for the guarded vehicle entrance.
+    if(Math.abs(x-420)>=12){
+      coreJobs.push(place('sidewalkFence',x,430,1.2,2.2,12,Math.PI/2));
+      obstacles.push({x,z:430,halfX:5.8,halfZ:.9});
+    }
     coreJobs.push(place('sidewalkFence',x,550,1.2,2.2,12,Math.PI/2));
+    obstacles.push({x,z:550,halfX:5.8,halfZ:.9});
   }
   for(let z=442;z<=538;z+=12){
     coreJobs.push(place('sidewalkFence',360,z,1.2,2.2,12,0));
     coreJobs.push(place('sidewalkFence',480,z,1.2,2.2,12,0));
+    obstacles.push({x:360,z,halfX:.9,halfZ:5.8},{x:480,z,halfX:.9,halfZ:5.8});
   }
   // Agency signs are real 3D boards with crisp canvas lettering, not flat UI labels.
   function agencySign(title,subtitle,x,z,width,color){
@@ -318,7 +325,7 @@ export function createWorld(T, scene, renderer) {
     const board=new T.Mesh(new T.BoxGeometry(width,2.6,.34),metal);board.position.y=5.4;group.add(board);
     const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;
     const ctx=canvas.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,1024,256);
-    ctx.fillStyle='#ffffff';ctx.font='bold 76px Arial';ctx.textAlign='center';ctx.fillText(title,512,112);
+    ctx.fillStyle='#ffffff';ctx.font='bold '+(title.length>22?52:76)+'px Arial';ctx.textAlign='center';ctx.fillText(title,512,112);
     ctx.font='600 34px Arial';ctx.fillStyle='#e8edf2';ctx.fillText(subtitle,512,184);
     const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;
     const face=new T.Mesh(new T.PlaneGeometry(width-.35,2.25),new T.MeshBasicMaterial({map:texture,side:T.DoubleSide}));face.position.set(0,5.4,.19);group.add(face);
@@ -326,7 +333,22 @@ export function createWorld(T, scene, renderer) {
     group.position.set(x,0,z);scene.add(group);return group;
   }
   agencySign('FEDERAL BUREAU OF INVESTIGATION','FBI • FEDERAL FIELD OFFICE',385,-368,17,'#173d67');
-  agencySign('ARMY BASE','MILITARY COMMAND • AUTHORIZED PERSONNEL ONLY',420,420,20,'#354b37');
+  agencySign('ARMY BASE','MILITARY COMMAND • AUTHORIZED PERSONNEL ONLY',420,432,20,'#354b37');
+  // Guard booth, concrete gate posts and a striped boom arm at the base entrance.
+  const gateGroup=new T.Group();
+  const gateConcrete=new T.MeshStandardMaterial({color:0x6e777b,roughness:.88});
+  const gateGlass=new T.MeshPhysicalMaterial({color:0x29404b,metalness:.18,roughness:.12,transparent:true,opacity:.78});
+  for(const side of [-1,1]){
+    const post=new T.Mesh(new T.BoxGeometry(.9,4.2,.9),gateConcrete);post.position.set(side*8,2.1,0);gateGroup.add(post);
+  }
+  const booth=new T.Mesh(new T.BoxGeometry(3.2,2.8,3.2),gateConcrete);booth.position.set(12,1.4,5);gateGroup.add(booth);
+  const boothWindow=new T.Mesh(new T.BoxGeometry(3.25,1.05,.08),gateGlass);boothWindow.position.set(12,1.9,3.35);gateGroup.add(boothWindow);
+  const barrier=new T.Group();barrier.position.set(-7,3.2,0);gateGroup.add(barrier);
+  const arm=new T.Mesh(new T.BoxGeometry(14,.2,.2),new T.MeshStandardMaterial({color:0xe8e5dc,roughness:.45}));arm.position.x=7;barrier.add(arm);
+  for(let stripe=0;stripe<7;stripe++){
+    const band=new T.Mesh(new T.BoxGeometry(.72,.22,.23),new T.MeshStandardMaterial({color:stripe%2?0x20252a:0xe1b94e,roughness:.5}));band.position.set(1+stripe*1.8,0,0);barrier.add(band);
+  }
+  gateGroup.position.set(420,0,430);scene.add(gateGroup);
   // A central plaza, lawn islands and a small coastal water edge.
   plane(38,38,0,0,sidewalkMat,-.035);
   const plazaLine=mat(0xd8c8a2,.75);
@@ -431,7 +453,7 @@ export function createWorld(T, scene, renderer) {
     return group;
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const dims=key==='fireengine'?[3.21,3.68,10.53]:key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='suv'?[2.14,1.7,4.65]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
+    const dims=key==='fireengine'?[3.21,3.68,10.53]:key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='suv'||key==='fbiSUV'?[2.14,1.7,4.65]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
     let loaded=await place(key,x,z,...dims,rotation);
     if(!loaded){
       loaded=createVehicleFallback(key,dims,emergency);
@@ -465,10 +487,10 @@ export function createWorld(T, scene, renderer) {
       a.position.set(-.42,1.95,0);b.position.set(.42,1.95,0);model.add(a,b);emergencyLights.push(a,b);
       const beacon=new T.Mesh(new T.BoxGeometry(1.15,.12,.34),new T.MeshStandardMaterial({color:0xf0f1ef,roughness:.45}));beacon.position.set(0,1.82,0);model.add(beacon);
     }
-    if(key==='policecar'){
+    if(key==='policecar'||key==='fbiSUV'){
       const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
-      const ctx=canvas.getContext('2d');ctx.fillStyle='#12385f';ctx.fillRect(0,0,512,128);
-      ctx.fillStyle='#ffffff';ctx.font='bold 78px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('POLICE',256,66);
+      const ctx=canvas.getContext('2d');ctx.fillStyle=key==='fbiSUV'?'#173d67':'#12385f';ctx.fillRect(0,0,512,128);
+      ctx.fillStyle='#ffffff';ctx.font='bold 78px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(key==='fbiSUV'?'FBI':'POLICE',256,66);
       const decal=new T.CanvasTexture(canvas);decal.colorSpace=T.SRGBColorSpace;
       const material=new T.MeshBasicMaterial({map:decal,transparent:true,side:T.DoubleSide});
       for(const side of [-1,1]){
@@ -481,7 +503,8 @@ export function createWorld(T, scene, renderer) {
   }
   const carPlan=[
     ['car',31,-12,.05,false],['suv',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],['fireengine',80,54,Math.PI/2,true],
-    ['saloon',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
+    ['saloon',8,34,Math.PI/2,false],['ambulance',-54,82,Math.PI,true],['fireengine',54,82,Math.PI,true],
+    ['fbiSUV',440,-385,Math.PI/2,true],['saloon',440,-397,Math.PI/2,false],
     ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],['bus',130,35,0,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
     ['car',-170,-30,Math.PI/2,false],['citycar',157,-117,0,false],['saloon',169,-117,0,false],['coupe',181,-117,0,false],['suv',193,-117,0,false]
