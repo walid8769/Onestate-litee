@@ -385,6 +385,7 @@ export class AccountStore {
       const job = AUTH_JOBS.find(item => item.id === body?.job);
       if (!job) return authReply({ error: "الوظيفة غير متاحة" }, 400);
       account.job = job.id;
+      account.activeMission = null;
       await this.storage.put("user:" + account.username, account);
       return authReply({ account: publicAccount(account) });
     }
