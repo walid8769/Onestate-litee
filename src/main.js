@@ -403,19 +403,19 @@ function updateMissionProgress(){
 const pedestrianSpecs=[
   {color:0x9b563d,pants:0x26384a,start:[-190,20],path:[[-190,20],[-160,20],[-160,50],[-190,50]]},
   {color:0x315f88,pants:0x30343b,start:[160,-50],path:[[160,-50],[190,-50],[190,-20],[160,-20]]},
-  {color:0x9b8742,pants:0x273d34,start:[20,160],path:[[20,160],[50,160],[50,190],[20,190]]},
-  {color:0x674c82,pants:0x252c37,start:[-50,-190],path:[[-50,-190],[-20,-190],[-20,-160],[-50,-160]]},
-  {color:0x47735b,pants:0x343b45,start:[-230,-75],path:[[-230,-75],[-210,-75],[-210,-55],[-230,-55]]},
-  {color:0xb27b3d,pants:0x27384b,start:[230,-75],path:[[230,-75],[250,-75],[250,-55],[230,-55]]},
-  {color:0x8a5364,pants:0x30323b,start:[-230,75],path:[[-230,75],[-210,75],[-210,95],[-230,95]]},
+  {color:0x9b8742,pants:0x273d34,variant:'hiker',start:[20,160],path:[[20,160],[50,160],[50,190],[20,190]]},
+  {color:0x674c82,pants:0x252c37,variant:'roadWorker',start:[-50,-190],path:[[-50,-190],[-20,-190],[-20,-160],[-50,-160]]},
+  {color:0x47735b,pants:0x343b45,variant:'roadWorker',start:[-230,-75],path:[[-230,-75],[-210,-75],[-210,-55],[-230,-55]]},
+  {color:0xb27b3d,pants:0x27384b,variant:'dogWalker',start:[230,-75],path:[[230,-75],[250,-75],[250,-55],[230,-55]]},
+  {color:0x8a5364,pants:0x30323b,variant:'hiker',start:[-230,75],path:[[-230,75],[-210,75],[-210,95],[-230,95]]},
   {color:0x4d7790,pants:0x313b42,start:[230,75],path:[[230,75],[250,75],[250,95],[230,95]]},
-  {color:0x9a914f,pants:0x293a35,start:[0,-250],path:[[0,-250],[22,-250],[22,-230],[0,-230]]},
+  {color:0x9a914f,pants:0x293a35,variant:'dogWalker',start:[0,-250],path:[[0,-250],[22,-250],[22,-230],[0,-230]]},
   {color:0x795e9b,pants:0x252d39,start:[0,250],path:[[0,250],[-22,250],[-22,230],[0,230]]}
 ];
 const pedestrians=pedestrianSpecs.map((spec,index)=>{
   const group=createAvatar(spec.color,spec.pants);group.userData.remote=true;
   group.position.set(spec.start[0],0,spec.start[1]);
-  scene.add(group);upgradeAvatar(group,renderer);
+  scene.add(group);upgradeAvatar(group,renderer,spec.variant||'casual');
   return {group,path:spec.path,index:0,phase:index*.9,speed:1.05+index*.08};
 });
 
