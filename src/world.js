@@ -68,6 +68,7 @@ export function createWorld(T, scene, renderer) {
   const cache=new Map();
   const obstacles=[];
   const vehicles=[];
+  const windObjects=[];
   const districts=[
     {name:'وسط المدينة',cx:0,cz:0,kind:'tower'},
     {name:'الحي السكني',cx:-105,cz:-105,kind:'homes'},
@@ -229,6 +230,7 @@ export function createWorld(T, scene, renderer) {
       if(wheelClip){const mixer=new T.AnimationMixer(model);mixer.clipAction(wheelClip).play();model.userData.mixer=mixer;}
       model.position.x+=x;model.position.z+=z;model.rotation.y=rotation;
       scene.add(model);
+      if(key==='tree'||key==='tree2')windObjects.push({object:model,phase:Math.random()*Math.PI*2,amplitude:.01+Math.random()*.008});
       return model;
     }catch(error){console.warn('[OneState assets] failed:',key,error);return null;}
   }
@@ -449,6 +451,7 @@ export function createWorld(T, scene, renderer) {
   const ready=Promise.allSettled(coreJobs);
   const decorReady=ready.then(()=>Promise.allSettled(propPlan.map(p=>place(p.key,p.x,p.z,p.w,p.h,p.d))));
   districts.vehicles=vehicles;
+  districts.windObjects=windObjects;
   districts.obstacles=obstacles;
   districts.assetsReady=ready;
   districts.decorReady=decorReady;
