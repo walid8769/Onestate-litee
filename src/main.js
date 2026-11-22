@@ -223,8 +223,14 @@ function handleNetworkEvent(event){
 function updateRemote(p){
   if(!p||!p.id||!Number.isFinite(p.x)||!Number.isFinite(p.z))return;
   let item=remotePlayers.get(p.id);
-  if(!item)makeRemotePlayer(p.id,p.name);
+  const isNew=!item;
+  if(isNew)makeRemotePlayer(p.id,p.name);
   item=remotePlayers.get(p.id);
+  if(isNew){
+    item.group.position.set(p.x,0,p.z);
+    item.lastPosition.copy(item.group.position);
+    if(Number.isFinite(p.yaw))item.group.rotation.y=p.yaw;
+  }
   const nextName=p.name||item.name;
   if(nextName!==item.name){item.name=nextName;setNameTag(item.group,nextName);}
   item.target.set(p.x,0,p.z);
