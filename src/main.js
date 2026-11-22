@@ -420,7 +420,17 @@ const pedestrianSpecs=[
   {color:0x8a5364,pants:0x30323b,variant:'hiker',start:[-230,75],path:[[-230,75],[-210,75],[-210,95],[-230,95]]},
   {color:0x4d7790,pants:0x313b42,start:[230,75],path:[[230,75],[250,75],[250,95],[230,95]]},
   {color:0x9a914f,pants:0x293a35,variant:'dogWalker',start:[0,-250],path:[[0,-250],[22,-250],[22,-230],[0,-230]]},
-  {color:0x795e9b,pants:0x252d39,start:[0,250],path:[[0,250],[-22,250],[-22,230],[0,230]]}
+  {color:0x795e9b,pants:0x252d39,start:[0,250],path:[[0,250],[-22,250],[-22,230],[0,230]]},
+  {color:0x47735b,pants:0x242e39,variant:'casual',start:[-18,95],path:[[-18,95],[-4,95],[-4,108],[-18,108]]},
+  {color:0x9b563d,pants:0x303b48,variant:'hiker',start:[18,-95],path:[[18,-95],[4,-95],[4,-108],[18,-108]]},
+  {color:0x315f88,pants:0x272f39,variant:'roadWorker',start:[-95,-18],path:[[-95,-18],[-108,-18],[-108,-4],[-95,-4]]},
+  {color:0x9b8742,pants:0x273d34,variant:'dogWalker',start:[95,18],path:[[95,18],[108,18],[108,4],[95,4]]},
+  {color:0x674c82,pants:0x252c37,variant:'casual',start:[-125,-20],path:[[-125,-20],[-140,-20],[-140,-5],[-125,-5]]},
+  {color:0xb27b3d,pants:0x27384b,variant:'hiker',start:[125,20],path:[[125,20],[140,20],[140,5],[125,5]]},
+  {color:0x8a5364,pants:0x30323b,variant:'roadWorker',start:[-20,125],path:[[-20,125],[-20,140],[-5,140],[-5,125]]},
+  {color:0x4d7790,pants:0x313b42,variant:'dogWalker',start:[20,-125],path:[[20,-125],[20,-140],[5,-140],[5,-125]]},
+  {color:0x9a914f,pants:0x293a35,variant:'casual',start:[-245,0],path:[[-245,0],[-230,0],[-230,15],[-245,15]]},
+  {color:0x795e9b,pants:0x252d39,variant:'hiker',start:[245,0],path:[[245,0],[230,0],[230,-15],[245,-15]]}
 ];
 const pedestrians=pedestrianSpecs.map((spec,index)=>{
   const group=createAvatar(spec.color,spec.pants);group.userData.remote=true;
