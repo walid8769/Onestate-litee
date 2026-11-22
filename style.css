@@ -87,3 +87,17 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
 .server-count{display:block;margin-top:5px;font-size:10px;font-weight:800;color:#aab5bd;font-variant-numeric:tabular-nums}
 .server-count[data-state=online]{color:#9bd6a9}
 .server-count[data-state=full]{color:#f0a27c}
+
+.chat-toggle{position:absolute;top:calc(env(safe-area-inset-top) + 118px);left:14px;z-index:12;border:1px solid #c7a96b88;border-radius:10px;padding:9px 15px;background:#101820ef;color:#f2d9a2;font-weight:800;font-size:12px}
+.chat-panel{position:absolute;left:12px;bottom:calc(env(safe-area-inset-bottom) + 112px);z-index:14;width:min(310px,calc(100vw - 24px));height:min(280px,38vh);display:flex;flex-direction:column;padding:10px;border:1px solid #c7a96b66;border-radius:13px;background:rgba(12,18,25,.96);color:#f5f2eb;box-shadow:0 12px 36px #0008;backdrop-filter:blur(12px)}
+.chat-panel.hidden{display:none}
+.chat-panel header{display:flex;align-items:center;justify-content:space-between;color:#e8cf98;font-size:12px;padding-bottom:7px;border-bottom:1px solid #ffffff18}
+.chat-panel header button{border:0;background:transparent;color:#fff;font-size:22px;line-height:1}
+.chat-messages{flex:1;overflow:auto;padding:7px 2px;display:flex;flex-direction:column;gap:5px}
+.chat-message{margin:0;color:#e1e5e8;font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.chat-message strong{color:#d8b977;margin-left:5px}
+.chat-message time{color:#788691;font-size:9px;margin-left:5px}
+.chat-form{display:flex;gap:6px;padding-top:7px;border-top:1px solid #ffffff18}
+.chat-form input{min-width:0;flex:1;height:36px;border:1px solid #ffffff24;border-radius:8px;background:#0a1118;color:#fff;padding:0 9px;font:inherit;font-size:11px;direction:rtl}
+.chat-form button{border:1px solid #c7a96b66;border-radius:8px;background:#c7a96b;color:#151515;padding:0 12px;font-size:11px;font-weight:800}
+@media(max-width:700px){.chat-toggle{top:calc(env(safe-area-inset-top) + 158px)}.chat-panel{bottom:calc(env(safe-area-inset-bottom) + 115px)}}
