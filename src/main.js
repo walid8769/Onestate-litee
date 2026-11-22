@@ -227,6 +227,92 @@ const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100
 const districts=createWorld(THREE,scene);
 const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player);
 player.position.set(0,0,0);
+
+let missionState=null,missionMarker=null;
+const missionPanel=$('#mission-panel'),missionList=$('#mission-list'),missionActive=$('#mission-active');
+const missionProgress=$('#mission-progress'),missionCompleteButton=$('#mission-complete');
+function clearMissionMarker(){
+  if(!missionMarker)return;
+  scene.remove(missionMarker);
+  missionMarker.traverse(node=>{node.geometry?.dispose?.();if(node.material){if(Array.isArray(node.material))node.material.forEach(m=>m.dispose?.());else node.material.dispose?.();}});
+  missionMarker=null;
+}
+function setActiveMission(mission,token,server,startedAt){
+  missionState={mission,token,server,startedAt};
+  missionList.classList.add('hidden');missionActive.classList.remove('hidden');
+  $('#mission-title').textContent=mission.title;
+  $('#mission-description').textContent=mission.description;
+  clearMissionMarker();
+  missionMarker=new THREE.Group();
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(4,.28,10,44),new THREE.MeshBasicMaterial({color:0x42e8d0,transparent:true,opacity:.9,depthWrite:false}));
+  ring.rotation.x=Math.PI/2;ring.position.y=.35;ring.renderOrder=20;missionMarker.add(ring);
+  const beam=new THREE.Mesh(new THREE.CylinderGeometry(.12,.38,7,12),new THREE.MeshBasicMaterial({color:0x42e8d0,transparent:true,opacity:.24,depthWrite:false}));
+  beam.position.y=3.5;beam.renderOrder=19;missionMarker.add(beam);
+  missionMarker.position.set(mission.destination.x,0,mission.destination.z);
+  scene.add(missionMarker);
+}
+async function loadMissions(){
+  if(!sessionToken){missionList.textContent='سجّل الدخول لعرض المهام.';return;}
+  try{
+    const data=await accountApi('/api/missions');
+    if(data.activeMission){
+      const active=data.activeMission;
+      const mission=(data.missions||[]).find(item=>item.id===active.id);
+      if(mission){setActiveMission(mission,active.token,active.server,active.startedAt);return;}
+    }
+    missionState=null;clearMissionMarker();missionActive.classList.add('hidden');missionList.classList.remove('hidden');missionList.innerHTML='';
+    for(const mission of data.missions||[]){
+      const card=document.createElement('article');card.className='mission-card';
+      const title=document.createElement('strong');title.textContent=mission.title;
+      const description=document.createElement('p');description.textContent=mission.description;
+      const reward=document.createElement('small');reward.textContent='المكافأة: '+mission.reward+' دولار • XP '+mission.xp;
+      const start=document.createElement('button');start.type='button';start.textContent='بدء المهمة';
+      start.addEventListener('click',async()=>{
+        if(!realtime.connected){const note=document.createElement('p');note.textContent='اتصل بالسيرفر أولاً لبدء المهمة.';missionList.prepend(note);return;}
+        try{
+          const result=await accountApi('/api/missions/start','POST',{missionId:mission.id,server:selectedServer});
+          setActiveMission(result.mission,result.missionToken,selectedServer,result.startedAt);
+        }catch(error){const note=document.createElement('p');note.textContent=error.message;missionList.prepend(note);}
+      });
+      card.append(title,description,reward,start);missionList.append(card);
+    }
+  }catch(error){missionList.textContent=error.message||'تعذر تحميل المهام.';}
+}
+$('#mission-toggle').addEventListener('click',()=>{missionPanel.classList.toggle('hidden');if(!missionPanel.classList.contains('hidden'))loadMissions();});
+$('#mission-close').addEventListener('click',()=>missionPanel.classList.add('hidden'));
+$('#mission-cancel').addEventListener('click',async()=>{
+  try{await accountApi('/api/missions/cancel','POST',{});missionState=null;clearMissionMarker();missionActive.classList.add('hidden');missionList.classList.remove('hidden');await loadMissions();}
+  catch(error){missionProgress.textContent=error.message;}
+});
+missionCompleteButton.addEventListener('click',async()=>{
+  if(!missionState)return;
+  missionCompleteButton.disabled=true;
+  try{
+    const result=await accountApi('/api/missions/complete','POST',{missionToken:missionState.token,server:missionState.server});
+    currentAccount=result.account;
+    $('#cash-value').textContent=Number(currentAccount.cash||0).toLocaleString('en-US');
+    $('#level-value').textContent=String(currentAccount.level||1);
+    $('#level-top').textContent=String(currentAccount.level||1);
+    missionProgress.textContent='اكتملت المهمة! المكافأة '+result.reward+' دولار و '+result.xp+' XP';
+    missionState=null;clearMissionMarker();
+    await refreshAccount();
+    setTimeout(()=>{missionActive.classList.add('hidden');missionList.classList.remove('hidden');loadMissions();},1400);
+  }catch(error){missionProgress.textContent=error.message||'تعذر إكمال المهمة.';missionCompleteButton.disabled=false;}
+});
+function updateMissionProgress(){
+  if(!missionState)return;
+  const destination=missionState.mission.destination;
+  const distance=Math.hypot(player.position.x-destination.x,player.position.z-destination.z);
+  const elapsed=(Date.now()-missionState.startedAt)/1000;
+  const remaining=Math.max(0,missionState.mission.minSeconds-elapsed);
+  const sameServer=realtime.connected&&selectedServer===missionState.server;
+  if(distance>12)missionProgress.textContent='المسافة إلى الهدف: '+Math.round(distance)+' م';
+  else if(remaining>0)missionProgress.textContent='وصلت إلى الهدف — انتظر '+Math.ceil(remaining)+' ثانية';
+  else if(!sameServer)missionProgress.textContent='اتصل بالسيرفر '+missionState.server+' لإكمال المهمة';
+  else missionProgress.textContent='وصلت! يمكنك إكمال المهمة الآن';
+  missionCompleteButton.disabled=distance>12||remaining>0||!sameServer;
+}
+
 const pedestrianSpecs=[
   {color:0x9b563d,pants:0x26384a,start:[-190,20],path:[[-190,20],[-160,20],[-160,50],[-190,50]]},
   {color:0x315f88,pants:0x30343b,start:[160,-50],path:[[160,-50],[190,-50],[190,-20],[160,-20]]},
