@@ -130,12 +130,12 @@ function disposeAvatarGroup(group){
   if(tag){tag.material.map?.dispose();tag.material.dispose();group.remove(tag);group.userData.nameTag=null;}
 }
 function setNameTag(group,name){
-  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=64;
   const ctx=canvas.getContext('2d');
-  ctx.fillStyle='rgba(9,15,22,.82)';ctx.fillRect(8,8,496,112);
-  ctx.strokeStyle='rgba(216,185,119,.9)';ctx.lineWidth=5;ctx.strokeRect(10,10,492,108);
-  ctx.fillStyle='#ffffff';ctx.font='bold 52px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
-  const label=String(name||'لاعب').slice(0,20);ctx.fillText(label,256,64,460);
+  ctx.fillStyle='rgba(9,15,22,.82)';ctx.fillRect(4,4,248,56);
+  ctx.strokeStyle='rgba(216,185,119,.9)';ctx.lineWidth=3;ctx.strokeRect(5,5,246,54);
+  ctx.fillStyle='#ffffff';ctx.font='bold 26px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+  const label=String(name||'لاعب').slice(0,20);ctx.fillText(label,128,32,230);
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
   const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
   sprite.position.set(0,2.55,0);sprite.scale.set(2.5,.62,1);
