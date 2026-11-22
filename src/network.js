@@ -52,7 +52,9 @@ export class NetworkClient {
     const now = performance.now();
     if (!this.connected || !this.socket || this.socket.readyState !== WebSocket.OPEN || now - this.lastSend < 70) return;
     this.lastSend = now;
-    this.socket.send(JSON.stringify({ type: 'move', x, z, yaw }));
+    if (this.socket.bufferedAmount > 128000) return;
+    try { this.socket.send(JSON.stringify({ type: 'move', x, z, yaw })); }
+    catch (error) { console.warn('[OneState Lite] Move packet failed', error); }
   }
 
   close() {
