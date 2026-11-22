@@ -1,8 +1,8 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
-import { KTX2Loader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/KTX2Loader.js';
-import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/meshopt_decoder.module.js';
-import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/loaders/GLTFLoader.js';
+import { KTX2Loader } from 'https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/libs/meshopt_decoder.module.js';
+import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/utils/SkeletonUtils.js';
 
 // Casual Walker by tevy — CC0 1.0; rigged humanoid with idle, walk, wave and look-around clips.
 // https://tevy.dev/models/casual-walker
@@ -17,7 +17,7 @@ let loaderConfigured = false;
 const modelPromises = new Map();
 function configureAvatarLoader(renderer) {
   if (loaderConfigured) return;
-  const ktx2 = new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/basis/').detectSupport(renderer);
+  const ktx2 = new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/libs/basis/').detectSupport(renderer);
   loader.setKTX2Loader(ktx2);
   loader.setMeshoptDecoder(MeshoptDecoder);
   loaderConfigured = true;
