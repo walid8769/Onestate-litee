@@ -65,7 +65,7 @@ scene.background=new THREE.Color(0x9eb8c9);
 scene.fog=new THREE.Fog(0x9eb8c9,170,520);
 const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,900);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.25:1.6));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -94,7 +94,7 @@ renderer.domElement.style.touchAction='none';
 scene.add(new THREE.HemisphereLight(0xeaf4ff,0x59614e,2.15));
 const sun=new THREE.DirectionalLight(0xffe6bd,2.35);
 sun.position.set(-90,140,75); sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);
+sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);
 sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;
 sun.shadow.bias=-.00012;sun.shadow.normalBias=.025;
 scene.add(sun);
@@ -102,7 +102,7 @@ const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100
 
 const districts=createWorld(THREE,scene);
 const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player);
-player.position.set(0,0,36);
+player.position.set(0,0,0);
 
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
 let activeVehicle=null,vehicleSpeed=0;
@@ -183,7 +183,7 @@ function animate(){
     activeVehicle.rotation.y-=moveX*vehicleSpeed*.018*dt;
     const fwd=new THREE.Vector3(-Math.sin(activeVehicle.rotation.y),0,-Math.cos(activeVehicle.rotation.y));
     moveWithCollision(activeVehicle,fwd.x*vehicleSpeed*dt,fwd.z*vehicleSpeed*dt,2.2);
-    for(const wheel of activeVehicle.userData.wheels||[])wheel.rotation.x+=vehicleSpeed*dt*.72;
+    if(!activeVehicle.userData.mixer)for(const wheel of activeVehicle.userData.wheels||[])wheel.rotation.x+=vehicleSpeed*dt*.72;
     player.position.copy(activeVehicle.position);player.rotation.y=activeVehicle.rotation.y;
   }else{
     moveWithCollision(player,direction.x*speed*dt,direction.z*speed*dt,.8);
@@ -193,6 +193,7 @@ function animate(){
   updateAvatar(player, activeVehicle?'idle':(moving?(running?'run':'walk'):'idle'), dt);
   for(const remote of remotePlayers.values())updateAvatar(remote.group,'idle',dt);
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
+  for(const vehicle of vehicles)vehicle.userData.mixer?.update(dt);
   if(activeVehicle){yaw=activeVehicle.rotation.y;vehiclePanel.style.display='flex';}else vehiclePanel.style.display='none';
   const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)* (activeVehicle?11:8), (activeVehicle?4.5:3.4)+pitch*3,Math.cos(yaw)*(activeVehicle?11:8)));
   camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
@@ -201,7 +202,7 @@ function animate(){
   renderer.render(scene,camera);
 }
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);});
 // Keep the loading screen visible until the real GLB environment has either loaded or failed.
 await districts.assetsReady;
 loading.classList.add('hidden');
