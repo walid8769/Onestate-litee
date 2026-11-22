@@ -13,6 +13,8 @@ const BUILDING_ASSETS={
   tower:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
   apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
   house:['https://tevy.dev/models/village-house/v2/lod0.glb','https://tevy.dev/models/village-house/v2/lod1.glb','https://tevy.dev/models/village-house/v2/lod2.glb'],
+  villa:['https://tevy.dev/models/timber-frame-house/v1/lod0.glb','https://tevy.dev/models/timber-frame-house/v1/lod1.glb','https://tevy.dev/models/timber-frame-house/v1/lod2.glb'],
+  cottage:['https://tevy.dev/models/red-cottage/v2/lod0.glb','https://tevy.dev/models/red-cottage/v2/lod1.glb','https://tevy.dev/models/red-cottage/v2/lod2.glb'],
   shop:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
   market:['https://tevy.dev/models/general-store/v1/lod0.glb','https://tevy.dev/models/general-store/v1/lod1.glb','https://tevy.dev/models/general-store/v1/lod2.glb'],
   supermarket:['https://tevy.dev/models/supermarket-shell/v2/lod0.glb','https://tevy.dev/models/supermarket-shell/v2/lod1.glb','https://tevy.dev/models/supermarket-shell/v2/lod2.glb'],
@@ -172,7 +174,7 @@ export function createWorld(T, scene) {
     model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){m.roughness=Math.max(m.roughness??.7,.42);}}}});
     return model;
   }
-  const architecturalKeys=new Set(['house','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','supermarket','factory','warehouse','fuelstation']);
+  const architecturalKeys=new Set(['house','villa','cottage','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','supermarket','factory','warehouse','fuelstation']);
   async function place(key,x,z,w,h,d,rotation=0){
     if(architecturalKeys.has(key)){
       if(BUILDING_ASSETS[key]){
@@ -226,7 +228,7 @@ export function createWorld(T, scene) {
       if(district.kind==='shops'&&ox===0&&oz===0)continue;
       let key='house',h=12+random()*5,w=13,d=13;
       if(district.kind==='tower'){key=random()>.45?'tower':'apartment';h=50+random()*15;w=20;d=18;}
-      if(district.kind==='homes'){key=random()>.82?'apartment':'house';h=key==='house'?7+random()*4:10+random()*3;w=13;d=13;}
+      if(district.kind==='homes'){const roll=random();key=roll>.86?'apartment':roll>.62?'villa':roll>.32?'cottage':'house';h=key==='apartment'?14:key==='villa'?12:key==='cottage'?9:9;w=key==='apartment'?16:key==='villa'?14:key==='cottage'?12:13;d=key==='apartment'?16:key==='villa'?12:key==='cottage'?11:13;}
       if(district.kind==='shops'){const choices=['shop','hotel','bank','office','restaurant','mall','market'];key=choices[Math.floor(random()*choices.length)];h=key==='mall'?26:key==='office'?42:key==='hotel'?22:key==='restaurant'?9:key==='market'?10:13+random()*7;w=key==='mall'?18:key==='office'?22:key==='restaurant'?8:key==='market'?12:18;d=key==='mall'?18:key==='office'?20:key==='restaurant'?13:key==='market'?14:18;}
       if(district.kind==='industrial'){key=random()>.5?'factory':'warehouse';h=15;w=20;d=20;}
       if(district.kind==='water'){key=random()>.5?'house':'shop';h=10+random()*5;w=14;d=14;}
