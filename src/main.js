@@ -44,7 +44,7 @@ refreshServerCounts();
 async function accountApi(path,method='GET',body=null){
   const base=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
   if(!base)throw new Error('أدخل رابط خدمة اللعب الجماعي أولاً');
-  const headers={'content-type':'application/json'};
+  const headers={'content-type':'application/json','x-game-server':selectedServer};
   if(sessionToken)headers.authorization='Bearer '+sessionToken;
   const response=await fetch(new URL(path,base),{method,headers,body:body?JSON.stringify(body):undefined});
   const data=await response.json().catch(()=>({error:'استجابة غير مفهومة من الخادم'}));
@@ -233,7 +233,7 @@ function updateRemote(p){
 
 document.querySelectorAll('.server').forEach(button=>button.addEventListener('click',()=>{
   document.querySelectorAll('.server').forEach(x=>x.classList.remove('active'));
-  button.classList.add('active'); selectedServer=button.dataset.server;
+  button.classList.add('active'); selectedServer=button.dataset.server; if(sessionToken)refreshAccount().catch(error=>setAccountStatus(error.message,'error'));
 }));
 
 const scene=new THREE.Scene();
