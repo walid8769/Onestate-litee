@@ -1,4 +1,6 @@
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
+import { KTX2Loader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
 import { createUrbanBuilding } from './architecture.js';
 
@@ -52,8 +54,11 @@ const FILES={
   hydrant:'https://tevy.dev/models/fire-hydrant/v1/lod1.glb'
 };
 
-export function createWorld(T, scene) {
+export function createWorld(T, scene, renderer) {
   const loader=new GLTFLoader();
+  const ktx2=new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/basis/').detectSupport(renderer);
+  loader.setKTX2Loader(ktx2);
+  loader.setMeshoptDecoder(MeshoptDecoder);
   const cache=new Map();
   const obstacles=[];
   const vehicles=[];
