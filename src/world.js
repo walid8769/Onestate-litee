@@ -9,6 +9,7 @@ const REAL_COUPE='https://cdn.3dassets.dev/assets/32488/v1/model.glb';
 const REAL_CITY_CAR='https://cdn.3dassets.dev/assets/32487/v1/model.glb';
 const REAL_SALOON='https://cdn.3dassets.dev/assets/32490/v1/model.glb';
 const REAL_AMBULANCE='https://tevy.dev/models/ambulance/v1/lod1.glb';
+const REAL_BUS='https://tevy.dev/models/city-bus/v1/lod1.glb';
 const BUILDING_ASSETS={
   tower:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
   apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
@@ -32,6 +33,7 @@ const FILES={
   car:REAL_CAR,
   electric:REAL_SUV,
   ambulance:REAL_AMBULANCE,
+  bus:REAL_BUS,
   van:REAL_VAN,
   coupe:REAL_COUPE,
   citycar:REAL_CITY_CAR,
@@ -271,7 +273,7 @@ export function createWorld(T, scene) {
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const dims=key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
+    const dims=key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
     const loaded=await place(key,x,z,...dims,rotation);
     if(!loaded)return null;
     // 3DAssets vehicle models face +Z; the driving rig uses -Z as forward.
@@ -311,7 +313,7 @@ export function createWorld(T, scene) {
   const carPlan=[
     ['car',31,-12,.05,false],['electric',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],
     ['saloon',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
-    ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],
+    ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],['bus',130,35,0,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
     ['car',-170,-30,Math.PI/2,false],['citycar',157,-117,0,false],['saloon',169,-117,0,false],['coupe',181,-117,0,false],['electric',193,-117,0,false]
   ];
