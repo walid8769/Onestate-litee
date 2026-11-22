@@ -46,6 +46,12 @@ function createAvatar(bodyColor=0x087b9e,pantsColor=0x202a38){
   root.userData={torso,arms,legs,headGroup};
   return root;
 }
+function disposeAvatarGroup(group){
+  scene.remove(group);
+  group.userData.avatarMixer?.stopAllAction();
+  const tag=group.userData.nameTag;
+  if(tag){tag.material.map?.dispose();tag.material.dispose();group.remove(tag);group.userData.nameTag=null;}
+}
 function setNameTag(group,name){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
   const ctx=canvas.getContext('2d');
@@ -60,7 +66,7 @@ function setNameTag(group,name){
   group.userData.nameTag=sprite;group.add(sprite);
 }
 function makeRemotePlayer(id,name){
-  const group=createAvatar(0x9b3940,0x252b35);setNameTag(group,name);scene.add(group);upgradeAvatar(group);
+  const group=createAvatar(0x9b3940,0x252b35);group.userData.remote=true;setNameTag(group,name);scene.add(group);upgradeAvatar(group);
   remotePlayers.set(id,{group,name,target:new THREE.Vector3(),targetYaw:0,lastPosition:new THREE.Vector3()});return group;
 }
 function handleNetworkEvent(event){
@@ -69,7 +75,7 @@ function handleNetworkEvent(event){
   if(event.type==='welcome'){networkStatus.textContent=`متصل • ${event.online||1}/100`;networkStatus.dataset.state='online';}
   if(event.type==='snapshot'){for(const p of event.players||[])updateRemote(p);}
   if(event.type==='player_joined'||event.type==='player_moved'){updateRemote(event.player);if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
-  if(event.type==='player_left'){const p=remotePlayers.get(event.id);if(p){scene.remove(p.group);remotePlayers.delete(event.id);}if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
+  if(event.type==='player_left'){const p=remotePlayers.get(event.id);if(p){disposeAvatarGroup(p.group);remotePlayers.delete(event.id);}if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
   if(event.type==='error'&&networkStatus){networkStatus.textContent=event.message||'تعذر الاتصال';networkStatus.dataset.state='offline';}
 }
 function updateRemote(p){
@@ -201,7 +207,7 @@ $('#play').addEventListener('click',()=>{
   menu.classList.add('hidden');game.classList.remove('hidden');
   realtime.connect(endpoint,selectedServer,playerName);
 });
-$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())scene.remove(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';vehicleButton.style.display='';runButton.textContent='ركض';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
+$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())disposeAvatarGroup(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';vehicleButton.style.display='';runButton.textContent='ركض';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
 const districtLabel=$('#district-label'),mapCanvas=$('#mini-map'),mapCtx=mapCanvas.getContext('2d');
 function drawMiniMap(){
   const ctx=mapCtx,w=mapCanvas.width,h=mapCanvas.height,s=1.05;
