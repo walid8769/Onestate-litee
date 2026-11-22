@@ -246,7 +246,7 @@ export function createWorld(T, scene) {
   plane(9,42,-117,140,sidewalkMat,-.075);
 
   const propPlan=[];
-  for(const [x,z] of [[-105,-105],[-105,105],[105,-105],[105,105],[-175,0],[175,0]]){
+  for(const [x,z] of [[-175,35],[175,-35],[35,175],[-35,-175],[-175,-105],[175,105]]){
     plane(25,25,x,z,mat(0x536d4b),-.02);
     for(let k=-1;k<=1;k++)propPlan.push({key:k===0?'tree2':'tree',x:x+k*7,z:z+(k%2)*3,w:5,h:9,d:5});
     propPlan.push({key:'bench',x,z:z+8,w:4,h:1.5,d:1.5});
