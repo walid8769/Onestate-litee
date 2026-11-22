@@ -7,6 +7,12 @@ import { upgradeAvatar, updateAvatar } from './avatar.js';
 const $ = (s) => document.querySelector(s);
 const loading=$('#loading'), menu=$('#menu'), game=$('#game');
 let selectedServer='ME1';
+const playerNameInput=$('#player-name');
+const realtimeUrlInput=$('#realtime-url');
+try{
+  playerNameInput.value=localStorage.getItem('onestate-player-name')||'لاعب';
+  realtimeUrlInput.value=localStorage.getItem('onestate-realtime-url')||new URLSearchParams(location.search).get('realtime')||window.ONESTATE_REALTIME_URL||'';
+}catch{}
 const remotePlayers=new Map();
 const networkStatus=$('#network-status');
 const realtime=new NetworkClient(handleNetworkEvent);
@@ -172,7 +178,14 @@ function endDrag(e){if(dragPointer===e.pointerId)dragPointer=null;}
 renderer.domElement.addEventListener('pointerup',endDrag);
 renderer.domElement.addEventListener('pointercancel',endDrag);
 
-$('#play').addEventListener('click',()=>{$('#server-label').textContent=selectedServer;menu.classList.add('hidden');game.classList.remove('hidden');const endpoint=window.ONESTATE_REALTIME_URL||'';realtime.connect(endpoint,selectedServer,'لاعب');});
+$('#play').addEventListener('click',()=>{
+  const playerName=(playerNameInput.value||'لاعب').trim().slice(0,20)||'لاعب';
+  const endpoint=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
+  try{localStorage.setItem('onestate-player-name',playerName);if(endpoint)localStorage.setItem('onestate-realtime-url',endpoint);}catch{}
+  $('#server-label').textContent=selectedServer;
+  menu.classList.add('hidden');game.classList.remove('hidden');
+  realtime.connect(endpoint,selectedServer,playerName);
+});
 $('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())scene.remove(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';vehicleButton.style.display='';runButton.textContent='ركض';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
 const districtLabel=$('#district-label'),mapCanvas=$('#mini-map'),mapCtx=mapCanvas.getContext('2d');
 function drawMiniMap(){
