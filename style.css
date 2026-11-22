@@ -44,3 +44,6 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
 }
 @media(min-width:700px){.tip{top:165px}.game .run{width:100px;height:100px;min-width:100px;min-height:100px}}
 
+
+.vehicle-action{display:none;position:absolute;right:50%;transform:translateX(50%);bottom:max(132px,calc(env(safe-area-inset-bottom) + 132px));z-index:8;padding:12px 22px;border-radius:14px;background:linear-gradient(145deg,#d9bf83,#987847);border:2px solid #f5e4bb;color:#17191b;font-weight:900;box-shadow:0 5px 20px #0009;touch-action:none;min-width:94px}.vehicle-action:active{transform:translateX(50%) scale(.95)}
+@media(min-width:700px){.vehicle-action{bottom:180px}}
