@@ -88,6 +88,12 @@ const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(pla
 player.position.set(0,0,36);
 
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
+let activeVehicle=null,vehicleSpeed=0;
+const vehicles= districts.vehicles || [];
+const vehicleButton=document.createElement('button');vehicleButton.id='vehicle';vehicleButton.className='vehicle-action';vehicleButton.textContent='قيادة';game.appendChild(vehicleButton);
+function nearestVehicle(){let best=null,dist=Infinity;for(const v of vehicles){const d=v.position.distanceTo(player.position);if(d<dist){dist=d;best=v;}}return dist<5?best:null;}
+function toggleVehicle(){if(activeVehicle){activeVehicle.userData.speed=0;activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';return;}const near=nearestVehicle();if(!near)return;activeVehicle=near;vehicleSpeed=0;player.visible=false;vehicleButton.textContent='نزول';}
+vehicleButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();toggleVehicle();});
 const joystick=$('#joystick'),stick=$('#stick'),runButton=$('#run');
 function setStick(e){
   const r=joystick.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
@@ -139,19 +145,26 @@ function animate(){
   const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
   const direction=forward.clone().multiplyScalar(-moveY).add(right.clone().multiplyScalar(moveX));
   if(direction.lengthSq()>1)direction.normalize();
-  player.position.addScaledVector(direction,speed*dt);
-  player.position.x=THREE.MathUtils.clamp(player.position.x,-250,250);player.position.z=THREE.MathUtils.clamp(player.position.z,-250,250);
+  if(activeVehicle){
+    const throttle=THREE.MathUtils.clamp(-moveY,-1,1);vehicleSpeed=THREE.MathUtils.damp(vehicleSpeed,throttle*23,2.4,dt);
+    activeVehicle.rotation.y-=moveX*vehicleSpeed*.018*dt;
+    const fwd=new THREE.Vector3(-Math.sin(activeVehicle.rotation.y),0,-Math.cos(activeVehicle.rotation.y));
+    activeVehicle.position.addScaledVector(fwd,vehicleSpeed*dt);
+    activeVehicle.position.x=THREE.MathUtils.clamp(activeVehicle.position.x,-245,245);activeVehicle.position.z=THREE.MathUtils.clamp(activeVehicle.position.z,-245,245);
+    player.position.copy(activeVehicle.position);player.rotation.y=activeVehicle.rotation.y;
+  }else{
+    player.position.addScaledVector(direction,speed*dt);
+    player.position.x=THREE.MathUtils.clamp(player.position.x,-250,250);player.position.z=THREE.MathUtils.clamp(player.position.z,-250,250);
+  }
   if(moving){player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,Math.atan2(direction.x,direction.z),Math.min(1,dt*12));walkTime+=dt*(running?12:8);}
   const swing=moving?Math.sin(walkTime)*.58:0;
-  updateAvatar(player, moving?(running?'run':'walk'):'idle', dt);
+  updateAvatar(player, activeVehicle?'idle':(moving?(running?'run':'walk'):'idle'), dt);
   for(const remote of remotePlayers.values())updateAvatar(remote.group,'idle',dt);
-  player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;
-  player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;
-  player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);
-  player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;
-  player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);
-  const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)*8,3.4+pitch*3,Math.cos(yaw)*8));
+  if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
+  if(activeVehicle)yaw=activeVehicle.rotation.y;
+  const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)* (activeVehicle?11:8), (activeVehicle?4.5:3.4)+pitch*3,Math.cos(yaw)*(activeVehicle?11:8)));
   camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
+  if(!activeVehicle){const near=nearestVehicle();vehicleButton.style.display=near?'block':'none';vehicleButton.textContent='قيادة';}else vehicleButton.style.display='block';
   updateDistrict();realtime.move(player.position.x,player.position.z,player.rotation.y);mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
   renderer.render(scene,camera);
 }
