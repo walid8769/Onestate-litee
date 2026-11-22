@@ -199,7 +199,9 @@ export function createWorld(T, scene) {
     loaded.rotation.y=Math.PI;
     model.add(loaded);
     scene.add(model);
-    model.userData={vehicle:true,emergency,speed:0,steer:0};
+    const wheelNodes=[];
+    loaded.traverse(node=>{if(/wheel-(front|rear).*(rubber|metal|accent)/i.test(node.name))wheelNodes.push(node);});
+    model.userData={vehicle:true,emergency,speed:0,steer:0,wheels:wheelNodes};
     if(emergency){
       const red=new T.MeshStandardMaterial({color:0xd92735,emissive:0x4a0508});
       const blue=new T.MeshStandardMaterial({color:0x236be8,emissive:0x071a52});
