@@ -1,6 +1,7 @@
 name = "onestate-lite-realtime"
 main = "worker/index.js"
 compatibility_date = "2026-11-22"
+workers_dev = true
 
 [durable_objects]
 bindings = [
@@ -10,3 +11,6 @@ bindings = [
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["GameRoom"]
+
+[observability]
+enabled = true
