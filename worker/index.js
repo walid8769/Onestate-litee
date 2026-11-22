@@ -140,6 +140,18 @@ export class GameRoom {
   broadcastMovement(player, sourceSocket) {
     const online = this.sessions.size;
     const moved = this.publicPlayer(player);
+    const ownVisible = this.visiblePlayers.get(sourceSocket) || new Set();
+    for (const [otherSocket, otherPlayer] of this.sessions) {
+      if (otherSocket === sourceSocket) continue;
+      const inRange = Math.hypot(otherPlayer.x-player.x,otherPlayer.z-player.z) <= PLAYER_VISIBILITY_RANGE;
+      if (inRange && !ownVisible.has(otherPlayer.id)) {
+        ownVisible.add(otherPlayer.id);
+        try { sourceSocket.send(JSON.stringify({ type: "player_joined", player: this.publicPlayer(otherPlayer), online })); } catch {}
+      } else if (!inRange && ownVisible.delete(otherPlayer.id)) {
+        try { sourceSocket.send(JSON.stringify({ type: "player_left", id: otherPlayer.id, online })); } catch {}
+      }
+    }
+    this.visiblePlayers.set(sourceSocket, ownVisible);
     for (const [socket, recipient] of this.sessions) {
       if (socket === sourceSocket) continue;
       const visible = this.visiblePlayers.get(socket) || new Set();
