@@ -81,6 +81,20 @@ test("mission rewards require the right destination and a minimum duration", asy
   }));
   assert.equal(tooFar.status, 409);
 
+  const crossServer = await store.fetch(new Request("https://accounts.test/api/missions/complete", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: "Bearer " + token,
+      "X-Game-Server": "ME1",
+      "X-Player-Server": "ME2",
+      "X-Player-X": "-175",
+      "X-Player-Z": "35"
+    },
+    body: JSON.stringify({ missionToken: started.missionToken })
+  }));
+  assert.equal(crossServer.status, 409);
+
   const completed = await store.fetch(new Request("https://accounts.test/api/missions/complete", {
     method: "POST",
     headers: {
