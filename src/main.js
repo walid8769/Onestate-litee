@@ -272,7 +272,7 @@ function animate(){
     const angleDelta=Math.atan2(Math.sin(remote.targetYaw-remote.group.rotation.y),Math.cos(remote.targetYaw-remote.group.rotation.y));
     remote.group.rotation.y+=angleDelta*(1-Math.exp(-dt*12));
     const remoteMoving=remote.group.position.distanceToSquared(remote.lastPosition)>.0008;
-    updateAvatar(remote.group,remoteMoving?'walk':'idle',dt);
+    if(remote.group.position.distanceToSquared(player.position)<22500)updateAvatar(remote.group,remoteMoving?'walk':'idle',dt);
     remote.lastPosition.copy(remote.group.position);
   }
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
