@@ -2,9 +2,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.m
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
 
-// Casual Man by vinish.dev — CC BY 4.0
-// https://vinish.dev/free-3d-models/people
-const MODEL_URL = 'https://models.vinish.dev/people/casual-man.glb';
+// Casual Walker by tevy — CC0 1.0; rigged humanoid with idle, walk, wave and look-around clips.
+// https://tevy.dev/models/casual-walker
+const MODEL_URL = 'https://tevy.dev/models/casual-walker/v1/lod0.glb';
 const loader = new GLTFLoader();
 let modelPromise;
 
