@@ -6,6 +6,10 @@ const PLAYER_VISIBILITY_RANGE = 220;
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // Answer browser CORS preflights at the Worker edge before forwarding to Durable Objects.
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: { ...AUTH_CORS, "cache-control": "no-store" } });
+    }
     if (url.pathname === "/api/health") {
       return Response.json({ status: "ok", service: "onestate-realtime", servers: [...SERVERS], capacityPerServer: MAX_PLAYERS }, { headers: { "access-control-allow-origin": "*", "cache-control": "no-store" } });
     }
