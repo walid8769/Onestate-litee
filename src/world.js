@@ -1,6 +1,5 @@
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
-import { createUrbanBuilding } from './architecture.js';
 
 const REAL_CAR='https://cdn.3dassets.dev/assets/18684/v1/model.glb';
 const REAL_SUV='https://cdn.3dassets.dev/assets/18686/v1/model.glb';
@@ -144,7 +143,14 @@ export function createWorld(T, scene) {
   }
 
   function loadUrl(url){
-    if(!cache.has(url))cache.set(url,loader.loadAsync(url));
+    if(!cache.has(url)){
+      const request=loader.loadAsync(url);
+      const bounded=new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>reject(new Error('GLB load timeout: '+url)),15000);
+        request.then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});
+      }).catch(error=>{cache.delete(url);throw error;});
+      cache.set(url,bounded);
+    }
     return cache.get(url);
   }
   function load(key){return loadUrl(FILES[key]);}
@@ -174,21 +180,24 @@ export function createWorld(T, scene) {
           lod.addLevel(middle,0);
           lod.position.set(x,0,z);lod.rotation.y=rotation;lod.updateMatrixWorld(true);scene.add(lod);
           Promise.all([loadUrl(urls[0]).catch(()=>null),loadUrl(urls[2]).catch(()=>null)]).then(([highGltf,farGltf])=>{
-            if(highGltf){
-              const high=cloneSkeleton(highGltf.scene);fitModel(high,w,h,d);
-              lod.levels[0].object=high;lod.remove(middle);lod.add(high);lod.addLevel(middle,72);
-            }
-            if(farGltf){
-              const far=cloneSkeleton(farGltf.scene);fitModel(far,w,h,d);
+            const high=highGltf?cloneSkeleton(highGltf.scene):middle;
+            if(high!==middle)fitModel(high,w,h,d);
+            const far=farGltf?cloneSkeleton(farGltf.scene):null;
+            if(far){
+              fitModel(far,w,h,d);
               far.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
-              lod.addLevel(far,145);
             }
-          });
+            lod.clear();
+            lod.levels.length=0;
+            lod.addLevel(high,0);
+            if(high!==middle)lod.addLevel(middle,72);
+            if(far)lod.addLevel(far,145);
+          }).catch(error=>console.warn('[OneState LOD] upgrade failed:',key,error));
           return lod;
         }catch(error){console.warn('[OneState buildings] realistic GLB failed:',key,error);}
       }
-      const building=createUrbanBuilding(T,key,w,h,d);
-      building.position.set(x,0,z);building.rotation.y=rotation;scene.add(building);return building;
+      console.warn('[OneState buildings] skipped unavailable realistic model:',key);
+      return null;
     }
     try{
       const gltf=await load(key);
