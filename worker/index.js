@@ -63,6 +63,12 @@ export class GameRoom {
     const client = pair[0], socket = pair[1];
     const id = request.headers.get("X-Player-Id") || crypto.randomUUID();
     const name = (request.headers.get("X-Player-Name") || url.searchParams.get("name") || "لاعب").trim().slice(0, 20) || "لاعب";
+    for (const [existingSocket, existingPlayer] of this.sessions) {
+      if (existingPlayer.id === id) {
+        try { existingSocket.close(4001, "Account reconnected"); } catch {}
+        this.onClose(existingSocket);
+      }
+    }
     if (this.sessions.size >= MAX_PLAYERS) {
       socket.accept();
       socket.send(JSON.stringify({ type: "error", code: "SERVER_FULL", message: "السيرفر ممتلئ" }));
