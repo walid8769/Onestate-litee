@@ -19,17 +19,17 @@
 
 واجهة اللعبة الحالية ثابتة ويمكن استضافتها على Cloudflare Pages من جذر المستودع. إعدادات البناء: Framework preset = None، Build command فارغ، Build output directory = `.`.
 
-## نشر خدمة اللعب اللحظي
+## نشر خدمة اللعب اللحظي — إعداد لمرة واحدة
 
-يتطلب ذلك نشر Worker منفصلاً من هذا المستودع باستخدام Wrangler:
+أضفت إجراء نشر جاهزاً في GitHub Actions حتى لا تحتاج لإعادة إعداد الخدمة مع كل تحديث:
 
-1. أنشئ Worker جديداً واربطه بالمستودع أو انشر مجلد المشروع من بيئة تدعم Wrangler.
-2. استخدم ملف `wrangler.toml` الموجود في الجذر.
-3. انشر Worker بعد تفعيل Durable Objects ومراجعة ترحيل `GameRoom`.
-4. اختبر `/api/health` ثم `/api/servers` على عنوان Worker.
-5. في صفحة اللعبة، عرّف `window.ONESTATE_REALTIME_URL` بعنوان Worker الأساسي قبل تحميل `src/main.js`، مثال: `https://اسم-worker.حساب.workers.dev`.
+1. أنشئ Cloudflare API Token بصلاحيات نشر Workers وإدارة Durable Objects للحساب.
+2. في GitHub افتح Settings → Secrets and variables → Actions، وأضف السرّين `CLOUDFLARE_API_TOKEN` و`CLOUDFLARE_ACCOUNT_ID`.
+3. افتح Actions → Deploy OneState realtime Worker → Run workflow. هذا ينشر خدمة WebSocket وغرف ME1 وME2 وME3.
+4. افتح عنوان Worker الناتج ثم أضف `/api/health`؛ يجب أن يرجع `status: ok`.
+5. انسخ عنوان Worker الأساسي إلى حقل «رابط خدمة اللعب الجماعي» في قائمة اللعبة مرة واحدة؛ تحفظه اللعبة على الجهاز تلقائياً.
 
-حتى يتم ضبط هذا العنوان ونشر Worker، سيبقى مؤشر الاتصال «غير متصل» وتعمل الواجهة محلياً فقط.
+بعد إعداد السرّين، يمكن تشغيل إجراء النشر عند الحاجة من GitHub Actions. لا أستطيع إنشاء Cloudflare API Token أو نشر Worker داخل حسابك من دون صلاحية الحساب، لذلك لم أزعم أن الاتصال أصبح مباشراً بالفعل.
 
 ## بنية البيانات
 
