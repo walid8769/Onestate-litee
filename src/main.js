@@ -46,8 +46,21 @@ function createAvatar(bodyColor=0x087b9e,pantsColor=0x202a38){
   root.userData={torso,arms,legs,headGroup};
   return root;
 }
+function setNameTag(group,name){
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='rgba(9,15,22,.82)';ctx.fillRect(8,8,496,112);
+  ctx.strokeStyle='rgba(216,185,119,.9)';ctx.lineWidth=5;ctx.strokeRect(10,10,492,108);
+  ctx.fillStyle='#ffffff';ctx.font='bold 52px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
+  const label=String(name||'لاعب').slice(0,20);ctx.fillText(label,256,64,460);
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+  const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false}));
+  sprite.position.set(0,2.55,0);sprite.scale.set(2.5,.62,1);
+  if(group.userData.nameTag){group.remove(group.userData.nameTag);group.userData.nameTag.material.map?.dispose();group.userData.nameTag.material.dispose();}
+  group.userData.nameTag=sprite;group.add(sprite);
+}
 function makeRemotePlayer(id,name){
-  const group=createAvatar(0x9b3940,0x252b35);scene.add(group);upgradeAvatar(group);
+  const group=createAvatar(0x9b3940,0x252b35);setNameTag(group,name);scene.add(group);upgradeAvatar(group);
   remotePlayers.set(id,{group,name,target:new THREE.Vector3(),targetYaw:0,lastPosition:new THREE.Vector3()});return group;
 }
 function handleNetworkEvent(event){
@@ -64,7 +77,8 @@ function updateRemote(p){
   let item=remotePlayers.get(p.id);
   if(!item)makeRemotePlayer(p.id,p.name);
   item=remotePlayers.get(p.id);
-  item.name=p.name||item.name;
+  const nextName=p.name||item.name;
+  if(nextName!==item.name){item.name=nextName;setNameTag(item.group,nextName);}
   item.target.set(p.x,0,p.z);
   if(Number.isFinite(p.yaw))item.targetYaw=p.yaw;
 }
@@ -180,6 +194,7 @@ renderer.domElement.addEventListener('pointercancel',endDrag);
 
 $('#play').addEventListener('click',()=>{
   const playerName=(playerNameInput.value||'لاعب').trim().slice(0,20)||'لاعب';
+  setNameTag(player,playerName);
   const endpoint=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
   try{localStorage.setItem('onestate-player-name',playerName);if(endpoint)localStorage.setItem('onestate-realtime-url',endpoint);}catch{}
   $('#server-label').textContent=selectedServer;
