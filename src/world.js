@@ -12,7 +12,7 @@ const REAL_AMBULANCE='https://tevy.dev/models/ambulance/v1/lod1.glb';
 const BUILDING_ASSETS={
   tower:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
   apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
-  house:['https://tevy.dev/models/korean-villa-block/v1/lod0.glb','https://tevy.dev/models/korean-villa-block/v1/lod1.glb','https://tevy.dev/models/korean-villa-block/v1/lod2.glb'],
+  house:['https://tevy.dev/models/village-house/v2/lod0.glb','https://tevy.dev/models/village-house/v2/lod1.glb','https://tevy.dev/models/village-house/v2/lod2.glb'],
   shop:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
   market:['https://tevy.dev/models/supermarket-shell/v2/lod0.glb','https://tevy.dev/models/supermarket-shell/v2/lod1.glb','https://tevy.dev/models/supermarket-shell/v2/lod2.glb'],
   office:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
