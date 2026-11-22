@@ -32,6 +32,7 @@ const FILES={
   car:REAL_CAR,
   electric:REAL_SUV,
   ambulance:REAL_AMBULANCE,
+  van:REAL_VAN,
   coupe:REAL_COUPE,
   citycar:REAL_CITY_CAR,
   saloon:REAL_SALOON,
@@ -226,7 +227,7 @@ export function createWorld(T, scene) {
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const dims=key==='ambulance'?[2.55,3.01,7.29]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'?[2,1.403,4.822]:[2.27,1.57,5.2];
+    const dims=key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'?[2,1.403,4.822]:[2.27,1.57,5.2];
     const loaded=await place(key,x,z,...dims,rotation);
     if(!loaded)return null;
     // 3DAssets vehicle models face +Z; the driving rig uses -Z as forward.
@@ -255,7 +256,7 @@ export function createWorld(T, scene) {
   const carPlan=[
     ['car',31,-12,.05,false],['electric',38,-12,.05,false],['coupe',-32,15,Math.PI,false],
     ['saloon',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
-    ['citycar',-102,-70,Math.PI/2,false],['electric',102,-70,Math.PI/2,false],
+    ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
     ['car',-170,-30,Math.PI/2,false]
   ];
@@ -265,7 +266,7 @@ export function createWorld(T, scene) {
     {x:-165,z:-140,rot:Math.PI/2,index:1,key:'citycar'},
     {x:210,z:-30,rot:Math.PI,index:2,key:'saloon'},
     {x:165,z:140,rot:-Math.PI/2,index:3,key:'coupe'},
-    {x:-210,z:30,rot:0,index:0}
+    {x:-210,z:30,rot:0,index:0,key:'van'}
   ];
   for(const p of trafficPlan){
     coreJobs.push(car(p.key||'car',p.x,p.z,p.rot,false).then(vehicle=>{
