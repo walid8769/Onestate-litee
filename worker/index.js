@@ -130,7 +130,7 @@ export class GameRoom {
     socket.accept();
     const spawnX = Number(request.headers.get("X-Player-Spawn-X")) || 0;
     const spawnZ = Number(request.headers.get("X-Player-Spawn-Z")) || 0;
-    const player = { id, name, x: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnX)), z: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnZ)), yaw: 0, lastMove: Date.now(), server };
+    const player = { id, name, x: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnX)), z: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnZ)), yaw: 0, lastMove: Date.now(), lastChat: 0, server };
     this.sessions.set(socket, player);
     socket.addEventListener("message", event => this.onMessage(socket, event.data));
     socket.addEventListener("close", () => this.onClose(socket));
@@ -198,6 +198,21 @@ export class GameRoom {
     if (!player) return;
     let data;
     try { data = JSON.parse(raw); } catch { return; }
+    if (data.type === "chat") {
+      const now = Date.now();
+      if (now - player.lastChat < 1400) return;
+      const message = String(data.message || "").replace(/[\\u0000-\\u001f\\u007f]/g, " ").trim().slice(0, 160);
+      if (!message) return;
+      player.lastChat = now;
+      const payload = JSON.stringify({ type: "chat", playerId: player.id, name: player.name, message, timestamp: now });
+      try { socket.send(payload); } catch {}
+      const visible = this.visiblePlayers.get(socket) || new Set();
+      for (const [recipientSocket, recipient] of this.sessions) {
+        if (recipientSocket === socket || !visible.has(recipient.id)) continue;
+        try { recipientSocket.send(payload); } catch { this.onClose(recipientSocket); }
+      }
+      return;
+    }
     if (data.type !== "move") return;
     const now = Date.now();
     const elapsedMs = now - player.lastMove;
