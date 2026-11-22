@@ -323,11 +323,12 @@ export function createWorld(T, scene) {
     {x:-165,z:-140,rot:Math.PI/2,index:1,key:'citycar'},
     {x:210,z:-30,rot:Math.PI,index:2,key:'saloon'},
     {x:165,z:140,rot:-Math.PI/2,index:3,key:'coupe'},
-    {x:-210,z:30,rot:0,index:0,key:'van'}
+    {x:-210,z:30,rot:0,index:0,key:'van'},
+    {x:0,z:-140,rot:-Math.PI/2,index:1,key:'bus',speed:4.5}
   ];
   for(const p of trafficPlan){
     coreJobs.push(car(p.key||'car',p.x,p.z,p.rot,false).then(vehicle=>{
-      if(vehicle)vehicle.userData.traffic={points:trafficLoop,index:p.index,speed:7.5};
+      if(vehicle)vehicle.userData.traffic={points:trafficLoop,index:p.index,speed:p.speed||7.5};
       return vehicle;
     }));
   }
