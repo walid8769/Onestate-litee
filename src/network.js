@@ -10,6 +10,7 @@ export class NetworkClient {
     this.shouldReconnect = false;
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
+    this.preflight = false;
   }
 
   connect(baseUrl, server, name = 'لاعب', token = '') {
@@ -27,8 +28,25 @@ export class NetworkClient {
     this.openSocket();
   }
 
-  openSocket() {
-    if (!this.shouldReconnect || !this.baseUrl) return;
+  async openSocket() {
+    if (!this.shouldReconnect || !this.baseUrl || this.preflight) return;
+    if (this.token) {
+      this.preflight = true;
+      try {
+        const check = await fetch(new URL('/api/auth/me', this.baseUrl), { headers: { authorization: 'Bearer ' + this.token } });
+        if (!this.shouldReconnect) return;
+        if (!check.ok) {
+          this.shouldReconnect = false;
+          this.onEvent({ type: 'auth_required' });
+          return;
+        }
+      } catch (error) {
+        this.onEvent({ type: 'network_error', message: 'تعذر التحقق من جلسة الحساب' });
+        this.scheduleReconnect();
+        return;
+      } finally { this.preflight = false; }
+    }
+    if (!this.shouldReconnect) return;
     try {
       const url = new URL(this.baseUrl);
       if (!['https:', 'http:'].includes(url.protocol)) throw new Error('عنوان الخادم غير صالح');
