@@ -359,12 +359,14 @@ export function createWorld(T, scene, renderer) {
       for(let row=0;row<5;row++)for(const side of [-1,1])add(group,new T.BoxGeometry(.045,.42,.92),glass,side*width*.485,height*.75,-length*.32+row*length*.14);
       add(group,new T.BoxGeometry(width*.72,.1,.07),trim,0,height*.9,-length*.06);
     }
+    const emergencyLights=[];
     if(key==='ambulance'||key==='policecar'||emergency){
-      const bar=add(group,new T.BoxGeometry(width*.62,.12,.32),trim,0,height*1.02,-length*.03);
-      add(group,new T.BoxGeometry(width*.25,.16,.28),new T.MeshStandardMaterial({color:0x2879ef,emissive:0x102c88}),-width*.17,height*1.04,-length*.03);
-      add(group,new T.BoxGeometry(width*.25,.16,.28),new T.MeshStandardMaterial({color:0xd82c36,emissive:0x65070c}),width*.17,height*1.04,-length*.03);
+      add(group,new T.BoxGeometry(width*.62,.12,.32),trim,0,height*1.02,-length*.03);
+      emergencyLights.push(add(group,new T.BoxGeometry(width*.25,.16,.28),new T.MeshStandardMaterial({color:0x2879ef,emissive:0x102c88}),-width*.17,height*1.04,-length*.03));
+      emergencyLights.push(add(group,new T.BoxGeometry(width*.25,.16,.28),new T.MeshStandardMaterial({color:0xd82c36,emissive:0x65070c}),width*.17,height*1.04,-length*.03));
     }
     group.userData.fallbackVehicle=true;
+    group.userData.emergencyLights=emergencyLights;
     return group;
   }
   async function car(key,x,z,rotation=0,emergency=false){
@@ -376,6 +378,7 @@ export function createWorld(T, scene, renderer) {
       loaded.rotation.y=rotation;
     }
     // Vehicle models face +Z; the driving rig uses -Z as forward.
+    const emergencyLights=[...(loaded.userData.emergencyLights||[])];
     const model=new T.Group();
     model.position.copy(loaded.position);
     model.rotation.y=rotation;
@@ -392,13 +395,13 @@ export function createWorld(T, scene, renderer) {
         wheelNodes.push(node);
       }
     });
-    model.userData={vehicle:true,type:key,emergency,speed:0,steer:0,wheels:wheelNodes,mixer:loaded.userData.mixer||null};
+    model.userData={...loaded.userData,vehicle:true,type:key,emergency,speed:0,steer:0,wheels:wheelNodes,mixer:loaded.userData.mixer||null,emergencyLights};
     if(emergency){
       const red=new T.MeshStandardMaterial({color:0xd92735,emissive:0x4a0508});
       const blue=new T.MeshStandardMaterial({color:0x236be8,emissive:0x071a52});
       const lightGeo=new T.BoxGeometry(.48,.16,.22);
       const a=new T.Mesh(lightGeo,red),b=new T.Mesh(lightGeo,blue);
-      a.position.set(-.42,1.95,0);b.position.set(.42,1.95,0);model.add(a,b);
+      a.position.set(-.42,1.95,0);b.position.set(.42,1.95,0);model.add(a,b);emergencyLights.push(a,b);
       const beacon=new T.Mesh(new T.BoxGeometry(1.15,.12,.34),new T.MeshStandardMaterial({color:0xf0f1ef,roughness:.45}));beacon.position.set(0,1.82,0);model.add(beacon);
     }
     if(key==='policecar'){
