@@ -1,0 +1,68 @@
+name: Build OneState iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "godot/**"
+      - ".github/workflows/godot-ios-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.4.1 and export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/godot" "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable"
+          curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot/godot.zip"
+          unzip -q "$RUNNER_TEMP/godot/godot.zip" -d "$RUNNER_TEMP/godot/app"
+          curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz" -o "$RUNNER_TEMP/godot/templates.tpz"
+          unzip -q "$RUNNER_TEMP/godot/templates.tpz" -d "$RUNNER_TEMP/godot/templates"
+          cp -R "$RUNNER_TEMP/godot/templates/templates/." "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable/"
+          GODOT_BIN="$(find "$RUNNER_TEMP/godot/app" -type f -path '*/Contents/MacOS/Godot' | head -n 1)"
+          test -n "$GODOT_BIN"
+          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
+          chmod +x "$GODOT_BIN"
+          "$GODOT_BIN" --version
+
+      - name: Import project and export Xcode project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ios
+          "$GODOT_BIN" --headless --editor --path godot --import
+          "$GODOT_BIN" --headless --path godot --export-debug "iOS" build/ios/OneStateLitee.xcodeproj
+          test -d build/ios/OneStateLitee.xcodeproj
+
+      - name: Build unsigned iPhone app
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -project build/ios/OneStateLitee.xcodeproj -list
+          xcodebuild -project build/ios/OneStateLitee.xcodeproj -scheme OneStateLitee -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/derived CODE_SIGNING_ALLOWED=NO build
+          APP_PATH="$(find build/derived/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -type d | head -n 1)"
+          test -n "$APP_PATH"
+          mkdir -p build/ipa/Payload
+          cp -R "$APP_PATH" build/ipa/Payload/
+          cd build/ipa
+          /usr/bin/zip -qry ../../OneState-Litee-unsigned.ipa Payload
+          cd ../..
+          test -s OneState-Litee-unsigned.ipa
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: OneState-Litee-unsigned-IPA
+          path: OneState-Litee-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
