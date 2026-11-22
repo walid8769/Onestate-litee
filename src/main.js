@@ -261,16 +261,16 @@ document.querySelectorAll('.server').forEach(button=>button.addEventListener('cl
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x9eb8c9);
 scene.fog=new THREE.Fog(0x9eb8c9,170,520);
-const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,900);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,900);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
 const touchViewport=()=>innerWidth<700||matchMedia('(pointer: coarse)').matches;
-renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.25:1.6));
+renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.4:1.8));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.12;
+renderer.toneMappingExposure=1.2;
 // CC0 1K outdoor HDRI: real sky reflections for glass, paint and wet surfaces.
 const pmrem=new THREE.PMREMGenerator(renderer);
 new RGBELoader().load(
@@ -290,14 +290,14 @@ new RGBELoader().load(
 game.prepend(renderer.domElement);
 renderer.domElement.style.touchAction='none';
 
-scene.add(new THREE.HemisphereLight(0xeaf4ff,0x59614e,2.15));
-const sun=new THREE.DirectionalLight(0xffe6bd,2.35);
+scene.add(new THREE.HemisphereLight(0xeaf4ff,0x59614e,2.35));
+const sun=new THREE.DirectionalLight(0xffe6bd,2.65);
 sun.position.set(-90,140,75); sun.castShadow=true;
 sun.shadow.mapSize.set(touchViewport()?1024:2048,touchViewport()?1024:2048);
 sun.shadow.camera.left=-360;sun.shadow.camera.right=360;sun.shadow.camera.top=360;sun.shadow.camera.bottom=-360;sun.shadow.camera.far=700;sun.shadow.camera.updateProjectionMatrix();
 sun.shadow.bias=-.00012;sun.shadow.normalBias=.025;
 scene.add(sun);
-const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100);scene.add(fill);
+const fill=new THREE.DirectionalLight(0xb9d5ff,.62);fill.position.set(90,45,-100);scene.add(fill);
 
 const districts=createWorld(THREE,scene,renderer);
 const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player,renderer);
@@ -547,7 +547,7 @@ const wheelSpinAxis=new THREE.Vector3(1,0,0),wheelSteerAxis=new THREE.Vector3(0,
 const wheelSpinQ=new THREE.Quaternion(),wheelSteerQ=new THREE.Quaternion(),wheelIdentityQ=new THREE.Quaternion();
 function animate(){
   requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);
-  const moving=Math.abs(moveX)+Math.abs(moveY)>.08,speed=running?5.3:2.8;
+  const moving=Math.abs(moveX)+Math.abs(moveY)>.08,speed=running?7.0:3.8;
   const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
   const direction=forward.clone().multiplyScalar(-moveY).add(right.clone().multiplyScalar(moveX));
   if(direction.lengthSq()>1)direction.normalize();
@@ -629,8 +629,8 @@ function animate(){
     }
   }
   if(activeVehicle){yaw=activeVehicle.rotation.y;vehiclePanel.style.display='flex';}else vehiclePanel.style.display='none';
-  const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)* (activeVehicle?11:8), (activeVehicle?4.5:3.4)+pitch*3,Math.cos(yaw)*(activeVehicle?11:8)));
-  camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
+  const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)*(activeVehicle?12:5.8),(activeVehicle?4.8:2.75)+pitch*2.2,Math.cos(yaw)*(activeVehicle?12:5.8)));
+  camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.32,player.position.z);
   if(!activeVehicle){const near=nearestVehicle();vehicleButton.style.display=near?'block':'none';vehicleButton.textContent='قيادة';}else vehicleButton.style.display='block';
   if(missionMarker)missionMarker.rotation.y+=dt*.65;
   updateMissionProgress();
@@ -642,7 +642,7 @@ function animate(){
   renderer.render(scene,camera);
 }
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.25:1.6));renderer.setSize(innerWidth,innerHeight);sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.4:1.8));renderer.setSize(innerWidth,innerHeight);sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);});
 // Keep the loading screen visible until the real GLB environment has either loaded or failed.
 await districts.assetsReady;
 loading.classList.add('hidden');
