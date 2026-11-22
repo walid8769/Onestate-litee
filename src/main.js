@@ -193,7 +193,22 @@ function animate(){
   updateAvatar(player, activeVehicle?'idle':(moving?(running?'run':'walk'):'idle'), dt);
   for(const remote of remotePlayers.values())updateAvatar(remote.group,'idle',dt);
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
-  for(const vehicle of vehicles)vehicle.userData.mixer?.update(dt);
+  for(const vehicle of vehicles){
+    vehicle.userData.mixer?.update(dt);
+    const traffic=vehicle.userData.traffic;
+    if(traffic&&!activeVehicle){
+      const target=traffic.points[traffic.index];
+      const dx=target[0]-vehicle.position.x,dz=target[1]-vehicle.position.z;
+      const distance=Math.hypot(dx,dz);
+      if(distance<2)traffic.index=(traffic.index+1)%traffic.points.length;
+      else{
+        const step=Math.min(distance,traffic.speed*dt);
+        vehicle.position.x+=dx/distance*step;
+        vehicle.position.z+=dz/distance*step;
+        vehicle.rotation.y=Math.atan2(-dx,-dz);
+      }
+    }
+  }
   if(activeVehicle){yaw=activeVehicle.rotation.y;vehiclePanel.style.display='flex';}else vehiclePanel.style.display='none';
   const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)* (activeVehicle?11:8), (activeVehicle?4.5:3.4)+pitch*3,Math.cos(yaw)*(activeVehicle?11:8)));
   camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
