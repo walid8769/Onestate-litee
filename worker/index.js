@@ -494,7 +494,6 @@ export class AccountStore {
       const mission = AUTH_MISSIONS.find(item => item.id === active.id && item.job === profile.job);
       if (!mission) return authReply({ error: "المهمة لم تعد متاحة" }, 409);
       if (Date.now() - active.startedAt < mission.minSeconds * 1000) return authReply({ error: "أكمل وقت المهمة أولاً" }, 425);
-      const server = request.headers.get("X-Player-Server");
       const x = Number(request.headers.get("X-Player-X")), z = Number(request.headers.get("X-Player-Z"));
       if (server !== active.server || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "عد إلى السيرفر الذي بدأت فيه المهمة" }, 409);
       if (Math.hypot(x - mission.destination.x, z - mission.destination.z) > 12) return authReply({ error: "اقترب من نقطة تسليم المهمة" }, 409);
