@@ -35,11 +35,11 @@ The city uses pinned Tevy GLB models for the main building types and public land
 
 ## Vehicles
 
-- Estate Car: https://tevy.dev/models/estate-car
+- Electric Grand Tourer: https://tevy.dev/models/electric-gt
 - Family Sedan: https://tevy.dev/models/family-sedan
 - SUV: https://tevy.dev/models/suv
 - Family Minivan: https://tevy.dev/models/family-minivan
-- Muscle Car: https://tevy.dev/models/muscle-car
+- Mid-Engine Supercar: https://tevy.dev/models/supercar
 - Police Patrol Car: https://tevy.dev/models/police-car
 - City Taxi: https://tevy.dev/models/city-taxi
 - Ambulance: https://tevy.dev/models/ambulance
