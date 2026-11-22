@@ -56,7 +56,7 @@ export async function upgradeAvatar(root, renderer, variant = 'casual') {
     const bounds = new THREE.Box3().setFromObject(model);
     const size = bounds.getSize(new THREE.Vector3());
     const height = Math.max(size.y, 0.01);
-    model.scale.setScalar(1.82 / height);
+    model.scale.setScalar(2.02 / height);
     model.updateMatrixWorld(true);
     const normalized = new THREE.Box3().setFromObject(model);
     const center = normalized.getCenter(new THREE.Vector3());
