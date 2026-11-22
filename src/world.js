@@ -530,7 +530,7 @@ export function createWorld(T, scene, renderer) {
   const carPlan=[
     ['car',31,-12,.05,false],['suv',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],['fireengine',80,54,Math.PI/2,true],
     ['saloon',8,34,Math.PI/2,false],['ambulance',-54,82,Math.PI,true],['fireengine',54,82,Math.PI,true],
-    ['fbiSUV',440,-385,Math.PI/2,true],['saloon',440,-397,Math.PI/2,false],
+    ['fbiSUV',470,-410,Math.PI/2,true],['saloon',470,-397,Math.PI/2,false],
     ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],['bus',130,35,0,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
     ['car',-170,-30,Math.PI/2,false],['citycar',157,-117,0,false],['saloon',169,-117,0,false],['coupe',181,-117,0,false],['suv',193,-117,0,false]
