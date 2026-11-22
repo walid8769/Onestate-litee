@@ -163,7 +163,15 @@ function drawMiniMap(){
   for(let p=-280;p<=280;p+=70){ctx.beginPath();ctx.moveTo(-340,p);ctx.lineTo(340,p);ctx.stroke();ctx.beginPath();ctx.moveTo(p,-340);ctx.lineTo(p,340);ctx.stroke();}
   ctx.strokeStyle='#c0bba9';ctx.lineWidth=1.7;
   for(let p=-280;p<=280;p+=70){ctx.beginPath();ctx.moveTo(-340,p-8);ctx.lineTo(340,p-8);ctx.stroke();ctx.beginPath();ctx.moveTo(p-8,-340);ctx.lineTo(p-8,340);ctx.stroke();}
-  ctx.fillStyle='#9da9a5';for(const d of districts){for(let x=-1;x<=1;x++)for(let z=-1;z<=1;z++){const bx=d.cx+x*19,bz=d.cz+z*19;if(Math.abs(bx)<19&&Math.abs(bz)<19)continue;ctx.fillRect(bx-5,bz-5,10,10);}}
+  ctx.fillStyle='#9da9a5';
+  for(const d of districts){
+    const offsets=d.kind==='tower'?[-30,30]:d.kind==='industrial'?[-13,13]:d.kind==='shops'?[-16,0,16]:[-17,0,17];
+    for(const ox of offsets)for(const oz of offsets){
+      if(d.kind==='shops'&&ox===0&&oz===0)continue;
+      ctx.fillRect(d.cx+ox-5,d.cz+oz-5,10,10);
+    }
+  }
+  ctx.fillStyle='#d4b16d';ctx.fillRect(-66,-66,8,8);ctx.fillRect(46,-66,8,8);ctx.fillRect(-66,42,8,8);ctx.fillRect(46,42,8,8);
   ctx.restore();ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-yaw);ctx.fillStyle='#ffe16b';ctx.strokeStyle='#1b2228';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(8,9);ctx.lineTo(0,5);ctx.lineTo(-8,9);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
 }
 function updateDistrict(){let nearest=districts[0],best=Infinity;for(const d of districts){const dist=Math.hypot(player.position.x-d.cx,player.position.z-d.cz);if(dist<best){best=dist;nearest=d;}}districtLabel.textContent=best<115?nearest.name:'أطراف المدينة';}
