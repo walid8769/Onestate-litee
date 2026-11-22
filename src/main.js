@@ -556,6 +556,11 @@ function animate(){
   if(moving&&!activeVehicle){player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,Math.atan2(direction.x,direction.z),Math.min(1,dt*12));walkTime+=dt*(running?12:8);}
   const swing=moving?Math.sin(walkTime)*.58:0;
   updateAvatar(player, activeVehicle?'idle':(moving?(running?'run':'walk'):'idle'), dt);
+  for(const tree of districts.windObjects||[]){
+    const wind=clock.elapsedTime*.72+tree.phase;
+    tree.object.rotation.z=Math.sin(wind)*tree.amplitude;
+    tree.object.rotation.x=Math.cos(wind*.83)*tree.amplitude*.42;
+  }
   for(const npc of pedestrians){
     const target=npc.path[npc.index],dx=target[0]-npc.group.position.x,dz=target[1]-npc.group.position.z;
     const distance=Math.hypot(dx,dz);
