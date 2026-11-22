@@ -38,3 +38,6 @@
 - اختبارات تحميل فعلية لكل سيرفر للتأكد من 100 لاعب متزامن مع قياس زمن الاستجابة واستهلاك الموارد.
 
 لا يُعلن الإصدار نهائياً ولا تُعلن سعة 100 لاعب مدعومة قبل إنجاز واختبار هذه المتطلبات.
+## Credits and third-party assets
+
+- Casual Man character model, rig and Idle/Walk/Run animations by vinish.dev: https://vinish.dev/free-3d-models/people — Creative Commons Attribution 4.0 International (CC BY 4.0). The game loads the GLB from https://models.vinish.dev/people/casual-man.glb. The model is used with its original credit; any recolouring or modification must be noted in the shipped credits.
