@@ -14,6 +14,7 @@ const REAL_SALOON='https://tevy.dev/models/family-sedan/v1/lod1.glb';
 const REAL_AMBULANCE='https://tevy.dev/models/ambulance/v1/lod1.glb';
 const REAL_BUS='https://tevy.dev/models/city-bus/v1/lod1.glb';
 const REAL_POLICE='https://tevy.dev/models/police-car/v1/lod1.glb';
+const REAL_FIRE_ENGINE='https://tevy.dev/models/fire-engine/v1/lod1.glb';
 const BUILDING_ASSETS={
   tower:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
   apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
@@ -46,6 +47,7 @@ const FILES={
   citycar:REAL_CITY_CAR,
   saloon:REAL_SALOON,
   policecar:REAL_POLICE,
+  fireengine:REAL_FIRE_ENGINE,
   tree:'https://tevy.dev/models/european-beech/v1/lod2.glb',
   tree2:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
   lamp:'https://tevy.dev/models/city-street-lamp/v1/lod1.glb',
@@ -414,7 +416,7 @@ export function createWorld(T, scene, renderer) {
     return model;
   }
   const carPlan=[
-    ['car',31,-12,.05,false],['suv',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],
+    ['car',31,-12,.05,false],['suv',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],['fireengine',80,54,Math.PI/2,true],
     ['saloon',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
     ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],['bus',130,35,0,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
