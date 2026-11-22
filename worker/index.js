@@ -10,7 +10,7 @@ export default {
       return Response.json({ status: "ok", service: "onestate-realtime", servers: [...SERVERS], capacityPerServer: MAX_PLAYERS });
     }
     if (url.pathname === "/api/profile/save-position" && request.method === "POST") {
-      const token = (request.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "").trim();
+      const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
       if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const accountStore = env.ACCOUNT_STORE.get(accountId);
