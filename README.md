@@ -28,7 +28,7 @@
 
 ## نشر خدمة اللعب الجماعي على Cloudflare Workers
 
-يوجد إجراء GitHub Actions باسم **Deploy OneState realtime Worker**:
+يوجد إجراء [Deploy OneState realtime Worker](https://github.com/walid8769/Onestate-litee/actions/workflows/deploy-realtime.yml) في GitHub Actions:
 
 1. أنشئ Cloudflare API Token بصلاحيات إدارة ونشر Workers وDurable Objects للحساب.
 2. في GitHub افتح Settings → Secrets and variables → Actions، وأضف:
