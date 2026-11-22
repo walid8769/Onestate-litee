@@ -11,6 +11,7 @@ export class NetworkClient {
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
     this.preflight = false;
+    this.generation = 0;
   }
 
   connect(baseUrl, server, name = 'لاعب', token = '') {
@@ -30,23 +31,26 @@ export class NetworkClient {
 
   async openSocket() {
     if (!this.shouldReconnect || !this.baseUrl || this.preflight) return;
+    const generation = this.generation;
     if (this.token) {
       this.preflight = true;
       try {
         const check = await fetch(new URL('/api/auth/me', this.baseUrl), { headers: { authorization: 'Bearer ' + this.token, 'x-game-server': this.server } });
-        if (!this.shouldReconnect) return;
+        if (!this.shouldReconnect || generation !== this.generation) return;
         if (!check.ok) {
           this.shouldReconnect = false;
           this.onEvent({ type: 'auth_required' });
           return;
         }
       } catch (error) {
-        this.onEvent({ type: 'network_error', message: 'تعذر التحقق من جلسة الحساب' });
-        this.scheduleReconnect();
+        if (generation === this.generation) {
+          this.onEvent({ type: 'network_error', message: 'تعذر التحقق من جلسة الحساب' });
+          this.scheduleReconnect();
+        }
         return;
-      } finally { this.preflight = false; }
+      } finally { if (generation === this.generation) this.preflight = false; }
     }
-    if (!this.shouldReconnect) return;
+    if (!this.shouldReconnect || generation !== this.generation) return;
     try {
       const url = new URL(this.baseUrl);
       if (!['https:', 'http:'].includes(url.protocol)) throw new Error('عنوان الخادم غير صالح');
@@ -123,6 +127,8 @@ export class NetworkClient {
   }
 
   close() {
+    this.generation += 1;
+    this.preflight = false;
     this.shouldReconnect = false;
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.reconnectTimer = null;
