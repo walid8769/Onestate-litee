@@ -233,7 +233,12 @@ function updateRemote(p){
 
 document.querySelectorAll('.server').forEach(button=>button.addEventListener('click',()=>{
   document.querySelectorAll('.server').forEach(x=>x.classList.remove('active'));
-  button.classList.add('active'); selectedServer=button.dataset.server; if(sessionToken)refreshAccount().catch(error=>setAccountStatus(error.message,'error'));
+  button.classList.add('active');
+  const nextServer=button.dataset.server;
+  if(nextServer===selectedServer)return;
+  selectedServer=nextServer;
+  if(missionState){missionState=null;clearMissionMarker();missionActive.classList.add('hidden');missionList.classList.remove('hidden');}
+  if(sessionToken)refreshAccount().catch(error=>setAccountStatus(error.message||'تعذر تحميل بيانات السيرفر','error'));
 }));
 
 const scene=new THREE.Scene();
