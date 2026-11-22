@@ -39,7 +39,9 @@ const BUILDING_ASSETS={
   cityhall:['https://tevy.dev/models/town-hall/v1/lod0.glb','https://tevy.dev/models/town-hall/v1/lod1.glb','https://tevy.dev/models/town-hall/v1/lod2.glb'],
   factory:['https://tevy.dev/models/factory-hall/v1/lod0.glb','https://tevy.dev/models/factory-hall/v1/lod1.glb','https://tevy.dev/models/factory-hall/v1/lod2.glb'],
   warehouse:['https://tevy.dev/models/warehouse/v2/lod0.glb','https://tevy.dev/models/warehouse/v2/lod1.glb','https://tevy.dev/models/warehouse/v2/lod2.glb'],
-  fuelstation:['https://tevy.dev/models/fuel-station/v2/lod0.glb','https://tevy.dev/models/fuel-station/v2/lod1.glb','https://tevy.dev/models/fuel-station/v2/lod2.glb']
+  fuelstation:['https://tevy.dev/models/fuel-station/v2/lod0.glb','https://tevy.dev/models/fuel-station/v2/lod1.glb','https://tevy.dev/models/fuel-station/v2/lod2.glb'],
+  fbi:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
+  militaryHangar:['https://tevy.dev/models/aircraft-hangar/v2/lod0.glb','https://tevy.dev/models/aircraft-hangar/v2/lod1.glb','https://tevy.dev/models/aircraft-hangar/v2/lod2.glb']
 };
 const FILES={
   car:REAL_CAR,
@@ -60,7 +62,11 @@ const FILES={
   shelter:'https://tevy.dev/models/glass-bus-shelter/v1/lod2.glb',
   bin:'https://tevy.dev/models/waste-bin/v1/lod1.glb',
   hydrant:'https://tevy.dev/models/fire-hydrant/v1/lod1.glb',
-  sidewalkFence:'https://tevy.dev/models/city-sidewalk-guard-fence-12-m/v1/lod1.glb'
+  sidewalkFence:'https://tevy.dev/models/city-sidewalk-guard-fence-12-m/v1/lod1.glb',
+  militaryGuardTower:'https://tevy.dev/models/military-guard-tower/v1/lod1.glb',
+  militaryVehicle:'https://tevy.dev/models/military-utility-vehicle/v1/lod1.glb',
+  battleTank:'https://tevy.dev/models/main-battle-tank/v1/lod1.glb',
+  infantryFightingVehicle:'https://tevy.dev/models/tracked-infantry-fighting-vehicle/v1/lod1.glb'
 };
 
 export function createWorld(T, scene, renderer) {
@@ -83,7 +89,9 @@ export function createWorld(T, scene, renderer) {
     {name:'ضواحي الشمال الغربي',cx:-245,cz:-245,kind:'homes'},
     {name:'ضواحي الشمال الشرقي',cx:245,cz:-245,kind:'homes'},
     {name:'ضواحي الجنوب الشرقي',cx:245,cz:245,kind:'shops'},
-    {name:'الميناء الصناعي',cx:-245,cz:245,kind:'industrial'}
+    {name:'الميناء الصناعي',cx:-245,cz:245,kind:'industrial'},
+    {name:'المقر الفيدرالي FBI',cx:385,cz:-385,kind:'federal'},
+    {name:'القاعدة العسكرية',cx:420,cz:490,kind:'military'}
   ];
   const mat=(color,roughness=1,metalness=0)=>new T.MeshStandardMaterial({color,roughness,metalness});
   const groundMat=mat(0x64765b,1);
@@ -146,18 +154,18 @@ export function createWorld(T, scene, renderer) {
   createCityTerrain();
 
   // Continuous road network with clean flat geometry; all buildings and vehicles are loaded GLB assets.
-  for(let p=-280;p<=280;p+=70){
-    plane(700,17,0,p,roadMat,-.105);plane(17,700,p,0,roadMat,-.105);
+  for(let p=-490;p<=490;p+=70){
+    plane(1050,17,0,p,roadMat,-.105);plane(17,1050,p,0,roadMat,-.105);
     for(const s of [-1,1]){
-      plane(700,2.5,0,p+s*10.2,sidewalkMat,-.045);
-      plane(2.5,700,p+s*10.2,0,sidewalkMat,-.045);
+      plane(1050,2.5,0,p+s*10.2,sidewalkMat,-.045);
+      plane(2.5,1050,p+s*10.2,0,sidewalkMat,-.045);
       const curbH=.18;
-      const horizontalCurb=new T.Mesh(new T.BoxGeometry(700,curbH,.25),curbMat);
+      const horizontalCurb=new T.Mesh(new T.BoxGeometry(1050,curbH,.25),curbMat);
       horizontalCurb.position.set(0,-.015,p+s*8.62);horizontalCurb.castShadow=true;horizontalCurb.receiveShadow=true;scene.add(horizontalCurb);
-      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,700),curbMat);
+      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,1050),curbMat);
       verticalCurb.position.set(p+s*8.62,-.015,0);verticalCurb.castShadow=true;verticalCurb.receiveShadow=true;scene.add(verticalCurb);
     }
-    for(let q=-340;q<350;q+=18){
+    for(let q=-510;q<520;q+=18){
       plane(5.5,.13,q,p,markingMat,-.045);
       plane(.13,5.5,p,q,markingMat,-.045);
     }
@@ -192,7 +200,7 @@ export function createWorld(T, scene, renderer) {
     model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;const materials=Array.isArray(o.material)?o.material:[o.material];for(const material of materials){for(const map of [material.map,material.normalMap,material.roughnessMap,material.metalnessMap,material.aoMap])if(map)map.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());}}});
     return model;
   }
-  const architecturalKeys=new Set(['house','villa','cottage','apartment','tower','koreanTower','pencil','adobe','publicHousing','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','supermarket','factory','warehouse','fuelstation']);
+  const architecturalKeys=new Set(['house','villa','cottage','apartment','tower','koreanTower','pencil','adobe','publicHousing','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','supermarket','factory','warehouse','fuelstation','fbi','militaryHangar']);
   async function place(key,x,z,w,h,d,rotation=0){
     if(architecturalKeys.has(key)){
       if(BUILDING_ASSETS[key]){
@@ -245,6 +253,7 @@ export function createWorld(T, scene, renderer) {
   const seeded=()=>{let s=731;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};};
   const random=seeded();
   districts.forEach((district)=>{
+    if(district.kind==='federal'||district.kind==='military')return;
     const slots=district.kind==='tower'?[-38,38]:district.kind==='industrial'?[-13,13]:district.kind==='shops'?[-16,0,16]:[-24,0,24];
     for(const ox of slots)for(const oz of slots){
       const x=district.cx+ox,z=district.cz+oz;
@@ -268,7 +277,11 @@ export function createWorld(T, scene, renderer) {
     {key:'firestation',x:54,z:54,w:21,h:15,d:21},
     {key:'fuelstation',x:105,z:-35,w:16,h:6,d:13},
     {key:'supermarket',x:105,z:-105,w:30,h:8,d:22},
-    {key:'publicHousing',x:-245,z:-180,w:42,h:14,d:10}
+    {key:'publicHousing',x:-245,z:-180,w:42,h:14,d:10},
+    {key:'fbi',x:385,z:-385,w:46,h:71,d:29},
+    {key:'militaryHangar',x:385,z:455,w:62,h:19,d:53},
+    {key:'warehouse',x:455,z:455,w:36,h:13,d:24},
+    {key:'warehouse',x:385,z:525,w:34,h:12,d:22}
   ];
   for(const p of landmarkPlan){
     obstacles.push({x:p.x,z:p.z,halfX:p.w*.5+1,halfZ:p.d*.5+1});
@@ -278,6 +291,42 @@ export function createWorld(T, scene, renderer) {
   const coreJobs=[];
   for(const p of buildingPlan)coreJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
   for(const p of landmarkPlan)coreJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
+  // Military base: a fenced, guarded compound with real GLB towers and vehicles.
+  const militaryAssets=[
+    ['militaryGuardTower',360,430,15,10,6,0],['militaryGuardTower',480,430,15,10,6,Math.PI],
+    ['militaryGuardTower',360,550,15,10,6,0],['militaryGuardTower',480,550,15,10,6,Math.PI],
+    ['militaryVehicle',448,500,2.7,4,5.4,Math.PI],['battleTank',455,525,3.8,4.5,9.7,Math.PI/2],
+    ['infantryFightingVehicle',455,545,3.8,3.9,7.7,Math.PI/2]
+  ];
+  for(const [key,x,z,w0,h0,d0,rot] of militaryAssets){
+    coreJobs.push(place(key,x,z,w0,h0,d0,rot));
+    if(key==='militaryGuardTower')obstacles.push({x,z,halfX:3.2,halfZ:3.2});
+  }
+  // Repeated 12 m CC0 fence modules define a clear military perimeter.
+  for(let x=366;x<=474;x+=12){
+    coreJobs.push(place('sidewalkFence',x,430,1.2,2.2,12,Math.PI/2));
+    coreJobs.push(place('sidewalkFence',x,550,1.2,2.2,12,Math.PI/2));
+  }
+  for(let z=442;z<=538;z+=12){
+    coreJobs.push(place('sidewalkFence',360,z,1.2,2.2,12,0));
+    coreJobs.push(place('sidewalkFence',480,z,1.2,2.2,12,0));
+  }
+  // Agency signs are real 3D boards with crisp canvas lettering, not flat UI labels.
+  function agencySign(title,subtitle,x,z,width,color){
+    const group=new T.Group();
+    const metal=new T.MeshStandardMaterial({color:0x252d35,metalness:.72,roughness:.34});
+    const board=new T.Mesh(new T.BoxGeometry(width,2.6,.34),metal);board.position.y=5.4;group.add(board);
+    const canvas=document.createElement('canvas');canvas.width=1024;canvas.height=256;
+    const ctx=canvas.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,1024,256);
+    ctx.fillStyle='#ffffff';ctx.font='bold 76px Arial';ctx.textAlign='center';ctx.fillText(title,512,112);
+    ctx.font='600 34px Arial';ctx.fillStyle='#e8edf2';ctx.fillText(subtitle,512,184);
+    const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;
+    const face=new T.Mesh(new T.PlaneGeometry(width-.35,2.25),new T.MeshBasicMaterial({map:texture,side:T.DoubleSide}));face.position.set(0,5.4,.19);group.add(face);
+    for(const side of [-1,1]){const post=new T.Mesh(new T.BoxGeometry(.28,5.4,.32),metal);post.position.set(side*(width/2-.45),2.7,0);group.add(post);}
+    group.position.set(x,0,z);scene.add(group);return group;
+  }
+  agencySign('FEDERAL BUREAU OF INVESTIGATION','FBI • FEDERAL FIELD OFFICE',385,-368,17,'#173d67');
+  agencySign('ARMY BASE','MILITARY COMMAND • AUTHORIZED PERSONNEL ONLY',420,420,20,'#354b37');
   // A central plaza, lawn islands and a small coastal water edge.
   plane(38,38,0,0,sidewalkMat,-.035);
   const plazaLine=mat(0xd8c8a2,.75);
