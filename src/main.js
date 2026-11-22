@@ -302,6 +302,16 @@ missionCompleteButton.addEventListener('click',async()=>{
     setTimeout(()=>{missionActive.classList.add('hidden');missionList.classList.remove('hidden');loadMissions();},1400);
   }catch(error){missionProgress.textContent=error.message||'تعذر إكمال المهمة.';missionCompleteButton.disabled=false;}
 });
+async function savePlayerPosition(){
+  if(!sessionToken||!realtime.connected||profileSaveInFlight)return;
+  profileSaveInFlight=true;
+  try{
+    const result=await accountApi('/api/profile/save-position','POST',{server:selectedServer});
+    currentAccount=result.account;
+  }catch(error){console.warn('[OneState Lite] Position save failed:',error);}
+  finally{profileSaveInFlight=false;}
+}
+let profileSaveTimer=0,profileSaveInFlight=false;
 function updateMissionProgress(){
   if(!missionState)return;
   const destination=missionState.mission.destination;
@@ -380,6 +390,13 @@ renderer.domElement.addEventListener('pointercancel',endDrag);
 $('#play').addEventListener('click',async()=>{
   const playerName=(playerNameInput.value||'لاعب').trim().slice(0,20)||'لاعب';
   setNameTag(player,playerName);
+  if(currentAccount){
+    player.position.set(
+      THREE.MathUtils.clamp(Number(currentAccount.spawnX)||0,-345,345),
+      0,
+      THREE.MathUtils.clamp(Number(currentAccount.spawnZ)||0,-345,345)
+    );
+  }
   const endpoint=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
   try{localStorage.setItem('onestate-player-name',playerName);if(endpoint)localStorage.setItem('onestate-realtime-url',endpoint);}catch{}
   if(endpoint&&!sessionToken){
@@ -399,7 +416,15 @@ $('#play').addEventListener('click',async()=>{
   menu.classList.add('hidden');game.classList.remove('hidden');
   realtime.connect(endpoint,selectedServer,playerName,sessionToken);
 });
-$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())disposeAvatarGroup(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';vehicleButton.style.display='';runButton.textContent='ركض';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
+$('#exit').addEventListener('click',async()=>{
+  await savePlayerPosition();
+  realtime.close();
+  for(const p of remotePlayers.values())disposeAvatarGroup(p.group);
+  remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;
+  vehicleButton.textContent='قيادة';vehicleButton.style.display='';
+  runButton.textContent='ركض';vehiclePanel.style.display='none';
+  game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();
+});
 const districtLabel=$('#district-label'),mapCanvas=$('#mini-map'),mapCtx=mapCanvas.getContext('2d');
 function drawMiniMap(){
   const ctx=mapCtx,w=mapCanvas.width,h=mapCanvas.height,s=1.05;
@@ -497,7 +522,11 @@ function animate(){
   if(!activeVehicle){const near=nearestVehicle();vehicleButton.style.display=near?'block':'none';vehicleButton.textContent='قيادة';}else vehicleButton.style.display='block';
   if(missionMarker)missionMarker.rotation.y+=dt*.65;
   updateMissionProgress();
-  updateDistrict();realtime.move(player.position.x,player.position.z,player.rotation.y);mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
+  updateDistrict();
+  realtime.move(player.position.x,player.position.z,player.rotation.y);
+  profileSaveTimer+=dt;
+  if(profileSaveTimer>=30){profileSaveTimer=0;savePlayerPosition();}
+  mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
   renderer.render(scene,camera);
 }
 animate();
