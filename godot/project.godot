@@ -1,0 +1,19 @@
+; OneState Litee - Godot 4 project
+; This is a separate native-engine prototype; the existing web game remains untouched.
+config_version=5
+
+[application]
+config/name="OneState Litee"
+run/main_scene="res://scenes/main.tscn"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/handheld/orientation=1
+
+[rendering]
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/default_filters/use_nearest_mipmap_filter=false
+environment/defaults/default_clear_color=Color(0.42, 0.58, 0.72, 1)
