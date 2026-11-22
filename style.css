@@ -59,3 +59,12 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
 .menu-input::placeholder{color:#74808c}
 .server-heading{margin-top:18px!important}
 .asset-credit{font-size:9px;line-height:1.7;color:#77818b;margin:10px 0 0}
+
+.account-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.account-actions button{min-height:39px;border:1px solid #c7a96b55;border-radius:9px;background:#26313b;color:#f1e2bd;font-size:11px;font-weight:800}
+.account-actions button:active{transform:scale(.98)}
+.account-actions #account-register{background:linear-gradient(110deg,#c7a96b,#8e7444);color:#151515}
+.account-status{min-height:18px;margin:7px 0 4px;text-align:right;font-size:10px;color:#aab4bd}
+.account-status[data-state=success]{color:#8fe0a5}
+.account-status[data-state=error]{color:#ffaaaa}
+#job-select{direction:rtl;text-align:right}
