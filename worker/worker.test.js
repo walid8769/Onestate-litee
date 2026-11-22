@@ -159,3 +159,28 @@ test("multiplayer interest management sends nearby players and removes distant o
   assert.ok(socketA.messages.some(message => message.type === "player_left" && message.id === "b"));
   assert.ok(socketB.messages.some(message => message.type === "player_left" && message.id === "a"));
 });
+
+
+test("local chat is sanitized, proximity-scoped and rate-limited", () => {
+  class FakeSocket {
+    constructor() { this.messages = []; }
+    send(raw) { this.messages.push(JSON.parse(raw)); }
+  }
+  const room = new GameRoom({});
+  const socketA = new FakeSocket();
+  const socketB = new FakeSocket();
+  const playerA = { id: "a", name: "A", x: 0, z: 0, yaw: 0, lastMove: Date.now(), lastChat: 0, server: "ME1" };
+  const playerB = { id: "b", name: "B", x: 30, z: 0, yaw: 0, lastMove: Date.now(), lastChat: 0, server: "ME1" };
+  room.sessions.set(socketA, playerA);
+  room.sessions.set(socketB, playerB);
+  room.visiblePlayers.set(socketA, new Set(["b"]));
+  room.visiblePlayers.set(socketB, new Set(["a"]));
+
+  room.onMessage(socketA, JSON.stringify({ type: "chat", message: "  مرحباً\\nبالمدينة  " }));
+  assert.equal(socketA.messages.length, 1);
+  assert.equal(socketB.messages.length, 1);
+  assert.equal(socketB.messages[0].message, "مرحباً بالمدينة");
+  room.onMessage(socketA, JSON.stringify({ type: "chat", message: "رسالة متكررة" }));
+  assert.equal(socketA.messages.length, 1);
+  assert.equal(socketB.messages.length, 1);
+});
