@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { AccountStore } from "./index.js";
+import { AccountStore, GameRoom } from "./index.js";
 
 function makeStore() {
   const data = new Map();
@@ -125,4 +125,37 @@ test("saved spawn is clamped and returned in the persistent profile", async () =
   const saved = await verified.json();
   assert.equal(saved.account.spawnX, 350);
   assert.equal(saved.account.spawnZ, -350);
+});
+
+
+test("multiplayer interest management sends nearby players and removes distant ones", () => {
+  class FakeSocket {
+    constructor() { this.messages = []; }
+    send(raw) { this.messages.push(JSON.parse(raw)); }
+  }
+  const room = new GameRoom({});
+  const socketA = new FakeSocket();
+  const socketB = new FakeSocket();
+  const playerA = { id: "a", name: "A", x: 0, z: 0, yaw: 0, server: "ME1" };
+  const playerB = { id: "b", name: "B", x: 300, z: 0, yaw: 0, server: "ME1" };
+  room.sessions.set(socketA, playerA);
+  room.sessions.set(socketB, playerB);
+  room.visiblePlayers.set(socketA, new Set());
+  room.visiblePlayers.set(socketB, new Set());
+
+  room.broadcastMovement(playerA, socketA);
+  assert.equal(socketA.messages.length, 0);
+  assert.equal(socketB.messages.length, 0);
+
+  playerB.x = 150;
+  room.broadcastMovement(playerB, socketB);
+  assert.ok(socketA.messages.some(message => message.type === "player_joined" && message.player.id === "b"));
+  assert.ok(socketB.messages.some(message => message.type === "player_joined" && message.player.id === "a"));
+
+  socketA.messages.length = 0;
+  socketB.messages.length = 0;
+  playerB.x = 300;
+  room.broadcastMovement(playerB, socketB);
+  assert.ok(socketA.messages.some(message => message.type === "player_left" && message.id === "b"));
+  assert.ok(socketB.messages.some(message => message.type === "player_left" && message.id === "a"));
 });
