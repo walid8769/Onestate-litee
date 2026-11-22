@@ -157,8 +157,6 @@ export function createWorld(T, scene) {
     propPlan.push({key:'bin',x,z,w:1.2,h:1.5,d:1.2});
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
-  for(const p of propPlan)decorJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
-
   async function car(key,x,z,rotation=0,emergency=false){
     const model=await place(key,x,z,key==='bus'?7:4.8,key==='bus'?4.3:2.8,key==='bus'?13:6.5,rotation);
     if(!model)return null;
@@ -178,7 +176,7 @@ export function createWorld(T, scene) {
   // Load the playable city first. Small street props stream in afterwards so a slow
   // bench/tree request cannot keep the player trapped on the loading screen.
   const ready=Promise.allSettled(coreJobs);
-  const decorReady=Promise.allSettled(decorJobs);
+  const decorReady=ready.then(()=>Promise.allSettled(propPlan.map(p=>place(p.key,p.x,p.z,p.w,p.h,p.d))));
   districts.vehicles=vehicles;
   districts.obstacles=obstacles;
   districts.assetsReady=ready;
