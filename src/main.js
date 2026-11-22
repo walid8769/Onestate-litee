@@ -183,6 +183,7 @@ function animate(){
     activeVehicle.rotation.y-=moveX*vehicleSpeed*.018*dt;
     const fwd=new THREE.Vector3(-Math.sin(activeVehicle.rotation.y),0,-Math.cos(activeVehicle.rotation.y));
     moveWithCollision(activeVehicle,fwd.x*vehicleSpeed*dt,fwd.z*vehicleSpeed*dt,2.2);
+    for(const wheel of activeVehicle.userData.wheels||[])wheel.rotation.x+=vehicleSpeed*dt*.72;
     player.position.copy(activeVehicle.position);player.rotation.y=activeVehicle.rotation.y;
   }else{
     moveWithCollision(player,direction.x*speed*dt,direction.z*speed*dt,.8);
