@@ -58,7 +58,11 @@ export function createWorld(T, scene) {
     {name:'الحي السكني',cx:-105,cz:-105,kind:'homes'},
     {name:'المنطقة التجارية',cx:105,cz:-105,kind:'shops'},
     {name:'المنطقة الصناعية',cx:105,cz:105,kind:'industrial'},
-    {name:'الواجهة البحرية',cx:-105,cz:105,kind:'water'}
+    {name:'الواجهة البحرية',cx:-105,cz:105,kind:'water'},
+    {name:'ضواحي الشمال الغربي',cx:-245,cz:-245,kind:'homes'},
+    {name:'ضواحي الشمال الشرقي',cx:245,cz:-245,kind:'homes'},
+    {name:'ضواحي الجنوب الشرقي',cx:245,cz:245,kind:'shops'},
+    {name:'الميناء الصناعي',cx:-245,cz:245,kind:'industrial'}
   ];
   const mat=(color,roughness=1,metalness=0)=>new T.MeshStandardMaterial({color,roughness,metalness});
   const groundMat=mat(0x64765b,1);
@@ -93,13 +97,13 @@ export function createWorld(T, scene) {
     mesh.rotation.x=-Math.PI/2;mesh.position.set(x,y,z);mesh.receiveShadow=true;scene.add(mesh);return mesh;
   };
   function createCityTerrain(){
-    const size=1000,segments=120,positions=[],uvs=[],indices=[];
+    const size=1200,segments=144,positions=[],uvs=[],indices=[];
     for(let iz=0;iz<=segments;iz++){
       const z=-size/2+size*iz/segments;
       for(let ix=0;ix<=segments;ix++){
         const x=-size/2+size*ix/segments;
         const radius=Math.hypot(x,z);
-        const t=T.MathUtils.clamp((radius-245)/165,0,1);
+        const t=T.MathUtils.clamp((radius-360)/180,0,1);
         const smooth=t*t*(3-2*t);
         const hills=Math.max(4,15+12*Math.sin(x*.014)*Math.cos(z*.012)+8*Math.sin((x+z)*.022)+5*Math.cos((x-z)*.019));
         const coastalBed=x<-135&&x>-275&&z>95&&z<185;
@@ -121,18 +125,18 @@ export function createWorld(T, scene) {
   createCityTerrain();
 
   // Continuous road network with clean flat geometry; all buildings and vehicles are loaded GLB assets.
-  for(let p=-210;p<=210;p+=70){
-    plane(500,17,0,p,roadMat,-.105);plane(17,500,p,0,roadMat,-.105);
+  for(let p=-280;p<=280;p+=70){
+    plane(700,17,0,p,roadMat,-.105);plane(17,700,p,0,roadMat,-.105);
     for(const s of [-1,1]){
-      plane(500,2.5,0,p+s*10.2,sidewalkMat,-.045);
-      plane(2.5,500,p+s*10.2,0,sidewalkMat,-.045);
+      plane(700,2.5,0,p+s*10.2,sidewalkMat,-.045);
+      plane(2.5,700,p+s*10.2,0,sidewalkMat,-.045);
       const curbH=.18;
-      const horizontalCurb=new T.Mesh(new T.BoxGeometry(500,curbH,.25),curbMat);
+      const horizontalCurb=new T.Mesh(new T.BoxGeometry(700,curbH,.25),curbMat);
       horizontalCurb.position.set(0,-.015,p+s*8.62);horizontalCurb.castShadow=true;horizontalCurb.receiveShadow=true;scene.add(horizontalCurb);
-      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,500),curbMat);
+      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,700),curbMat);
       verticalCurb.position.set(p+s*8.62,-.015,0);verticalCurb.castShadow=true;verticalCurb.receiveShadow=true;scene.add(verticalCurb);
     }
-    for(let q=-240;q<250;q+=18){
+    for(let q=-340;q<350;q+=18){
       plane(5.5,.13,q,p,markingMat,-.045);
       plane(.13,5.5,p,q,markingMat,-.045);
     }
@@ -327,12 +331,12 @@ export function createWorld(T, scene) {
     ['car',-170,-30,Math.PI/2,false],['citycar',157,-117,0,false],['saloon',169,-117,0,false],['coupe',181,-117,0,false],['electric',193,-117,0,false]
   ];
   for(const [key,x,z,rot,emergency] of carPlan)coreJobs.push(car(key,x,z,rot,emergency));
-  const trafficLoop=[[-210,-140],[210,-140],[210,140],[-210,140]];
+  const trafficLoop=[[-280,-280],[280,-280],[280,280],[-280,280]];
   const trafficPlan=[
-    {x:-165,z:-140,rot:Math.PI/2,index:1,key:'citycar'},
-    {x:210,z:-30,rot:Math.PI,index:2,key:'saloon'},
-    {x:165,z:140,rot:-Math.PI/2,index:3,key:'coupe'},
-    {x:-210,z:30,rot:0,index:0,key:'van'},
+    {x:-235,z:-280,rot:Math.PI/2,index:1,key:'citycar'},
+    {x:280,z:-30,rot:Math.PI,index:2,key:'saloon'},
+    {x:235,z:280,rot:-Math.PI/2,index:3,key:'coupe'},
+    {x:-280,z:30,rot:0,index:0,key:'van'},
     {x:0,z:-140,rot:-Math.PI/2,index:1,key:'bus',speed:4.5}
   ];
   for(const p of trafficPlan){
