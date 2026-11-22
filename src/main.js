@@ -7,6 +7,7 @@ import { upgradeAvatar, updateAvatar } from './avatar.js';
 const $ = (s) => document.querySelector(s);
 const loading=$('#loading'), menu=$('#menu'), game=$('#game');
 let selectedServer='ME1';
+const REALTIME_URL='https://onestate-lite-realtime.ossupport.workers.dev';
 const playerNameInput=$('#player-name');
 const realtimeUrlInput=$('#realtime-url');
 const passwordInput=$('#account-password');
@@ -16,7 +17,8 @@ let sessionToken='';
 let currentAccount=null;
 try{
   playerNameInput.value=localStorage.getItem('onestate-player-name')||'لاعب';
-  realtimeUrlInput.value=localStorage.getItem('onestate-realtime-url')||new URLSearchParams(location.search).get('realtime')||window.ONESTATE_REALTIME_URL||'';
+  realtimeUrlInput.value=REALTIME_URL;
+  window.ONESTATE_REALTIME_URL=REALTIME_URL;
   sessionToken=localStorage.getItem('onestate-session-token')||'';
 }catch{}
 function setAccountStatus(message,state=''){
@@ -24,7 +26,7 @@ function setAccountStatus(message,state=''){
   accountStatus.dataset.state=state;
 }
 async function refreshServerCounts(){
-  const base=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
+  const base=REALTIME_URL;
   if(!base)return;
   try{
     const response=await fetch(new URL('/api/servers',base),{cache:'no-store'});
@@ -469,7 +471,7 @@ renderer.domElement.addEventListener('pointercancel',endDrag);
 
 $('#play').addEventListener('click',async()=>{
   const playerName=(playerNameInput.value||'لاعب').trim().slice(0,20)||'لاعب';
-  const endpoint=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
+  const endpoint=REALTIME_URL;
   try{localStorage.setItem('onestate-player-name',playerName);if(endpoint)localStorage.setItem('onestate-realtime-url',endpoint);}catch{}
   if(endpoint&&!sessionToken){
     setAccountStatus('أنشئ حساباً أو سجّل الدخول قبل دخول السيرفرات الجماعية','error');
