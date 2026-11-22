@@ -106,3 +106,47 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
 .menu{overflow-y:auto;overscroll-behavior:contain;padding-top:max(22px,env(safe-area-inset-top));padding-bottom:max(22px,env(safe-area-inset-bottom))}
 .menu>.brand,.menu>.eyebrow,.menu>h1,.menu>.subtitle,.menu>.server-panel{flex-shrink:0}
 .server-panel{margin-top:8px;margin-bottom:8px}
+
+
+/* OneState Lite mobile HUD v2: separated touch zones and a clean action dock */
+@media (max-width:700px){
+  .game .hud{top:max(6px,env(safe-area-inset-top));left:6px;right:6px;gap:5px}
+  .game .hud-left{gap:5px}
+  .game .map-frame{width:76px;height:76px;padding:2px;border-radius:9px}
+  .game .player-status{width:82px;padding:4px 5px}
+  .game .hud-right{padding:5px 6px;gap:3px;max-width:42vw}
+  .game .hud-brand{font-size:10px;letter-spacing:1px}
+  .game .hud-info span{font-size:7px;padding:2px 5px}
+  .game .cash{font-size:10px}
+  .game .network-status{font-size:8px;padding:2px 6px}
+  .game .tip{top:calc(env(safe-area-inset-top) + 91px);font-size:9px;max-width:70%;padding:4px 9px}
+  .game .joystick{left:max(14px,env(safe-area-inset-left));bottom:max(15px,env(safe-area-inset-bottom));width:132px;height:132px}
+  .game .stick{left:41px;top:41px;width:48px;height:48px}
+  .game .run{right:max(16px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));width:82px;height:82px;min-width:82px;min-height:82px;font-size:16px}
+  .game .exit{top:calc(env(safe-area-inset-top) + 112px);left:12px;right:auto;padding:7px 11px;font-size:10px}
+  .game .mission-toggle{top:calc(env(safe-area-inset-top) + 112px);right:12px;padding:8px 12px;font-size:11px}
+  .game .chat-toggle{top:calc(env(safe-area-inset-top) + 112px);left:82px;right:auto;bottom:auto;padding:8px 12px;font-size:11px}
+  .game .mission-panel{top:calc(env(safe-area-inset-top) + 154px);right:10px;width:min(270px,calc(100vw - 20px));max-height:48vh}
+  .game .chat-panel{top:calc(env(safe-area-inset-top) + 154px);left:10px;right:10px;bottom:auto;width:auto;height:min(260px,38vh)}
+  .game .vehicle-action{right:50%;bottom:calc(env(safe-area-inset-bottom) + 142px);min-width:88px;padding:10px 18px}
+  .game .vehicle-panel{bottom:calc(env(safe-area-inset-bottom) + 192px)}
+}
+@media (max-width:390px){
+  .game .map-frame{width:68px;height:68px}
+  .game .player-status{width:76px}
+  .game .hud-right{max-width:39vw}
+  .game .joystick{width:120px;height:120px}
+  .game .stick{left:37px;top:37px;width:44px;height:44px}
+  .game .run{width:76px;height:76px;min-width:76px;min-height:76px}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .game .hud{top:max(4px,env(safe-area-inset-top))}
+  .game .map-frame{width:64px;height:64px}
+  .game .player-status{width:76px}
+  .game .tip{display:none}
+  .game .exit,.game .mission-toggle,.game .chat-toggle{top:calc(env(safe-area-inset-top) + 76px)}
+  .game .mission-panel,.game .chat-panel{top:calc(env(safe-area-inset-top) + 116px);max-height:45vh}
+  .game .joystick{width:104px;height:104px;bottom:max(8px,env(safe-area-inset-bottom))}
+  .game .stick{left:32px;top:32px;width:40px;height:40px}
+  .game .run{width:70px;height:70px;min-width:70px;min-height:70px;bottom:max(12px,env(safe-area-inset-bottom))}
+}
