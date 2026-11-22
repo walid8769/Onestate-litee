@@ -152,7 +152,7 @@ export class GameRoom {
   }
 
   publicPlayer(p) {
-    return { id: p.id, name: p.name, x: p.x, z: p.z, yaw: p.yaw };
+    return { id: p.id, name: p.name, x: p.x, z: p.z, yaw: p.yaw, running: Boolean(p.running) };
   }
 
   broadcast(message, except = null) {
@@ -235,6 +235,7 @@ export class GameRoom {
     }
     player.lastMove = now;
     player.yaw = Math.max(-Math.PI * 4, Math.min(Math.PI * 4, yaw));
+    player.running = Boolean(data.running);
     this.broadcastMovement(player, socket);
   }
 
