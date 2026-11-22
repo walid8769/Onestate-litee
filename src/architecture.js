@@ -113,6 +113,6 @@ export function createUrbanBuilding(T, key, width, height, depth) {
   door.position.set(0,1.25,depth/2+.09);group.add(door);
   const canopy=new T.Mesh(new T.BoxGeometry(Math.min(width*.55,6),.18,1.15),metal);
   canopy.position.set(0,2.55,depth/2+.55);group.add(canopy);
-  group.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  group.traverse(o=>{if(o.isMesh){o.castShadow=!o.isInstancedMesh;o.receiveShadow=true;}});
   return group;
 }
