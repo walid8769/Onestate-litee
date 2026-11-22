@@ -59,7 +59,8 @@ export default {
       const counts = await Promise.all([...SERVERS].map(async server => {
         const id = env.GAME_ROOMS.idFromName(server);
         const response = await env.GAME_ROOMS.get(id).fetch("https://room.internal/status");
-        return response.json();
+        const status = await response.json();
+        return { ...status, server };
       }));
       return Response.json({ servers: counts }, { headers: { "access-control-allow-origin": "*", "cache-control": "no-store" } });
     }
