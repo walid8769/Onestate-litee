@@ -308,11 +308,63 @@ export function createWorld(T, scene) {
     propPlan.push({key:'bin',x,z,w:1.2,h:1.5,d:1.2});
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
+  function createVehicleFallback(key,dims,emergency=false){
+    const [width,height,length]=dims;
+    const group=new T.Group();
+    const paintColor=key==='policecar'?0x172f50:key==='ambulance'?0xe7e9e5:key==='bus'?0x277e82:key==='coupe'?0x9b3029:key==='electric'?0x8cabb2:key==='van'?0xb8b9b5:0x536c7b;
+    const paint=new T.MeshPhysicalMaterial({color:paintColor,metalness:.48,roughness:.3,clearcoat:.8,clearcoatRoughness:.22});
+    const glass=new T.MeshPhysicalMaterial({color:0x1c3440,metalness:.22,roughness:.12,transparent:true,opacity:.88});
+    const rubber=new T.MeshStandardMaterial({color:0x111417,roughness:.94});
+    const alloy=new T.MeshStandardMaterial({color:0x9ca6a8,metalness:.85,roughness:.24});
+    const trim=new T.MeshStandardMaterial({color:0x252c31,metalness:.55,roughness:.45});
+    const lamp=new T.MeshStandardMaterial({color:0xe8f0ec,emissive:0x66716e,roughness:.24});
+    const red=new T.MeshStandardMaterial({color:0xb9252a,emissive:0x310508});
+    const add=(parent,geo,material,x,y,z)=>{const mesh=new T.Mesh(geo,material);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;};
+    const lower=add(group,new T.BoxGeometry(width*.94,height*.34,length*.9),paint,0,height*.31,0);
+    const hood=add(group,new T.BoxGeometry(width*.88,height*.18,length*.28),paint,0,height*.48,length*.3);
+    const cabin=add(group,new T.BoxGeometry(width*.78,height*.42,length*.48),paint,0,height*.69,-length*.035);
+    add(group,new T.BoxGeometry(width*.72,height*.32,.045),glass,0,height*.72,length*.205);
+    add(group,new T.BoxGeometry(width*.72,height*.3,.045),glass,0,height*.72,-length*.275);
+    for(const side of [-1,1]){
+      add(group,new T.BoxGeometry(.045,height*.25,length*.34),glass,side*width*.395,height*.72,-length*.045);
+      add(group,new T.BoxGeometry(.12,.13,.28),paint,side*width*.49,height*.64,length*.2);
+      for(const z of [-length*.29,length*.29]){
+        const wheel=new T.Group();wheel.name=(z>0?'wheel_F':'wheel_R')+(side<0?'L':'R');
+        wheel.position.set(side*width*.49,height*.23,z);group.add(wheel);
+        const tyre=add(wheel,new T.CylinderGeometry(height*.22,height*.22,.22,24),rubber,0,0,0);tyre.rotation.z=Math.PI/2;
+        const rim=add(wheel,new T.CylinderGeometry(height*.12,height*.12,.235,20),alloy,0,0,0);rim.rotation.z=Math.PI/2;
+        const hub=add(wheel,new T.CylinderGeometry(height*.055,height*.055,.245,16),trim,0,0,0);hub.rotation.z=Math.PI/2;
+      }
+    }
+    add(group,new T.BoxGeometry(width*.98,.13,.18),trim,0,height*.22,length*.46);
+    add(group,new T.BoxGeometry(width*.98,.13,.18),trim,0,height*.22,-length*.46);
+    for(const side of [-1,1]){
+      add(group,new T.BoxGeometry(width*.16,.14,.08),lamp,side*width*.32,height*.48,length*.455);
+      add(group,new T.BoxGeometry(width*.14,.13,.08),red,side*width*.32,height*.43,-length*.455);
+      add(group,new T.BoxGeometry(.1,.22,.12),lamp,side*width*.49,height*.73,length*.12);
+    }
+    add(group,new T.BoxGeometry(width*.42,.2,.08),trim,0,height*.39,length*.47);
+    if(key==='bus'){
+      for(let row=0;row<5;row++)for(const side of [-1,1])add(group,new T.BoxGeometry(.045,.42,.92),glass,side*width*.485,height*.75,-length*.32+row*length*.14);
+      add(group,new T.BoxGeometry(width*.72,.1,.07),trim,0,height*.9,-length*.06);
+    }
+    if(key==='ambulance'||key==='policecar'||emergency){
+      const bar=add(group,new T.BoxGeometry(width*.62,.12,.32),trim,0,height*1.02,-length*.03);
+      add(group,new T.BoxGeometry(width*.25,.16,.28),new T.MeshStandardMaterial({color:0x2879ef,emissive:0x102c88}),-width*.17,height*1.04,-length*.03);
+      add(group,new T.BoxGeometry(width*.25,.16,.28),new T.MeshStandardMaterial({color:0xd82c36,emissive:0x65070c}),width*.17,height*1.04,-length*.03);
+    }
+    group.userData.fallbackVehicle=true;
+    return group;
+  }
   async function car(key,x,z,rotation=0,emergency=false){
     const dims=key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
-    const loaded=await place(key,x,z,...dims,rotation);
-    if(!loaded)return null;
-    // 3DAssets vehicle models face +Z; the driving rig uses -Z as forward.
+    let loaded=await place(key,x,z,...dims,rotation);
+    if(!loaded){
+      loaded=createVehicleFallback(key,dims,emergency);
+      loaded.position.set(x,0,z);
+      loaded.rotation.y=rotation;
+    }
+    // Vehicle models face +Z; the driving rig uses -Z as forward.
     const model=new T.Group();
     model.position.copy(loaded.position);
     model.rotation.y=rotation;
