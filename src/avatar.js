@@ -28,10 +28,8 @@ export async function upgradeAvatar(root) {
     const model = cloneSkeleton(gltf.scene);
     model.traverse(node => {
       if (!node.isMesh) return;
-      node.castShadow = true;
-      node.receiveShadow = true;
-      if (Array.isArray(node.material)) node.material = node.material.map(m => m.clone());
-      else if (node.material) node.material = node.material.clone();
+      node.castShadow = !root.userData.remote;
+      node.receiveShadow = !root.userData.remote;
     });
 
     // Normalize unknown GLB authoring scale and origin so feet sit on the street.
