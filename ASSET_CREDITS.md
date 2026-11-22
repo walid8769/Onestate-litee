@@ -1,22 +1,43 @@
 # Third-party 3D assets
 
-## City environment kit
+## City buildings
 
-The city buildings, public facilities, vehicles, vegetation and street furniture loaded by `src/world.js` are from:
+The realistic city buildings are CC0 GLB models by Tevy, loaded from pinned model URLs:
+- Office Tower: https://tevy.dev/models/office-tower
+- Apartment Block: https://tevy.dev/models/apartment-block
+- Korean Villa Block: https://tevy.dev/models/korean-villa-block
+- Corner Shop Block: https://tevy.dev/models/corner-shop-block
+- Village Grocery Shop: https://tevy.dev/models/village-shop
+- Police Station: https://tevy.dev/models/police-station
+- Fire Station: https://tevy.dev/models/fire-station
+- Hospital Building: https://tevy.dev/models/hospital-building
+- Town Hall: https://tevy.dev/models/town-hall
 
-- Repository: https://github.com/kayquer/kit-cidade-lowpoly
-- License: Creative Commons CC0 1.0 Universal
-- License file: https://github.com/kayquer/kit-cidade-lowpoly/blob/main/LICENSE
-- Runtime asset host: https://raw.githubusercontent.com/kayquer/kit-cidade-lowpoly/main/models/
+All are released under CC0 1.0. The game uses their published LOD GLB files through Three.js GLTFLoader.
 
-The assets are loaded as GLB models at runtime using Three.js GLTFLoader. The project does not claim ownership of these third-party models.
+## Vehicles
+
+- Executive sedan, Touring SUV and Panel delivery van from 3DAssets.dev's Vehicle Collection HD.
+- Source: https://3dassets.dev/packs/transport-collection-hd
+- Licence: CC0 1.0 Universal.
+
+## Surfaces and lighting
+
+- Asphalt, concrete, grass and facade PBR textures from Poly Haven: https://polyhaven.com
+- Outdoor HDRI from Poly Haven: https://polyhaven.com
+- Licence: CC0 1.0 Universal.
+
+## Street furniture and vegetation
+
+- Source: https://github.com/kayquer/kit-cidade-lowpoly
+- Licence: CC0 1.0 Universal.
+- Only the remaining street furniture and vegetation props are loaded from this pack; its low-poly buildings are no longer used.
 
 ## Player character
 
 - Model: Casual Man
 - Creator: vinish.dev
 - Source: https://vinish.dev/free-3d-models/people
-- License: CC BY 4.0
+- Runtime URL: https://models.vinish.dev/people/casual-man.glb
+- Licence: CC BY 4.0
 - Required attribution: "Casual Man" by vinish.dev (https://vinish.dev/free-3d-models/), CC BY 4.0.
-
-See `src/avatar.js` for the runtime model URL.
