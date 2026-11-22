@@ -73,6 +73,7 @@ $('#account-login').addEventListener('click',()=>authenticate('login'));
 $('#account-logout').addEventListener('click',async()=>{
   try{if(sessionToken)await accountApi('/api/auth/logout','POST');}catch{}
   sessionToken='';currentAccount=null;
+  if(missionState){missionState=null;clearMissionMarker();missionActive.classList.add('hidden');}
   try{localStorage.removeItem('onestate-session-token');}catch{}
   jobSelect.disabled=true;setAccountStatus('تم تسجيل الخروج');
 });
@@ -82,6 +83,7 @@ jobSelect.addEventListener('change',async()=>{
     const result=await accountApi('/api/profile/job','POST',{job:jobSelect.value});
     currentAccount=result.account;
     $('#job-label').textContent=jobSelect.selectedOptions[0]?.textContent||'مواطن';
+    if(missionState){missionState=null;clearMissionMarker();missionActive.classList.add('hidden');missionList.classList.remove('hidden');}
     setAccountStatus('تم حفظ وظيفتك في الشخصية','success');
   }catch(error){setAccountStatus(error.message||'تعذر حفظ الوظيفة','error');}
 });
@@ -420,6 +422,7 @@ function drawMiniMap(){
     }
   }
   ctx.fillStyle='#d4b16d';ctx.fillRect(-66,-66,8,8);ctx.fillRect(46,-66,8,8);ctx.fillRect(-66,42,8,8);ctx.fillRect(46,42,8,8);
+  if(missionState){ctx.strokeStyle='#42e8d0';ctx.lineWidth=3;ctx.beginPath();ctx.arc(missionState.mission.destination.x,missionState.mission.destination.z,7,0,Math.PI*2);ctx.stroke();}
   ctx.restore();ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-yaw);ctx.fillStyle='#ffe16b';ctx.strokeStyle='#1b2228';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(8,9);ctx.lineTo(0,5);ctx.lineTo(-8,9);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
 }
 function updateDistrict(){let nearest=districts[0],best=Infinity;for(const d of districts){const dist=Math.hypot(player.position.x-d.cx,player.position.z-d.cz);if(dist<best){best=dist;nearest=d;}}districtLabel.textContent=best<115?nearest.name:'أطراف المدينة';}
