@@ -7,7 +7,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === "/api/health") {
-      return Response.json({ status: "ok", service: "onestate-realtime", servers: [...SERVERS], capacityPerServer: MAX_PLAYERS });
+      return Response.json({ status: "ok", service: "onestate-realtime", servers: [...SERVERS], capacityPerServer: MAX_PLAYERS }, { headers: { "access-control-allow-origin": "*", "cache-control": "no-store" } });
     }
     if (url.pathname === "/api/profile/save-position" && request.method === "POST") {
       const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
@@ -61,7 +61,7 @@ export default {
         const response = await env.GAME_ROOMS.get(id).fetch("https://room.internal/status");
         return response.json();
       }));
-      return Response.json({ servers: counts });
+      return Response.json({ servers: counts }, { headers: { "access-control-allow-origin": "*", "cache-control": "no-store" } });
     }
     const match = url.pathname.match(/^\/ws\/(ME[123])$/);
     if (match) {
