@@ -308,21 +308,36 @@ export function createWorld(T, scene, renderer) {
     coreJobs.push(place(key,x,z,w0,h0,d0,rot));
     if(key==='militaryGuardTower')obstacles.push({x,z,halfX:3.2,halfZ:3.2});
   }
-  // Repeated 12 m CC0 fence modules define a clear military perimeter.
-  for(let x=366;x<=474;x+=12){
-    // Leave a 24 m opening for the guarded vehicle entrance.
-    if(Math.abs(x-420)>=12){
-      coreJobs.push(place('sidewalkFence',x,430,1.2,2.2,12,Math.PI/2));
-      obstacles.push({x,z:430,halfX:5.8,halfZ:.9});
+  // High-security chain-link perimeter: steel posts, twin rails and a diamond mesh.
+  function militaryFence(x1,z1,x2,z2){
+    const dx=x2-x1,dz=z2-z1,length=Math.hypot(dx,dz),panels=Math.ceil(length/3),panelLength=length/panels;
+    const group=new T.Group();group.position.set(x1,0,z1);group.rotation.y=Math.atan2(dx,dz);
+    const steel=new T.MeshStandardMaterial({color:0x66757a,metalness:.78,roughness:.38});
+    const meshMaterial=new T.LineBasicMaterial({color:0x9aa7a9,transparent:true,opacity:.9});
+    const addBox=(geo,x,y,z,material)=>{const mesh=new T.Mesh(geo,material);mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);};
+    const postGeometry=new T.BoxGeometry(.14,2.75,.14);
+    for(let i=0;i<=panels;i++)addBox(postGeometry,0,1.375,i*panelLength,steel);
+    for(let i=0;i<panels;i++){
+      const z=i*panelLength,mid=z+panelLength/2;
+      addBox(new T.BoxGeometry(.1,.1,panelLength),0,2.58,mid,steel);
+      addBox(new T.BoxGeometry(.08,.08,panelLength),0,.16,mid,steel);
+      const vertices=[],step=.34;
+      for(let yy=.22;yy<2.5;yy+=step){
+        for(let zz=z;zz<z+panelLength;zz+=step){
+          const y2=Math.min(2.5,yy+step),z2=Math.min(z+panelLength,zz+step);
+          vertices.push(0,yy,zz,0,y2,z2,0,y2,zz,0,yy,z2);
+        }
+      }
+      const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));
+      group.add(new T.LineSegments(geometry,meshMaterial));
+      const midWorldX=x1+(dx/length)*mid,midWorldZ=z1+(dz/length)*mid;
+      obstacles.push({x:midWorldX,z:midWorldZ,halfX:Math.abs(dx/length)*panelLength/2+.65,halfZ:Math.abs(dz/length)*panelLength/2+.65});
     }
-    coreJobs.push(place('sidewalkFence',x,550,1.2,2.2,12,Math.PI/2));
-    obstacles.push({x,z:550,halfX:5.8,halfZ:.9});
+    scene.add(group);
   }
-  for(let z=442;z<=538;z+=12){
-    coreJobs.push(place('sidewalkFence',360,z,1.2,2.2,12,0));
-    coreJobs.push(place('sidewalkFence',480,z,1.2,2.2,12,0));
-    obstacles.push({x:360,z,halfX:.9,halfZ:5.8},{x:480,z,halfX:.9,halfZ:5.8});
-  }
+  // The southern side leaves a 24 m vehicle gate; all other sides are continuous.
+  militaryFence(366,430,408,430);militaryFence(432,430,474,430);
+  militaryFence(366,550,474,550);militaryFence(360,442,360,538);militaryFence(480,442,480,538);
   // Agency signs are real 3D boards with crisp canvas lettering, not flat UI labels.
   function agencySign(title,subtitle,x,z,width,color){
     const group=new T.Group();
