@@ -103,7 +103,7 @@ export function createWorld(T, scene, renderer) {
       material.needsUpdate=true;
     });
   }
-  applyPBR(groundMat,'grass',80,80);
+  applyPBR(groundMat,'leafy_grass',80,80);
   applyPBR(roadMat,'asphalt_01',90,3);
   applyPBR(sidewalkMat,'concrete_pavement',80,3);
   const markingMat=mat(0xe8e1cc,.85);
