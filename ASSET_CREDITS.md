@@ -36,11 +36,16 @@ Additional CC0 city props from Tevy:
 
 ## Vehicles
 
-- Executive sedan, Touring SUV and Panel delivery van from 3DAssets.dev's Vehicle Collection HD: https://3dassets.dev/packs/transport-collection-hd
-- Grand touring coupe, City car and Four-door saloon from 3DAssets.dev's Car Park and Road Vehicle Fleet: https://3dassets.dev/assets/car-park-and-road-vehicle-fleet-coupe-ea7addee
-- Generic Ambulance from Tevy: https://tevy.dev/models/ambulance
-- Low-Floor City Bus from Tevy: https://tevy.dev/models/city-bus
-- 3DAssets.dev vehicles and Tevy Ambulance are CC0 1.0 Universal.
+- Family Sedan: https://tevy.dev/models/family-sedan
+- Family Estate Car: https://tevy.dev/models/estate-car
+- Family Minivan: https://tevy.dev/models/family-minivan
+- Muscle Car: https://tevy.dev/models/muscle-car
+- City Taxi: https://tevy.dev/models/city-taxi
+- Ambulance: https://tevy.dev/models/ambulance
+- Low-Floor City Bus: https://tevy.dev/models/city-bus
+- Fire Engine model reference: https://tevy.dev/models/fire-engine
+
+All listed Tevy models are CC0 1.0. The current driving roster loads sedan, estate, minivan, muscle car, taxi, ambulance and bus models; fallback vehicle geometry is generated locally if a model fails to load.
 
 ## Surfaces and lighting
 
