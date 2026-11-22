@@ -1,9 +1,29 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
 import { createWorld } from './world.js';
+import { NetworkClient } from './network.js';
 
 const $ = (s) => document.querySelector(s);
 const loading=$('#loading'), menu=$('#menu'), game=$('#game');
 let selectedServer='ME1';
+const remotePlayers=new Map();
+const networkStatus=$('#network-status');
+const realtime=new NetworkClient(handleNetworkEvent);
+function makeRemotePlayer(id,name){
+  const group=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.CapsuleGeometry(.39,.58,5,12),new THREE.MeshStandardMaterial({color:0x8c3030,roughness:.75}));body.position.y=1.25;body.castShadow=true;group.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.27,16,12),new THREE.MeshStandardMaterial({color:0xb9825d}));head.position.y=1.99;group.add(head);scene.add(group);
+  remotePlayers.set(id,{group,name});return group;
+}
+function handleNetworkEvent(event){
+  if(event.type==='connected'){networkStatus.textContent='متصل';networkStatus.dataset.state='online';}
+  else if(event.type==='offline'||event.type==='network_error'||event.type==='disconnected'){networkStatus.textContent='غير متصل';networkStatus.dataset.state='offline';}
+  if(event.type==='snapshot'){for(const p of event.players||[])updateRemote(p);}
+  if(event.type==='player_joined'||event.type==='player_moved')updateRemote(event.player);
+  if(event.type==='player_left'){const p=remotePlayers.get(event.id);if(p){scene.remove(p.group);remotePlayers.delete(event.id);}}
+  if(event.type==='error'&&networkStatus)networkStatus.textContent=event.message||'تعذر الاتصال';
+}
+function updateRemote(p){if(!p||!p.id)return;let item=remotePlayers.get(p.id);if(!item)makeRemotePlayer(p.id,p.name);item=remotePlayers.get(p.id);item.group.position.set(p.x,0,p.z);item.group.rotation.y=p.yaw;}
+
 document.querySelectorAll('.server').forEach(button=>button.addEventListener('click',()=>{
   document.querySelectorAll('.server').forEach(x=>x.classList.remove('active'));
   button.classList.add('active'); selectedServer=button.dataset.server;
@@ -86,8 +106,8 @@ function endDrag(e){if(dragPointer===e.pointerId)dragPointer=null;}
 renderer.domElement.addEventListener('pointerup',endDrag);
 renderer.domElement.addEventListener('pointercancel',endDrag);
 
-$('#play').addEventListener('click',()=>{$('#server-label').textContent=selectedServer;menu.classList.add('hidden');game.classList.remove('hidden');});
-$('#exit').addEventListener('click',()=>{game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
+$('#play').addEventListener('click',()=>{$('#server-label').textContent=selectedServer;menu.classList.add('hidden');game.classList.remove('hidden');const endpoint=window.ONESTATE_REALTIME_URL||'';realtime.connect(endpoint,selectedServer,'لاعب');});
+$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())scene.remove(p.group);remotePlayers.clear();game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
 const districtLabel=$('#district-label'),mapCanvas=$('#mini-map'),mapCtx=mapCanvas.getContext('2d');
 function drawMiniMap(){
   const ctx=mapCtx,w=mapCanvas.width,h=mapCanvas.height,s=1.05;
@@ -116,7 +136,7 @@ function animate(){
   torso.position.y=1.25+(moving?Math.abs(Math.sin(walkTime*2))*.035:0);
   const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)*8,3.4+pitch*3,Math.cos(yaw)*8));
   camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
-  updateDistrict();mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
+  updateDistrict();realtime.move(player.position.x,player.position.z,player.rotation.y);mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
   renderer.render(scene,camera);
 }
 animate();
