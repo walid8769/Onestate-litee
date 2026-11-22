@@ -34,6 +34,7 @@ Additional CC0 city props from Tevy:
 - Executive sedan, Touring SUV and Panel delivery van from 3DAssets.dev's Vehicle Collection HD: https://3dassets.dev/packs/transport-collection-hd
 - Grand touring coupe, City car and Four-door saloon from 3DAssets.dev's Car Park and Road Vehicle Fleet: https://3dassets.dev/assets/car-park-and-road-vehicle-fleet-coupe-ea7addee
 - Generic Ambulance from Tevy: https://tevy.dev/models/ambulance
+- Low-Floor City Bus from Tevy: https://tevy.dev/models/city-bus
 - 3DAssets.dev vehicles and Tevy Ambulance are CC0 1.0 Universal.
 
 ## Surfaces and lighting
