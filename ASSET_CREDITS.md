@@ -52,8 +52,6 @@ Additional CC0 city props from Tevy:
 ## Player character
 
 - Model: Casual Man
-- Creator: vinish.dev
-- Source: https://vinish.dev/free-3d-models/people
-- Runtime URL: https://models.vinish.dev/people/casual-man.glb
 - Licence: CC BY 4.0
-- Required attribution: "Casual Man" by vinish.dev (https://vinish.dev/free-3d-models/), CC BY 4.0.
+
+- Casual Walker — tevy, CC0 1.0: https://tevy.dev/models/casual-walker
