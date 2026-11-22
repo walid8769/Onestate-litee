@@ -541,7 +541,7 @@ function drawMiniMap(){
   ctx.strokeStyle='#c0bba9';ctx.lineWidth=1.7;
   for(let p=-490;p<=490;p+=70){ctx.beginPath();ctx.moveTo(-510,p-8);ctx.lineTo(510,p-8);ctx.stroke();ctx.beginPath();ctx.moveTo(p-8,-510);ctx.lineTo(p-8,510);ctx.stroke();}
   // Distinct federal and military compounds remain visible on the local minimap.
-  ctx.fillStyle='#173d67';ctx.fillRect(375,-395,20,20);
+  ctx.fillStyle='#173d67';ctx.fillRect(375,-395,80,20);
   ctx.fillStyle='#354b37';ctx.fillRect(350,420,140,130);
   ctx.fillStyle='#9da9a5';
   for(const d of districts){
