@@ -537,9 +537,12 @@ function drawMiniMap(){
   ctx.fillStyle='#292f32';ctx.fillRect(153,-122,44,34);
   ctx.fillStyle='#536d4b';for(const [px,pz] of [[-175,35],[175,-35],[35,175],[-35,-175],[-175,-105],[175,105],[-175,-245],[175,-245],[175,245],[-175,245]])ctx.fillRect(px-12.5,pz-12.5,25,25);
   ctx.strokeStyle='#292f33';ctx.lineWidth=12;
-  for(let p=-280;p<=280;p+=70){ctx.beginPath();ctx.moveTo(-380,p);ctx.lineTo(380,p);ctx.stroke();ctx.beginPath();ctx.moveTo(p,-380);ctx.lineTo(p,380);ctx.stroke();}
+  for(let p=-490;p<=490;p+=70){ctx.beginPath();ctx.moveTo(-525,p);ctx.lineTo(525,p);ctx.stroke();ctx.beginPath();ctx.moveTo(p,-525);ctx.lineTo(p,525);ctx.stroke();}
   ctx.strokeStyle='#c0bba9';ctx.lineWidth=1.7;
-  for(let p=-280;p<=280;p+=70){ctx.beginPath();ctx.moveTo(-340,p-8);ctx.lineTo(340,p-8);ctx.stroke();ctx.beginPath();ctx.moveTo(p-8,-340);ctx.lineTo(p-8,340);ctx.stroke();}
+  for(let p=-490;p<=490;p+=70){ctx.beginPath();ctx.moveTo(-510,p-8);ctx.lineTo(510,p-8);ctx.stroke();ctx.beginPath();ctx.moveTo(p-8,-510);ctx.lineTo(p-8,510);ctx.stroke();}
+  // Distinct federal and military compounds remain visible on the local minimap.
+  ctx.fillStyle='#173d67';ctx.fillRect(375,-395,20,20);
+  ctx.fillStyle='#354b37';ctx.fillRect(350,420,140,130);
   ctx.fillStyle='#9da9a5';
   for(const d of districts){
     const offsets=d.kind==='tower'?[-30,30]:d.kind==='industrial'?[-13,13]:d.kind==='shops'?[-16,0,16]:[-17,0,17];
