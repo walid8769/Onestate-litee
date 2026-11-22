@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
+import { KTX2Loader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/KTX2Loader.js';
+import { MeshoptDecoder } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
 
 // Casual Walker by tevy — CC0 1.0; rigged humanoid with idle, walk, wave and look-around clips.
@@ -7,7 +9,15 @@ import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161
 const MODEL_URL = 'https://tevy.dev/models/casual-walker/v1/lod0.glb';
 const REMOTE_MODEL_URL = 'https://tevy.dev/models/casual-walker/v1/lod1.glb';
 const loader = new GLTFLoader();
+let loaderConfigured = false;
 let modelPromise, remoteModelPromise;
+function configureAvatarLoader(renderer) {
+  if (loaderConfigured) return;
+  const ktx2 = new KTX2Loader().setTranscoderPath('https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/libs/basis/').detectSupport(renderer);
+  loader.setKTX2Loader(ktx2);
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  loaderConfigured = true;
+}
 
 function getModel(remote = false) {
   const url = remote ? REMOTE_MODEL_URL : MODEL_URL;
@@ -25,8 +35,10 @@ function getModel(remote = false) {
 function findClip(clips, expression, fallbackIndex=0) {
   return clips.find(c => expression.test(c.name)) || clips[fallbackIndex] || null;
 }
-export async function upgradeAvatar(root) {
+export async function upgradeAvatar(root, renderer) {
   if (root.userData.avatarLoading || root.userData.realAvatarLoaded) return;
+  if (!renderer) { root.userData.avatarLoadError = 'Renderer unavailable'; return; }
+  configureAvatarLoader(renderer);
   root.userData.avatarLoading = true;
   try {
     const gltf = await getModel(!!root.userData.remote);
