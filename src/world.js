@@ -272,6 +272,22 @@ export function createWorld(T, scene) {
     for(let k=-1;k<=1;k++)propPlan.push({key:k===0?'tree2':'tree',x:x+k*7,z:z+(k%2)*3,w:5,h:9,d:5});
     propPlan.push({key:'bench',x,z:z+8,w:4,h:1.5,d:1.5});
   }
+  for(const [x,z] of [[-175,-245],[175,-245],[175,245],[-175,245]]){
+    plane(30,24,x,z,mat(0x4f704a),-.02);
+    for(const [dx,dz] of [[-9,-6],[0,-7],[9,-6],[-8,7],[8,7]]){
+      propPlan.push({key:Math.abs(dx)<1?'tree2':'tree',x:x+dx,z:z+dz,w:5,h:10,d:5});
+    }
+    propPlan.push({key:'bench',x:x-5,z:z+1,w:4,h:1.5,d:1.5});
+    propPlan.push({key:'bench',x:x+5,z:z+1,w:4,h:1.5,d:1.5});
+    propPlan.push({key:'bin',x:x+12,z:z+8,w:1.2,h:1.5,d:1.2});
+  }
+  for(let p=-280;p<=280;p+=70){
+    if(Math.abs(p)<70)continue;
+    for(const side of [-1,1]){
+      propPlan.push({key:'lamp',x:p,z:side*11,w:.5,h:9,d:3.42});
+      propPlan.push({key:'lamp',x:side*11,z:p,w:.5,h:9,d:3.42});
+    }
+  }
   for(let p=-175;p<=175;p+=35)for(const side of [-1,1]){
     if(Math.abs(p)<45)continue;
     propPlan.push({key:'lamp',x:p,z:side*11,w:.5,h:9,d:3.42});
