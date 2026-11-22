@@ -16,7 +16,7 @@ scene.background=new THREE.Color(0x9bb2c1);
 scene.fog=new THREE.Fog(0x9bb2c1,100,310);
 const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,650);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -28,7 +28,9 @@ scene.add(new THREE.HemisphereLight(0xe8f2ff,0x59614e,2.0));
 const sun=new THREE.DirectionalLight(0xffe3b0,2.0);
 sun.position.set(-45,85,35);
 sun.castShadow=true;
-sun.shadow.mapSize.set(1536,1536);
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.bias=-0.00015;
+sun.shadow.normalBias=0.025;
 sun.shadow.camera.left=-100;sun.shadow.camera.right=100;
 sun.shadow.camera.top=100;sun.shadow.camera.bottom=-100;
 scene.add(sun);
@@ -60,13 +62,25 @@ joystick.addEventListener('pointerup',resetStick);
 joystick.addEventListener('pointercancel',resetStick);
 
 const runButton=document.querySelector('#run');
-runButton.addEventListener('pointerdown',()=>running=true);
-['pointerup','pointercancel','pointerleave'].forEach(ev=>runButton.addEventListener(ev,()=>running=false));
-renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY});
+runButton.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  running=true;
+  runButton.setPointerCapture(e.pointerId);
+});
+function stopRunning(e){
+  if(e){e.preventDefault();e.stopPropagation();}
+  running=false;
+}
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>runButton.addEventListener(ev,stopRunning));
+renderer.domElement.addEventListener('pointerdown',e=>{
+  if(e.target!==renderer.domElement)return;
+  dragging=true;lastX=e.clientX;lastY=e.clientY;
+});
 addEventListener('pointerup',()=>dragging=false);
 addEventListener('pointercancel',()=>dragging=false);
 addEventListener('pointermove',e=>{
-  if(!dragging)return;
+  if(!dragging||running)return;
   yaw-=(e.clientX-lastX)*.006;
   pitch=THREE.MathUtils.clamp(pitch+(e.clientY-lastY)*.003,-.12,.72);
   lastX=e.clientX;lastY=e.clientY;
@@ -127,7 +141,7 @@ let mapTimer=0;
 function animate(){
   requestAnimationFrame(animate);
   const dt=Math.min(clock.getDelta(),.04);
-  const speed=running?11:5.5;
+  const speed=running?13:6.2;
   const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
   const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
   player.position.addScaledVector(forward,-moveY*speed*dt);
