@@ -246,7 +246,8 @@ scene.background=new THREE.Color(0x9eb8c9);
 scene.fog=new THREE.Fog(0x9eb8c9,170,520);
 const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,900);
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.25:1.6));
+const touchViewport=()=>innerWidth<700||matchMedia('(pointer: coarse)').matches;
+renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.25:1.6));
 renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -275,7 +276,7 @@ renderer.domElement.style.touchAction='none';
 scene.add(new THREE.HemisphereLight(0xeaf4ff,0x59614e,2.15));
 const sun=new THREE.DirectionalLight(0xffe6bd,2.35);
 sun.position.set(-90,140,75); sun.castShadow=true;
-sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);
+sun.shadow.mapSize.set(touchViewport()?1024:2048,touchViewport()?1024:2048);
 sun.shadow.camera.left=-360;sun.shadow.camera.right=360;sun.shadow.camera.top=360;sun.shadow.camera.bottom=-360;sun.shadow.camera.far=700;sun.shadow.camera.updateProjectionMatrix();
 sun.shadow.bias=-.00012;sun.shadow.normalBias=.025;
 scene.add(sun);
@@ -614,7 +615,7 @@ function animate(){
   renderer.render(scene,camera);
 }
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.25:1.6));renderer.setSize(innerWidth,innerHeight);sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,touchViewport()?1.25:1.6));renderer.setSize(innerWidth,innerHeight);sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);});
 // Keep the loading screen visible until the real GLB environment has either loaded or failed.
 await districts.assetsReady;
 loading.classList.add('hidden');
