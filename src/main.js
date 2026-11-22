@@ -1,4 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
+import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/environments/RoomEnvironment.js';
 import { createWorld } from './world.js';
 import { NetworkClient } from './network.js';
 import { upgradeAvatar, updateAvatar } from './avatar.js';
@@ -71,6 +72,12 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.12;
+// Give PBR city assets a real image-based lighting source instead of flat ambient light.
+const pmrem=new THREE.PMREMGenerator(renderer);
+const environment=pmrem.fromScene(new RoomEnvironment(renderer),0.04);
+scene.environment=environment.texture;
+scene.environmentIntensity=.62;
+pmrem.dispose();
 game.prepend(renderer.domElement);
 renderer.domElement.style.touchAction='none';
 
