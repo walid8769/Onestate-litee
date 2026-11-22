@@ -130,7 +130,7 @@ export class GameRoom {
     socket.accept();
     const spawnX = Number(request.headers.get("X-Player-Spawn-X")) || 0;
     const spawnZ = Number(request.headers.get("X-Player-Spawn-Z")) || 0;
-    const player = { id, name, x: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnX)), z: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnZ)), yaw: 0, lastMove: Date.now(), lastChat: 0, server };
+    const player = { id, name, x: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnX)), z: Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, spawnZ)), yaw: 0, running: false, lastMove: Date.now(), lastChat: 0, server };
     this.sessions.set(socket, player);
     socket.addEventListener("message", event => this.onMessage(socket, event.data));
     socket.addEventListener("close", () => this.onClose(socket));
