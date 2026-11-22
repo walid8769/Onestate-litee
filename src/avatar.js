@@ -80,10 +80,12 @@ export async function upgradeAvatar(root, renderer, variant = 'casual') {
     const clips = gltf.animations || [];
     const idle = findClip(clips, /idle/i, 0);
     const walk = findClip(clips, /walk/i, 1);
-    const run = findClip(clips, /run/i, 2);
+    // The CC0 civilian rigs ship idle/walk/wave/look-around, not a run clip.
+    // Never fall back to clip index 2: that is the wave animation and made sprinting look broken.
+    const run = findClip(clips, /run/i) || walk;
     const actions = { idle, walk, run };
     const active = { action: null };
-    const setState = (state, speedMultiplier = (state === 'run' ? 4.1 : state === 'walk' ? 2.15 : 1)) => {
+    const setState = (state, speedMultiplier = (state === 'run' ? (run === walk ? 5.4 : 4.1) : state === 'walk' ? 2.9 : 1)) => {
       const clip = actions[state] || idle;
       if (!clip) return;
       const next = mixer.clipAction(clip);
