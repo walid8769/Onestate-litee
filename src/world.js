@@ -94,8 +94,9 @@ export function createWorld(T, scene) {
   for(const [x,z] of [[-105,-105],[-105,105],[105,-105],[105,105],[-175,0],[175,0]]){box(25,.16,25,x,.02,z,mat(0x536f4c),false);for(let k=-1;k<=1;k++)tree(x+k*7,z+(k%2)*3,.82);box(4,.34,.55,x,.65,z+8,mats.wood,false);box(4,.12,.7,x,.9,z+8,mats.dark,false);}
   for(let p=-175;p<=175;p+=35)for(const s of [-1,1]){cyl(.09,.13,5,p,2.5,s*11,mats.dark,8);box(1.5,.12,.14,p+.65,4.85,s*11,mats.dark,false);const bulb=new T.Mesh(new T.SphereGeometry(.18,10,8),new T.MeshStandardMaterial({color:0xffd28a,emissive:0xffb84d,emissiveIntensity:.65}));bulb.position.set(p+1.35,4.78,s*11);scene.add(bulb);}
   // Parked vehicles: recognizable proportions, glass cabin, bumpers, lights and wheels.
+  const vehicles=[];
   function car(x,z,color=0xd8dce0,rot=0,emergency=false){
-    const g=new T.Group();g.position.set(x,.18,z);g.rotation.y=rot;scene.add(g);
+    const g=new T.Group();g.position.set(x,.18,z);g.rotation.y=rot;scene.add(g);g.userData={vehicle:true,emergency,speed:0,steer:0};vehicles.push(g);
     const paint=mat(color,.34,.38),rubber=mat(0x15191c,.9),rim=mat(0xaeb7bc,.3,.8);
     const add=(geo,m,px,py,pz)=>{const o=new T.Mesh(geo,m);o.position.set(px,py,pz);o.castShadow=true;o.receiveShadow=true;g.add(o);return o;};
     add(new T.BoxGeometry(2.25,.62,4.35),paint,0,.72,0);
@@ -104,10 +105,21 @@ export function createWorld(T, scene) {
     add(new T.BoxGeometry(2.3,.18,.25),mats.dark,0,.52,-2.18);
     for(const xx of [-1.14,1.14])for(const zz of [-1.35,1.35]){const w=add(new T.CylinderGeometry(.42,.42,.22,18),rubber,xx,.48,zz);w.rotation.z=Math.PI/2;const r=add(new T.CylinderGeometry(.22,.22,.235,14),rim,xx,.48,zz);r.rotation.z=Math.PI/2;}
     for(const xx of [-.72,.72]){add(new T.BoxGeometry(.48,.22,.08),mat(0xf7f1d9,.3),xx,.78,2.2);add(new T.BoxGeometry(.45,.2,.08),mat(0xc52f2b,.3),xx,.78,-2.2);}
-    if(emergency){add(new T.BoxGeometry(1.05,.15,.28),mat(0xd92828,.25,.2),0,1.78,-.15);add(new T.BoxGeometry(.35,.12,.2),mat(0x2869dc,.2),-.4,1.78,-.15);}
+    if(emergency){
+      add(new T.BoxGeometry(1.05,.15,.28),mat(0xd92828,.25,.2),0,1.78,-.15);add(new T.BoxGeometry(.35,.12,.2),mat(0x2869dc,.2),-.4,1.78,-.15);
+      add(new T.BoxGeometry(2.28,.24,2.7),mat(0xf4f3ee,.5),0,1.27,-.95);
+      add(new T.BoxGeometry(2.3,.16,2.4),mat(0xd52e32,.45),0,.91,-.9);
+      add(new T.BoxGeometry(.12,.62,.12),mats.white,-1.17,1.3,-.15);add(new T.BoxGeometry(.12,.62,.12),mats.white,1.17,1.3,-.15);
+      add(new T.BoxGeometry(.7,.12,.08),mat(0x1c5a9b,.4),0,1.72,-.15);
+    }
     return g;
   }
   car(31,-12,0xf0f0ed,.05);car(38,-12,0x242b31,.05);car(-32,15,0xc6cbd0,Math.PI);car(8,34,0xd7dadd,Math.PI/2);
   car(26,10,0xe7e9e6,Math.PI/2,true);
+  // More parked traffic around the playable districts to give the streets scale.
+  car(-102,-70,0x263d50,Math.PI/2);car(102,-70,0xb7b9bd,Math.PI/2);
+  car(-70,102,0x8d3034,0);car(70,102,0xe4e2d9,0);
+  car(170,32,0x263d50,Math.PI/2,true);
+  districts.vehicles=vehicles;
   return districts;
 }
