@@ -46,10 +46,11 @@ function makeRemotePlayer(id,name){
 function handleNetworkEvent(event){
   if(event.type==='connected'){networkStatus.textContent='متصل';networkStatus.dataset.state='online';}
   else if(event.type==='offline'||event.type==='network_error'||event.type==='disconnected'){networkStatus.textContent='غير متصل';networkStatus.dataset.state='offline';}
+  if(event.type==='welcome'){networkStatus.textContent=`متصل • ${event.online||1}/100`;networkStatus.dataset.state='online';}
   if(event.type==='snapshot'){for(const p of event.players||[])updateRemote(p);}
-  if(event.type==='player_joined'||event.type==='player_moved')updateRemote(event.player);
-  if(event.type==='player_left'){const p=remotePlayers.get(event.id);if(p){scene.remove(p.group);remotePlayers.delete(event.id);}}
-  if(event.type==='error'&&networkStatus)networkStatus.textContent=event.message||'تعذر الاتصال';
+  if(event.type==='player_joined'||event.type==='player_moved'){updateRemote(event.player);if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
+  if(event.type==='player_left'){const p=remotePlayers.get(event.id);if(p){scene.remove(p.group);remotePlayers.delete(event.id);}if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
+  if(event.type==='error'&&networkStatus){networkStatus.textContent=event.message||'تعذر الاتصال';networkStatus.dataset.state='offline';}
 }
 function updateRemote(p){if(!p||!p.id)return;let item=remotePlayers.get(p.id);if(!item)makeRemotePlayer(p.id,p.name);item=remotePlayers.get(p.id);item.group.position.set(p.x,0,p.z);item.group.rotation.y=p.yaw;}
 
