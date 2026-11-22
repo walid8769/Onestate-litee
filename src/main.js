@@ -112,10 +112,10 @@ const districts=createWorld(THREE,scene);
 const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player);
 player.position.set(0,0,0);
 const pedestrianSpecs=[
-  {color:0x9b563d,pants:0x26384a,start:[-175,35],path:[[-183,27],[-167,27],[-167,43],[-183,43]]},
-  {color:0x315f88,pants:0x30343b,start:[175,-35],path:[[167,-43],[183,-43],[183,-27],[167,-27]]},
-  {color:0x9b8742,pants:0x273d34,start:[35,175],path:[[27,167],[43,167],[43,183],[27,183]]},
-  {color:0x674c82,pants:0x252c37,start:[118,35],path:[[108,28],[124,28],[124,42],[108,42]]}
+  {color:0x9b563d,pants:0x26384a,start:[-190,20],path:[[-190,20],[-160,20],[-160,50],[-190,50]]},
+  {color:0x315f88,pants:0x30343b,start:[160,-50],path:[[160,-50],[190,-50],[190,-20],[160,-20]]},
+  {color:0x9b8742,pants:0x273d34,start:[20,160],path:[[20,160],[50,160],[50,190],[20,190]]},
+  {color:0x674c82,pants:0x252c37,start:[-50,-190],path:[[-50,-190],[-20,-190],[-20,-160],[-50,-160]]}
 ];
 const pedestrians=pedestrianSpecs.map((spec,index)=>{
   const group=createAvatar(spec.color,spec.pants);
