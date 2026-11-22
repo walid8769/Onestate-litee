@@ -8,10 +8,38 @@ let selectedServer='ME1';
 const remotePlayers=new Map();
 const networkStatus=$('#network-status');
 const realtime=new NetworkClient(handleNetworkEvent);
+function createAvatar(bodyColor=0x087b9e,pantsColor=0x202a38){
+  const root=new THREE.Group();
+  const skin=new THREE.MeshStandardMaterial({color:0xb98262,roughness:.82});
+  const shirt=new THREE.MeshStandardMaterial({color:bodyColor,roughness:.78});
+  const pants=new THREE.MeshStandardMaterial({color:pantsColor,roughness:.9});
+  const shoe=new THREE.MeshStandardMaterial({color:0x171b20,roughness:.92});
+  const trim=new THREE.MeshStandardMaterial({color:0x172c3b,roughness:.7});
+  const add=(parent,geo,material,pos)=>{const m=new THREE.Mesh(geo,material);m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
+  const torso=new THREE.Group();torso.position.y=1.32;root.add(torso);
+  add(torso,new THREE.CapsuleGeometry(.37,.63,7,14),shirt,[0,0,0]);
+  add(torso,new THREE.BoxGeometry(.7,.16,.42),trim,[0,.18,0]);
+  add(torso,new THREE.CylinderGeometry(.115,.13,.18,12),skin,[0,.47,0]);
+  const headGroup=new THREE.Group();headGroup.position.set(0,1.98,0);root.add(headGroup);
+  add(headGroup,new THREE.SphereGeometry(.255,22,18),skin,[0,0,0]);
+  add(headGroup,new THREE.SphereGeometry(.26,20,12,0,Math.PI*2,0,Math.PI*.48),new THREE.MeshStandardMaterial({color:0x29231f,roughness:1}),[0,.075,-.015]);
+  add(headGroup,new THREE.BoxGeometry(.34,.07,.16),new THREE.MeshStandardMaterial({color:0x29231f}),[0,-.04,.19]);
+  const limbGeo=new THREE.CapsuleGeometry(.105,.46,5,10),upperLeg=new THREE.CapsuleGeometry(.14,.42,5,10);
+  const arms=[],legs=[];
+  for(const side of [-1,1]){
+    const arm=new THREE.Group();arm.position.set(side*.46,1.58,0);root.add(arm);
+    add(arm,limbGeo,shirt,[0,-.28,0]);add(arm,new THREE.SphereGeometry(.115,12,10),skin,[0,-.57,.015]);
+    add(arm,new THREE.BoxGeometry(.19,.12,.25),trim,[0,-.1,0]);arms.push(arm);
+    const leg=new THREE.Group();leg.position.set(side*.19,.88,0);root.add(leg);
+    add(leg,upperLeg,pants,[0,-.25,0]);add(leg,limbGeo,pants,[0,-.59,0]);
+    add(leg,new THREE.BoxGeometry(.24,.14,.39),shoe,[0,-.91,.09]);legs.push(leg);
+  }
+  add(root,new THREE.BoxGeometry(.13,.08,.06),trim,[.28,1.47,.32]);
+  root.userData={torso,arms,legs,headGroup};
+  return root;
+}
 function makeRemotePlayer(id,name){
-  const group=new THREE.Group();
-  const body=new THREE.Mesh(new THREE.CapsuleGeometry(.39,.58,5,12),new THREE.MeshStandardMaterial({color:0x8c3030,roughness:.75}));body.position.y=1.25;body.castShadow=true;group.add(body);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.27,16,12),new THREE.MeshStandardMaterial({color:0xb9825d}));head.position.y=1.99;group.add(head);scene.add(group);
+  const group=createAvatar(0x9b3940,0x252b35);scene.add(group);
   remotePlayers.set(id,{group,name});return group;
 }
 function handleNetworkEvent(event){
@@ -54,26 +82,7 @@ scene.add(sun);
 const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100);scene.add(fill);
 
 const districts=createWorld(THREE,scene);
-const player=new THREE.Group(); scene.add(player);
-const skin=new THREE.MeshStandardMaterial({color:0xb9825d,roughness:.78});
-const shirt=new THREE.MeshStandardMaterial({color:0x172c49,roughness:.72});
-const pants=new THREE.MeshStandardMaterial({color:0x202833,roughness:.85});
-const shoes=new THREE.MeshStandardMaterial({color:0x11151b,roughness:.9});
-function part(parent,geo,mat,pos){const m=new THREE.Mesh(geo,mat);m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
-const torso=part(player,new THREE.CapsuleGeometry(.39,.58,5,12),shirt,[0,1.25,0]);
-const neck=part(player,new THREE.CylinderGeometry(.12,.14,.18,10),skin,[0,1.72,0]);
-const head=part(player,new THREE.SphereGeometry(.27,20,16),skin,[0,1.99,0]);
-const hair=part(player,new THREE.SphereGeometry(.275,18,12,0,Math.PI*2,0,Math.PI*.48),new THREE.MeshStandardMaterial({color:0x29221e,roughness:1}),[0,2.06,0]);
-const limbGeo=new THREE.CapsuleGeometry(.105,.48,4,9);
-const armL=new THREE.Group(),armR=new THREE.Group(),legL=new THREE.Group(),legR=new THREE.Group();
-for(const [g,x,y,mat] of [[armL,-.48,1.48,shirt],[armR,.48,1.48,shirt],[legL,-.19,.78,pants],[legR,.19,.78,pants]]){
-  g.position.set(x,y,0);player.add(g);
-  part(g,limbGeo,mat,[0,-.29,0]);
-}
-part(armL,new THREE.SphereGeometry(.115,10,8),skin,[0,-.58,0]);
-part(armR,new THREE.SphereGeometry(.115,10,8),skin,[0,-.58,0]);
-part(legL,new THREE.BoxGeometry(.22,.13,.38),shoes,[0,-.61,-.07]);
-part(legR,new THREE.BoxGeometry(.22,.13,.38),shoes,[0,-.61,-.07]);
+const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);
 player.position.set(0,0,36);
 
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
@@ -131,9 +140,12 @@ function animate(){
   player.position.addScaledVector(direction,speed*dt);
   player.position.x=THREE.MathUtils.clamp(player.position.x,-250,250);player.position.z=THREE.MathUtils.clamp(player.position.z,-250,250);
   if(moving){player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,Math.atan2(direction.x,direction.z),Math.min(1,dt*12));walkTime+=dt*(running?12:8);}
-  const swing=moving?Math.sin(walkTime)*.62:0;
-  armL.rotation.x=swing;armR.rotation.x=-swing;legL.rotation.x=-swing;legR.rotation.x=swing;
-  torso.position.y=1.25+(moving?Math.abs(Math.sin(walkTime*2))*.035:0);
+  const swing=moving?Math.sin(walkTime)*.58:0;
+  player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;
+  player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;
+  player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);
+  player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;
+  player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);
   const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)*8,3.4+pitch*3,Math.cos(yaw)*8));
   camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
   updateDistrict();realtime.move(player.position.x,player.position.z,player.rotation.y);mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
