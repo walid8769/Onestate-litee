@@ -216,7 +216,7 @@ function drawMiniMap(){
   ctx.fillStyle='#3f8294';ctx.fillRect(-270,119,130,42);
   ctx.fillStyle='#c7b48c';ctx.fillRect(-140,119,18,42);
   ctx.fillStyle='#292f32';ctx.fillRect(153,-122,44,34);
-  ctx.fillStyle='#536d4b';for(const [px,pz] of [[-175,35],[175,-35],[35,175],[-35,-175],[-175,-105],[175,105]])ctx.fillRect(px-12.5,pz-12.5,25,25);
+  ctx.fillStyle='#536d4b';for(const [px,pz] of [[-175,35],[175,-35],[35,175],[-35,-175],[-175,-105],[175,105],[-175,-245],[175,-245],[175,245],[-175,245]])ctx.fillRect(px-12.5,pz-12.5,25,25);
   ctx.strokeStyle='#292f33';ctx.lineWidth=12;
   for(let p=-280;p<=280;p+=70){ctx.beginPath();ctx.moveTo(-380,p);ctx.lineTo(380,p);ctx.stroke();ctx.beginPath();ctx.moveTo(p,-380);ctx.lineTo(p,380);ctx.stroke();}
   ctx.strokeStyle='#c0bba9';ctx.lineWidth=1.7;
