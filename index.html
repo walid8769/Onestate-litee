@@ -29,8 +29,7 @@
       <p id="account-status" class="account-status">سجّل الدخول لحفظ شخصيتك وتفعيل اللعب الجماعي.</p>
       <label class="field-label" for="job-select">الوظيفة</label>
       <select id="job-select" class="menu-input" disabled><option value="citizen">مواطن</option></select>
-      <label class="field-label" for="realtime-url">رابط خدمة اللعب الجماعي (إعداد مرة واحدة)</label>
-      <input id="realtime-url" class="menu-input" type="url" inputmode="url" autocomplete="url" placeholder="https://اسم-الخدمة.workers.dev">
+      <input id="realtime-url" type="hidden" value="https://onestate-lite-realtime.ossupport.workers.dev">
       <h2 class="server-heading">اختر السيرفر</h2>
       <div class="servers">
         <button class="server active" data-server="ME1"><b>ME1</b><small>الشرق الأوسط 1</small><span class="server-count" id="server-count-ME1">—/100</span></button>
@@ -88,8 +87,8 @@
     <button id="run" class="run">ركض</button>
     <button id="exit" class="exit">القائمة</button>
   </div>
-  <!-- Optional Worker URL can be configured once in the menu and is saved locally. -->
-  <script>window.ONESTATE_REALTIME_URL = window.ONESTATE_REALTIME_URL || '';</script>
+  <!-- OneState Lite realtime service is preconfigured for all players. -->
+  <script>window.ONESTATE_REALTIME_URL = 'https://onestate-lite-realtime.ossupport.workers.dev';</script>
   <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js"}}</script>
   <script type="module" src="./src/main.js"></script>
 </body>
