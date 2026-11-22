@@ -94,3 +94,31 @@ test("mission rewards require the right destination and a minimum duration", asy
   assert.equal(result.account.xp, 70);
   assert.equal(result.account.job, "police");
 });
+
+
+test("saved spawn is clamped and returned in the persistent profile", async () => {
+  const { store } = makeStore();
+  const registered = await store.fetch(request("/api/auth/register", "POST", {
+    username: "spawn_test", displayName: "Spawn", password: "SafePass_789"
+  }));
+  const { token } = await registered.json();
+
+  const unverified = await store.fetch(request("/api/profile/save-position", "POST", { server: "ME2" }, token));
+  assert.equal(unverified.status, 400);
+
+  const verified = await store.fetch(new Request("https://accounts.test/api/profile/save-position", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: "Bearer " + token,
+      "X-Player-Server": "ME2",
+      "X-Player-X": "999",
+      "X-Player-Z": "-999"
+    },
+    body: JSON.stringify({ server: "ME2" })
+  }));
+  assert.equal(verified.status, 200);
+  const saved = await verified.json();
+  assert.equal(saved.account.spawnX, 350);
+  assert.equal(saved.account.spawnZ, -350);
+});
