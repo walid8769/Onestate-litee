@@ -5,7 +5,7 @@
 The realistic city buildings are CC0 GLB models by Tevy, loaded from pinned model URLs:
 - Office Tower: https://tevy.dev/models/office-tower
 - Apartment Block: https://tevy.dev/models/apartment-block
-- Korean Villa Block: https://tevy.dev/models/korean-villa-block
+- Two-Storey Wooden House: https://tevy.dev/models/village-house
 - Corner Shop Block: https://tevy.dev/models/corner-shop-block
 - Supermarket Building: https://tevy.dev/models/supermarket-shell
 - Fuel Station Canopy: https://tevy.dev/models/fuel-station
