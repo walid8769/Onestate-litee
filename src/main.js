@@ -184,4 +184,6 @@ function animate(){
 }
 animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);});
+// Keep the loading screen visible until the real GLB environment has either loaded or failed.
+await districts.assetsReady;
 loading.classList.add('hidden');
