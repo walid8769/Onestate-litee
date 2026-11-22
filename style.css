@@ -68,3 +68,18 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
 .account-status[data-state=success]{color:#8fe0a5}
 .account-status[data-state=error]{color:#ffaaaa}
 #job-select{direction:rtl;text-align:right}
+
+.mission-toggle{position:absolute;top:calc(env(safe-area-inset-top) + 118px);right:14px;z-index:12;border:1px solid #c7a96b88;border-radius:10px;padding:9px 15px;background:#101820eF;color:#f2d9a2;font-weight:800;font-size:12px}
+.mission-panel{position:absolute;top:calc(env(safe-area-inset-top) + 160px);right:12px;z-index:13;width:min(290px,calc(100vw - 24px));max-height:52vh;overflow:auto;padding:12px;border:1px solid #c7a96b66;border-radius:14px;background:rgba(12,18,25,.96);color:#f5f2eb;box-shadow:0 12px 36px #0008;backdrop-filter:blur(12px)}
+.mission-panel header{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;color:#e8cf98}
+.mission-panel header button{border:0;background:transparent;color:#fff;font-size:23px}
+.mission-card{padding:10px;margin:7px 0;border:1px solid #ffffff18;border-radius:10px;background:#ffffff08}
+.mission-card strong{display:block;font-size:12px}
+.mission-card p,.mission-active p{margin:5px 0;color:#aeb8c1;font-size:10px;line-height:1.5}
+.mission-card small{color:#d6b879;font-size:10px}
+.mission-card button,.mission-actions button{display:block;width:100%;margin-top:8px;padding:9px;border:1px solid #c7a96b66;border-radius:8px;background:#29343e;color:#f5e4c1;font-size:11px;font-weight:800}
+.mission-active{padding:10px;border-radius:10px;background:#ffffff0b}
+.mission-active #mission-progress{margin-top:9px;color:#e2c17d;font-size:11px}
+.mission-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.mission-actions button:disabled{opacity:.45}
+@media(max-width:700px){.mission-toggle{top:calc(env(safe-area-inset-top) + 116px)}.mission-panel{top:calc(env(safe-area-inset-top) + 158px)}}
