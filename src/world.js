@@ -59,7 +59,8 @@ const FILES={
   signal:'https://tevy.dev/models/traffic-light/v1/lod1.glb',
   shelter:'https://tevy.dev/models/glass-bus-shelter/v1/lod2.glb',
   bin:'https://tevy.dev/models/waste-bin/v1/lod1.glb',
-  hydrant:'https://tevy.dev/models/fire-hydrant/v1/lod1.glb'
+  hydrant:'https://tevy.dev/models/fire-hydrant/v1/lod1.glb',
+  sidewalkFence:'https://tevy.dev/models/city-sidewalk-guard-fence-12-m/v1/lod1.glb'
 };
 
 export function createWorld(T, scene, renderer) {
@@ -266,7 +267,8 @@ export function createWorld(T, scene, renderer) {
     {key:'hospital',x:-54,z:54,w:24,h:15,d:24},
     {key:'firestation',x:54,z:54,w:21,h:15,d:21},
     {key:'fuelstation',x:105,z:-35,w:16,h:6,d:13},
-    {key:'supermarket',x:105,z:-105,w:30,h:8,d:22}
+    {key:'supermarket',x:105,z:-105,w:30,h:8,d:22},
+    {key:'publicHousing',x:-245,z:-180,w:42,h:14,d:10}
   ];
   for(const p of landmarkPlan){
     obstacles.push({x:p.x,z:p.z,halfX:p.w*.5+1,halfZ:p.d*.5+1});
@@ -293,6 +295,8 @@ export function createWorld(T, scene, renderer) {
   for(let bay=0;bay<=7;bay++)plane(.13,5.8,153+bay*5.8,-117,markingMat,-.035);
 
   const propPlan=[];
+  // Real modular sidewalk fencing gives the waterfront a finished pedestrian edge.
+  for(let x=-264;x<=-144;x+=12)propPlan.push({key:'sidewalkFence',x,z:164,w:6,h:1,d:12,rotation:Math.PI/2});
   for(const [x,z] of [[-175,35],[175,-35],[35,175],[-35,-175],[-175,-105],[175,105]]){
     plane(25,25,x,z,mat(0x536d4b),-.02);
     for(let k=-1;k<=1;k++)propPlan.push({key:k===0?'tree2':'tree',x:x+k*7,z:z+(k%2)*3,w:5,h:9,d:5});
@@ -455,7 +459,7 @@ export function createWorld(T, scene, renderer) {
   // Load the playable city first. Small street props stream in afterwards so a slow
   // bench/tree request cannot keep the player trapped on the loading screen.
   const ready=Promise.allSettled(coreJobs);
-  const decorReady=ready.then(()=>Promise.allSettled(propPlan.map(p=>place(p.key,p.x,p.z,p.w,p.h,p.d))));
+  const decorReady=ready.then(()=>Promise.allSettled(propPlan.map(p=>place(p.key,p.x,p.z,p.w,p.h,p.d,p.rotation||0))));
   districts.vehicles=vehicles;
   districts.windObjects=windObjects;
   districts.obstacles=obstacles;
