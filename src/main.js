@@ -149,6 +149,11 @@ function clearRemotePlayers(){
 }
 function handleNetworkEvent(event){
   if(event.type==='connected'){networkStatus.textContent='متصل';networkStatus.dataset.state='online';}
+  if(event.type==='auth_required'){
+    networkStatus.textContent='انتهت الجلسة';networkStatus.dataset.state='offline';
+    sessionToken='';try{localStorage.removeItem('onestate-session-token');}catch{}
+    setAccountStatus('انتهت الجلسة. سجّل الدخول من جديد.','error');
+  }
   else if(event.type==='offline'||event.type==='network_error'||event.type==='disconnected'){
     networkStatus.textContent='غير متصل';networkStatus.dataset.state='offline';
     clearRemotePlayers();
