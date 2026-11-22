@@ -90,6 +90,16 @@ player.position.set(0,0,36);
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
 let activeVehicle=null,vehicleSpeed=0;
 const vehicles= districts.vehicles || [];
+const obstacles= districts.obstacles || [];
+function blockedAt(x,z,radius=0.8){
+  return obstacles.some(o=>Math.abs(x-o.x)<o.halfX+radius&&Math.abs(z-o.z)<o.halfZ+radius);
+}
+function moveWithCollision(object,dx,dz,radius=0.8){
+  const nx=THREE.MathUtils.clamp(object.position.x+dx,-245,245);
+  const nz=THREE.MathUtils.clamp(object.position.z+dz,-245,245);
+  if(!blockedAt(nx,object.position.z,radius))object.position.x=nx;
+  if(!blockedAt(object.position.x,nz,radius))object.position.z=nz;
+}
 const vehicleButton=document.createElement('button');vehicleButton.id='vehicle';vehicleButton.className='vehicle-action';vehicleButton.textContent='قيادة';game.appendChild(vehicleButton);
 const vehiclePanel=document.createElement('div');vehiclePanel.className='vehicle-panel';vehiclePanel.innerHTML='<span>السرعة</span><strong id="vehicle-speed">0</strong><small>KM/H</small>';game.appendChild(vehiclePanel);
 const speedReadout=vehiclePanel.querySelector('#vehicle-speed');
@@ -155,12 +165,10 @@ function animate(){
     speedReadout.textContent=String(Math.round(Math.abs(vehicleSpeed)*3.6));
     activeVehicle.rotation.y-=moveX*vehicleSpeed*.018*dt;
     const fwd=new THREE.Vector3(-Math.sin(activeVehicle.rotation.y),0,-Math.cos(activeVehicle.rotation.y));
-    activeVehicle.position.addScaledVector(fwd,vehicleSpeed*dt);
-    activeVehicle.position.x=THREE.MathUtils.clamp(activeVehicle.position.x,-245,245);activeVehicle.position.z=THREE.MathUtils.clamp(activeVehicle.position.z,-245,245);
+    moveWithCollision(activeVehicle,fwd.x*vehicleSpeed*dt,fwd.z*vehicleSpeed*dt,2.2);
     player.position.copy(activeVehicle.position);player.rotation.y=activeVehicle.rotation.y;
   }else{
-    player.position.addScaledVector(direction,speed*dt);
-    player.position.x=THREE.MathUtils.clamp(player.position.x,-250,250);player.position.z=THREE.MathUtils.clamp(player.position.z,-250,250);
+    moveWithCollision(player,direction.x*speed*dt,direction.z*speed*dt,.8);
   }
   if(moving&&!activeVehicle){player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,Math.atan2(direction.x,direction.z),Math.min(1,dt*12));walkTime+=dt*(running?12:8);}
   const swing=moving?Math.sin(walkTime)*.58:0;
