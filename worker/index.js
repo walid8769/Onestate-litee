@@ -14,7 +14,7 @@ export default {
       if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const accountStore = env.ACCOUNT_STORE.get(accountId);
-      const auth = await accountStore.fetch(new Request("https://accounts.internal/api/auth/resolve", { method: "POST", headers: { Authorization: "Bearer " + token } }));
+      const auth = await accountStore.fetch(new Request("https://accounts.internal/api/auth/resolve", { method: "POST", headers: { Authorization: "Bearer " + token, "X-Game-Server": server } }));
       if (!auth.ok) return Response.json({ error: "انتهت الجلسة" }, { status: 401, headers: AUTH_CORS });
       const identity = await auth.json();
       const body = await request.clone().json().catch(() => null);
@@ -72,7 +72,7 @@ export default {
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const authResponse = await env.ACCOUNT_STORE.get(accountId).fetch(new Request("https://accounts.internal/api/auth/resolve", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { "Authorization": `Bearer ${token}`, "X-Game-Server": match[1] }
       }));
       if (!authResponse.ok) return new Response("Session expired. Please sign in again.", { status: 401 });
       const identity = await authResponse.json();
