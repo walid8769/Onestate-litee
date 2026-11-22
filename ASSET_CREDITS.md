@@ -36,6 +36,7 @@ Additional CC0 city props from Tevy:
 
 ## Vehicles
 
+- Family Estate Car: https://tevy.dev/models/estate-car
 - Family Sedan: https://tevy.dev/models/family-sedan
 - Mid-Size SUV: https://tevy.dev/models/suv
 - Family Minivan: https://tevy.dev/models/family-minivan
