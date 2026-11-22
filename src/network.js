@@ -4,6 +4,7 @@ export class NetworkClient {
     this.onEvent = onEvent;
     this.connected = false;
     this.lastSend = 0;
+    this.lastPosition = null;
     this.server = null;
     this.baseUrl = '';
     this.playerName = 'لاعب';
@@ -26,6 +27,8 @@ export class NetworkClient {
     this.token = String(token || '');
     this.shouldReconnect = true;
     this.reconnectAttempts = 0;
+    this.lastSend = 0;
+    this.lastPosition = null;
     this.openSocket();
   }
 
@@ -108,8 +111,14 @@ export class NetworkClient {
     const now = performance.now();
     if (!this.connected || !this.socket || this.socket.readyState !== WebSocket.OPEN || now - this.lastSend < 100) return;
     if (this.socket.bufferedAmount > 128000) return;
+    const runState=Boolean(running),previous=this.lastPosition;
+    if(previous){
+      const yawDelta=Math.atan2(Math.sin(yaw-previous.yaw),Math.cos(yaw-previous.yaw));
+      if(Math.hypot(x-previous.x,z-previous.z)<.04&&Math.abs(yawDelta)<.025&&runState===previous.running)return;
+    }
     this.lastSend = now;
-    try { this.socket.send(JSON.stringify({ type: 'move', x, z, yaw, running: Boolean(running) })); }
+    this.lastPosition={x,z,yaw,running:runState};
+    try { this.socket.send(JSON.stringify({ type: 'move', x, z, yaw, running: runState })); }
     catch (error) { console.warn('[OneState Lite] Move packet failed', error); }
   }
 
@@ -135,6 +144,7 @@ export class NetworkClient {
     const socket = this.socket;
     this.socket = null;
     this.connected = false;
+    this.lastPosition = null;
     if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, 'Leaving city');
   }
 }
