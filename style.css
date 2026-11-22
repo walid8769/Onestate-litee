@@ -52,3 +52,10 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
 .vehicle-panel span{font-size:11px;color:#b9c4cc}.vehicle-panel strong{font-size:25px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}.vehicle-panel small{font-size:9px;letter-spacing:1px;color:#a68e5c}
 .vehicle-action{bottom:max(132px,calc(env(safe-area-inset-bottom) + 132px))}
 @media(max-width:430px){.vehicle-panel{bottom:max(145px,calc(env(safe-area-inset-bottom) + 145px));padding:7px 12px}.vehicle-panel strong{font-size:22px}}
+
+.field-label{display:block;text-align:right;font-size:11px;color:#c8b88f;margin:10px 0 5px}
+.menu-input{width:100%;height:43px;padding:0 12px;border-radius:10px;border:1px solid #ffffff24;background:#0d141c;color:#f5f2eb;outline:none;direction:ltr;text-align:left;font:inherit;font-size:13px}
+.menu-input:focus{border-color:#c7a96b;box-shadow:0 0 0 3px #c7a96b22}
+.menu-input::placeholder{color:#74808c}
+.server-heading{margin-top:18px!important}
+.asset-credit{font-size:9px;line-height:1.7;color:#77818b;margin:10px 0 0}
