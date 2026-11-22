@@ -283,14 +283,27 @@ function endDrag(e){if(dragPointer===e.pointerId)dragPointer=null;}
 renderer.domElement.addEventListener('pointerup',endDrag);
 renderer.domElement.addEventListener('pointercancel',endDrag);
 
-$('#play').addEventListener('click',()=>{
+$('#play').addEventListener('click',async()=>{
   const playerName=(playerNameInput.value||'لاعب').trim().slice(0,20)||'لاعب';
   setNameTag(player,playerName);
   const endpoint=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
   try{localStorage.setItem('onestate-player-name',playerName);if(endpoint)localStorage.setItem('onestate-realtime-url',endpoint);}catch{}
+  if(endpoint&&!sessionToken){
+    setAccountStatus('أنشئ حساباً أو سجّل الدخول قبل دخول السيرفرات الجماعية','error');
+    return;
+  }
+  if(endpoint&&sessionToken){
+    try{await accountApi('/api/auth/me');}
+    catch(error){
+      sessionToken='';
+      try{localStorage.removeItem('onestate-session-token');}catch{}
+      setAccountStatus('انتهت الجلسة. سجّل الدخول من جديد.','error');
+      return;
+    }
+  }
   $('#server-label').textContent=selectedServer;
   menu.classList.add('hidden');game.classList.remove('hidden');
-  realtime.connect(endpoint,selectedServer,playerName);
+  realtime.connect(endpoint,selectedServer,playerName,sessionToken);
 });
 $('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())disposeAvatarGroup(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';vehicleButton.style.display='';runButton.textContent='ركض';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
 const districtLabel=$('#district-label'),mapCanvas=$('#mini-map'),mapCtx=mapCanvas.getContext('2d');
