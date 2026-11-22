@@ -46,14 +46,15 @@ const FILES={
   electric:REAL_SUV,
   ambulance:REAL_VAN,
   bus:REAL_VAN,
-  tree:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
+  tree:'https://tevy.dev/models/european-beech/v1/lod2.glb',
+  tree2:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
   shrubs:`${KIT}/vegetacao/arbustos.glb`,
   lamp:'https://tevy.dev/models/city-street-lamp/v1/lod1.glb',
   bench:'https://tevy.dev/models/empty-mall-bench/v1/lod0.glb',
   signal:'https://tevy.dev/models/traffic-light/v1/lod1.glb',
   shelter:'https://tevy.dev/models/glass-bus-shelter/v1/lod2.glb',
   bin:'https://tevy.dev/models/waste-bin/v1/lod1.glb',
-  hydrant:`${KIT}/mobiliario/hidrante.glb`
+  hydrant:'https://tevy.dev/models/fire-hydrant/v1/lod1.glb'
 };
 
 export function createWorld(T, scene) {
@@ -214,7 +215,7 @@ export function createWorld(T, scene) {
   const propPlan=[];
   for(const [x,z] of [[-105,-105],[-105,105],[105,-105],[105,105],[-175,0],[175,0]]){
     plane(25,25,x,z,mat(0x536d4b),-.02);
-    for(let k=-1;k<=1;k++)propPlan.push({key:'tree',x:x+k*7,z:z+(k%2)*3,w:5,h:9,d:5});
+    for(let k=-1;k<=1;k++)propPlan.push({key:k===0?'tree2':'tree',x:x+k*7,z:z+(k%2)*3,w:5,h:9,d:5});
     propPlan.push({key:'bench',x,z:z+8,w:4,h:1.5,d:1.5});
   }
   for(let p=-175;p<=175;p+=35)for(const side of [-1,1]){
