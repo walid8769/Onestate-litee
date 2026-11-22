@@ -65,8 +65,8 @@ export class NetworkClient {
       });
     } catch (error) {
       this.connected = false;
+      this.shouldReconnect = false;
       this.onEvent({ type: 'network_error', message: error.message || 'تعذر إنشاء الاتصال' });
-      this.scheduleReconnect();
     }
   }
 
