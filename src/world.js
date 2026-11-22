@@ -28,7 +28,9 @@ export function createWorld(T, scene) {
   ];
   const palettes=[0xd1d1ca,0xbab7ad,0x8b9ba0,0xc3b49c,0x71858d,0xaaa9a1,0x9caaa5];
   const windowMats=[mats.glass,mats.glassLite,mat(0x172d3a,.18,.5)];
+  const obstacles=[];
   function building(x,z,w,d,h,kind,index){
+    obstacles.push({x,z,halfX:w*.5+.8,halfZ:d*.5+.8});
     const facade=mat(palettes[index%palettes.length],.86);
     box(w,h,d,x,h/2,z,facade);
     // Architectural podium, vertical fins and a strong roofline.
@@ -165,5 +167,6 @@ export function createWorld(T, scene) {
   car(-70,102,0x8d3034,0);car(70,102,0xe4e2d9,0);
   car(170,32,0x263d50,Math.PI/2,true);
   districts.vehicles=vehicles;
+  districts.obstacles=obstacles;
   return districts;
 }
