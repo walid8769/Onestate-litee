@@ -14,11 +14,12 @@ const BUILDING_ASSETS={
   apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
   house:['https://tevy.dev/models/village-house/v2/lod0.glb','https://tevy.dev/models/village-house/v2/lod1.glb','https://tevy.dev/models/village-house/v2/lod2.glb'],
   shop:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
-  market:['https://tevy.dev/models/supermarket-shell/v2/lod0.glb','https://tevy.dev/models/supermarket-shell/v2/lod1.glb','https://tevy.dev/models/supermarket-shell/v2/lod2.glb'],
+  market:['https://tevy.dev/models/general-store/v1/lod0.glb','https://tevy.dev/models/general-store/v1/lod1.glb','https://tevy.dev/models/general-store/v1/lod2.glb'],
+  supermarket:['https://tevy.dev/models/supermarket-shell/v2/lod0.glb','https://tevy.dev/models/supermarket-shell/v2/lod1.glb','https://tevy.dev/models/supermarket-shell/v2/lod2.glb'],
   office:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
   hotel:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
-  mall:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
-  restaurant:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
+  mall:['https://tevy.dev/models/mixed-tenant-block/v1/lod0.glb','https://tevy.dev/models/mixed-tenant-block/v1/lod1.glb','https://tevy.dev/models/mixed-tenant-block/v1/lod2.glb'],
+  restaurant:['https://tevy.dev/models/noodle-shop/v1/lod0.glb','https://tevy.dev/models/noodle-shop/v1/lod1.glb','https://tevy.dev/models/noodle-shop/v1/lod2.glb'],
   bank:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
   police:['https://tevy.dev/models/police-station/v1/lod0.glb','https://tevy.dev/models/police-station/v1/lod1.glb','https://tevy.dev/models/police-station/v1/lod2.glb'],
   firestation:['https://tevy.dev/models/fire-station/v1/lod0.glb','https://tevy.dev/models/fire-station/v1/lod1.glb','https://tevy.dev/models/fire-station/v1/lod2.glb'],
@@ -171,7 +172,7 @@ export function createWorld(T, scene) {
     model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){m.roughness=Math.max(m.roughness??.7,.42);}}}});
     return model;
   }
-  const architecturalKeys=new Set(['house','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','factory','warehouse','fuelstation']);
+  const architecturalKeys=new Set(['house','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','supermarket','factory','warehouse','fuelstation']);
   async function place(key,x,z,w,h,d,rotation=0){
     if(architecturalKeys.has(key)){
       if(BUILDING_ASSETS[key]){
@@ -226,7 +227,7 @@ export function createWorld(T, scene) {
       let key='house',h=12+random()*5,w=13,d=13;
       if(district.kind==='tower'){key=random()>.45?'tower':'apartment';h=50+random()*15;w=20;d=18;}
       if(district.kind==='homes'){key=random()>.82?'apartment':'house';h=key==='house'?7+random()*4:10+random()*3;w=13;d=13;}
-      if(district.kind==='shops'){const choices=['shop','hotel','bank','office','restaurant','mall'];key=choices[Math.floor(random()*choices.length)];h=key==='mall'?17:13+random()*7;w=key==='mall'?20:15;d=key==='mall'?20:14;}
+      if(district.kind==='shops'){const choices=['shop','hotel','bank','office','restaurant','mall','market'];key=choices[Math.floor(random()*choices.length)];h=key==='mall'?26:key==='office'?42:key==='hotel'?22:key==='restaurant'?9:key==='market'?10:13+random()*7;w=key==='mall'?18:key==='office'?22:key==='restaurant'?8:key==='market'?12:18;d=key==='mall'?18:key==='office'?20:key==='restaurant'?13:key==='market'?14:18;}
       if(district.kind==='industrial'){key=random()>.5?'factory':'warehouse';h=15;w=20;d=20;}
       if(district.kind==='water'){key=random()>.5?'house':'shop';h=10+random()*5;w=14;d=14;}
       buildingPlan.push({key,x,z,w,h,d});
@@ -240,7 +241,7 @@ export function createWorld(T, scene) {
     {key:'hospital',x:-54,z:54,w:24,h:15,d:24},
     {key:'firestation',x:54,z:54,w:21,h:15,d:21},
     {key:'fuelstation',x:105,z:-35,w:16,h:6,d:13},
-    {key:'market',x:105,z:-105,w:30,h:8,d:22}
+    {key:'supermarket',x:105,z:-105,w:30,h:8,d:22}
   ];
   for(const p of landmarkPlan){
     obstacles.push({x:p.x,z:p.z,halfX:p.w*.5+1,halfZ:p.d*.5+1});
