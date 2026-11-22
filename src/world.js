@@ -396,7 +396,7 @@ export function createWorld(T, scene, renderer) {
       }
     });
     model.userData={...loaded.userData,vehicle:true,type:key,emergency,speed:0,steer:0,wheels:wheelNodes,mixer:loaded.userData.mixer||null,emergencyLights};
-    if(emergency){
+    if(emergency&&!emergencyLights.length){
       const red=new T.MeshStandardMaterial({color:0xd92735,emissive:0x4a0508});
       const blue=new T.MeshStandardMaterial({color:0x236be8,emissive:0x071a52});
       const lightGeo=new T.BoxGeometry(.48,.16,.22);
