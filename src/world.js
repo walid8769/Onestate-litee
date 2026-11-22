@@ -6,6 +6,22 @@ const KIT='https://raw.githubusercontent.com/kayquer/kit-cidade-lowpoly/main/mod
 const REAL_CAR='https://cdn.3dassets.dev/assets/18684/v1/model.glb';
 const REAL_SUV='https://cdn.3dassets.dev/assets/18686/v1/model.glb';
 const REAL_VAN='https://cdn.3dassets.dev/assets/18680/v1/model.glb';
+const BUILDING_ASSETS={
+  tower:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
+  apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
+  house:['https://tevy.dev/models/korean-villa-block/v1/lod0.glb','https://tevy.dev/models/korean-villa-block/v1/lod1.glb','https://tevy.dev/models/korean-villa-block/v1/lod2.glb'],
+  shop:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
+  market:['https://tevy.dev/models/village-shop/v2/lod0.glb','https://tevy.dev/models/village-shop/v2/lod1.glb','https://tevy.dev/models/village-shop/v2/lod2.glb'],
+  office:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
+  hotel:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
+  mall:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
+  restaurant:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
+  bank:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
+  police:['https://tevy.dev/models/police-station/v1/lod0.glb','https://tevy.dev/models/police-station/v1/lod1.glb','https://tevy.dev/models/police-station/v1/lod2.glb'],
+  firestation:['https://tevy.dev/models/fire-station/v1/lod0.glb','https://tevy.dev/models/fire-station/v1/lod1.glb','https://tevy.dev/models/fire-station/v1/lod2.glb'],
+  hospital:['https://tevy.dev/models/hospital-building/v2/lod0.glb','https://tevy.dev/models/hospital-building/v2/lod1.glb','https://tevy.dev/models/hospital-building/v2/lod2.glb'],
+  cityhall:['https://tevy.dev/models/town-hall/v1/lod0.glb','https://tevy.dev/models/town-hall/v1/lod1.glb','https://tevy.dev/models/town-hall/v1/lod2.glb']
+};
 const FILES={
   house:`${KIT}/residencial/casa_sobrado.glb`,
   apartment:`${KIT}/residencial/predio_apartamentos.glb`,
@@ -40,6 +56,7 @@ const FILES={
 export function createWorld(T, scene) {
   const loader=new GLTFLoader();
   const cache=new Map();
+  const buildingCache=new Map();
   const obstacles=[];
   const vehicles=[];
   const districts=[
@@ -100,8 +117,12 @@ export function createWorld(T, scene) {
   }
 
   function load(key){
-    if(!cache.has(key))cache.set(key,loader.loadAsync(FILES[key]).then(g=>g.scene));
+    if(!cache.has(key))cache.set(key,loader.loadAsync(FILES[key]));
     return cache.get(key);
+  }
+  function loadBuilding(key){
+    if(!buildingCache.has(key))buildingCache.set(key,Promise.all(BUILDING_ASSETS[key].map(url=>loader.loadAsync(url))));
+    return buildingCache.get(key);
   }
   function fitModel(model,targetW,targetH,targetD){
     model.updateMatrixWorld(true);
@@ -119,13 +140,27 @@ export function createWorld(T, scene) {
   const architecturalKeys=new Set(['house','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','factory','warehouse']);
   async function place(key,x,z,w,h,d,rotation=0){
     if(architecturalKeys.has(key)){
+      if(BUILDING_ASSETS[key]){
+        try{
+          const levels=await loadBuilding(key);
+          const lod=new T.LOD();
+          [0,72,145].forEach((distance,index)=>{
+            const model=cloneSkeleton(levels[index].scene);
+            fitModel(model,w,h,d);
+            lod.addLevel(model,distance);
+          });
+          lod.position.set(x,0,z);lod.rotation.y=rotation;lod.updateMatrixWorld(true);scene.add(lod);
+          return lod;
+        }catch(error){console.warn('[OneState buildings] realistic GLB failed:',key,error);}
+      }
       const building=createUrbanBuilding(T,key,w,h,d);
       building.position.set(x,0,z);building.rotation.y=rotation;scene.add(building);return building;
     }
     try{
-      const source=await load(key);
-      const model=cloneSkeleton(source);
+      const gltf=await load(key);
+      const model=cloneSkeleton(gltf.scene);
       fitModel(model,w,h,d);
+      if(gltf.animations?.length){const mixer=new T.AnimationMixer(model);for(const clip of gltf.animations)mixer.clipAction(clip).play();model.userData.mixer=mixer;}
       model.position.x+=x;model.position.z+=z;model.rotation.y=rotation;
       scene.add(model);
       return model;
@@ -188,7 +223,8 @@ export function createWorld(T, scene) {
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const loaded=await place(key,x,z,key==='bus'?7:4.8,key==='bus'?4.3:2.8,key==='bus'?13:6.5,rotation);
+    const dims=key==='bus'?[2.46,2.4,5.53]:key==='ambulance'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:[2.27,1.57,5.2];
+    const loaded=await place(key,x,z,...dims,rotation);
     if(!loaded)return null;
     // 3DAssets vehicle models face +Z; the driving rig uses -Z as forward.
     const model=new T.Group();
@@ -201,7 +237,7 @@ export function createWorld(T, scene) {
     scene.add(model);
     const wheelNodes=[];
     loaded.traverse(node=>{if(/wheel-(front|rear).*(rubber|metal|accent)/i.test(node.name))wheelNodes.push(node);});
-    model.userData={vehicle:true,emergency,speed:0,steer:0,wheels:wheelNodes};
+    model.userData={vehicle:true,emergency,speed:0,steer:0,wheels:wheelNodes,mixer:loaded.userData.mixer||null};
     if(emergency){
       const red=new T.MeshStandardMaterial({color:0xd92735,emissive:0x4a0508});
       const blue=new T.MeshStandardMaterial({color:0x236be8,emissive:0x071a52});
@@ -218,7 +254,7 @@ export function createWorld(T, scene) {
     ['car',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
     ['car',-102,-70,Math.PI/2,false],['electric',102,-70,Math.PI/2,false],
     ['car',-70,102,0,false],['car',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
-    ['bus',-170,-30,Math.PI/2,false]
+    ['car',-170,-30,Math.PI/2,false]
   ];
   for(const [key,x,z,rot,emergency] of carPlan)coreJobs.push(car(key,x,z,rot,emergency));
 
