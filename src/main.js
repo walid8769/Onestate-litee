@@ -74,9 +74,11 @@ renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.12;
 // Give PBR city assets a real image-based lighting source instead of flat ambient light.
 const pmrem=new THREE.PMREMGenerator(renderer);
-const environment=pmrem.fromScene(new RoomEnvironment(renderer),0.04);
+const roomEnvironment=new RoomEnvironment();
+const environment=pmrem.fromScene(roomEnvironment,0.04);
 scene.environment=environment.texture;
 scene.environmentIntensity=.62;
+roomEnvironment.dispose();
 pmrem.dispose();
 game.prepend(renderer.domElement);
 renderer.domElement.style.touchAction='none';
