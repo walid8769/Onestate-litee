@@ -431,6 +431,7 @@ const pedestrians=pedestrianSpecs.map((spec,index)=>{
 
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
 let activeVehicle=null,vehicleSpeed=0;
+const playerVelocity=new THREE.Vector3();
 const vehicles= districts.vehicles || [];
 const obstacles= districts.obstacles || [];
 function blockedAt(x,z,radius=0.8){
@@ -547,11 +548,12 @@ const wheelSpinAxis=new THREE.Vector3(1,0,0),wheelSteerAxis=new THREE.Vector3(0,
 const wheelSpinQ=new THREE.Quaternion(),wheelSteerQ=new THREE.Quaternion(),wheelIdentityQ=new THREE.Quaternion();
 function animate(){
   requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);
-  const moving=Math.abs(moveX)+Math.abs(moveY)>.08,speed=running?7.0:3.8;
+  const hasInput=Math.abs(moveX)+Math.abs(moveY)>.08,speed=running?7.0:3.8;
   const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
   const direction=forward.clone().multiplyScalar(-moveY).add(right.clone().multiplyScalar(moveX));
   if(direction.lengthSq()>1)direction.normalize();
   if(activeVehicle){
+    playerVelocity.set(0,0,0);
     const throttle=THREE.MathUtils.clamp(-moveY,-1,1);
     const maxSpeed=activeVehicle.userData.type==='bus'?(running?20:15):(running?31:22);
     vehicleSpeed=THREE.MathUtils.damp(vehicleSpeed,throttle*maxSpeed,throttle===0?3.4:1.9,dt);
@@ -562,9 +564,13 @@ function animate(){
     moveWithCollision(activeVehicle,fwd.x*vehicleSpeed*dt,fwd.z*vehicleSpeed*dt,2.2);
     player.position.copy(activeVehicle.position);player.rotation.y=activeVehicle.rotation.y;
   }else{
-    moveWithCollision(player,direction.x*speed*dt,direction.z*speed*dt,.8);
+    const targetX=direction.x*speed,targetZ=direction.z*speed;
+    playerVelocity.x=THREE.MathUtils.damp(playerVelocity.x,targetX,hasInput?10:7,dt);
+    playerVelocity.z=THREE.MathUtils.damp(playerVelocity.z,targetZ,hasInput?10:7,dt);
+    moveWithCollision(player,playerVelocity.x*dt,playerVelocity.z*dt,.72);
   }
-  if(moving&&!activeVehicle){player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,Math.atan2(direction.x,direction.z),Math.min(1,dt*12));walkTime+=dt*(running?12:8);}
+  const moving=playerVelocity.lengthSq()>.035&&!activeVehicle;
+  if(moving){const facing=Math.atan2(playerVelocity.x,playerVelocity.z);const turn=Math.atan2(Math.sin(facing-player.rotation.y),Math.cos(facing-player.rotation.y));player.rotation.y+=turn*Math.min(1,dt*10);walkTime+=dt*(running?13:9);}
   const swing=moving?Math.sin(walkTime)*.58:0;
   updateAvatar(player, activeVehicle?'idle':(moving?(running?'run':'walk'):'idle'), dt);
   for(const tree of districts.windObjects||[]){
