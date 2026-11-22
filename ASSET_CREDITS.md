@@ -41,6 +41,7 @@ Additional CC0 city props from Tevy:
 - Mid-Size SUV: https://tevy.dev/models/suv
 - Family Minivan: https://tevy.dev/models/family-minivan
 - Muscle Car: https://tevy.dev/models/muscle-car
+- Police Patrol Car: https://tevy.dev/models/police-car
 - City Taxi: https://tevy.dev/models/city-taxi
 - Ambulance: https://tevy.dev/models/ambulance
 - Low-Floor City Bus: https://tevy.dev/models/city-bus
