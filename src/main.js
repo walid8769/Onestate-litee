@@ -188,7 +188,7 @@ function appendChatNotice(message){
 }
 chatToggle.addEventListener('click',()=>{
   chatPanel.classList.toggle('hidden');
-  if(!chatPanel.classList.contains('hidden'))chatInput.focus();
+  if(!chatPanel.classList.contains('hidden')){missionPanel.classList.add('hidden');chatInput.focus();}
 });
 $('#chat-close').addEventListener('click',()=>chatPanel.classList.add('hidden'));
 chatForm.addEventListener('submit',event=>{
@@ -330,7 +330,10 @@ async function loadMissions(){
     }
   }catch(error){missionList.textContent=error.message||'تعذر تحميل المهام.';}
 }
-$('#mission-toggle').addEventListener('click',()=>{missionPanel.classList.toggle('hidden');if(!missionPanel.classList.contains('hidden'))loadMissions();});
+$('#mission-toggle').addEventListener('click',()=>{
+  missionPanel.classList.toggle('hidden');
+  if(!missionPanel.classList.contains('hidden')){chatPanel.classList.add('hidden');loadMissions();}
+});
 $('#mission-close').addEventListener('click',()=>missionPanel.classList.add('hidden'));
 $('#mission-cancel').addEventListener('click',async()=>{
   try{await accountApi('/api/missions/cancel','POST',{});missionState=null;clearMissionMarker();missionActive.classList.add('hidden');missionList.classList.remove('hidden');await loadMissions();}
