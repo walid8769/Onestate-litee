@@ -246,6 +246,7 @@ export function createWorld(T, scene) {
   plane(18,42,-131,140,sandMat,-.105);
   plane(9,42,-117,140,sidewalkMat,-.075);
   const parkingMat=mat(0x292f32,.96);
+  applyPBR(parkingMat,'asphalt_01',6,4);
   plane(44,34,175,-105,parkingMat,-.095);
   plane(43,.14,175,-120,markingMat,-.035);
   for(let bay=0;bay<=7;bay++)plane(.13,5.8,153+bay*5.8,-117,markingMat,-.035);
