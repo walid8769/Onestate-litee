@@ -116,12 +116,13 @@ export function createWorld(T, scene) {
     }
   }
 
-  function load(key){
-    if(!cache.has(key))cache.set(key,loader.loadAsync(FILES[key]));
-    return cache.get(key);
+  function loadUrl(url){
+    if(!cache.has(url))cache.set(url,loader.loadAsync(url));
+    return cache.get(url);
   }
+  function load(key){return loadUrl(FILES[key]);}
   function loadBuilding(key){
-    if(!buildingCache.has(key))buildingCache.set(key,Promise.all(BUILDING_ASSETS[key].map(url=>loader.loadAsync(url))));
+    if(!buildingCache.has(key))buildingCache.set(key,Promise.all(BUILDING_ASSETS[key].map(loadUrl)));
     return buildingCache.get(key);
   }
   function fitModel(model,targetW,targetH,targetD){
