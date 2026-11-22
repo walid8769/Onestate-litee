@@ -61,6 +61,15 @@
       </div>
     </div>
     <button id="mission-toggle" class="mission-toggle" type="button">المهام</button>
+    <button id="chat-toggle" class="chat-toggle" type="button">الدردشة</button>
+    <section id="chat-panel" class="chat-panel hidden" aria-label="محادثة المنطقة">
+      <header><strong>محادثة المنطقة</strong><button id="chat-close" type="button" aria-label="إغلاق">×</button></header>
+      <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" maxlength="160" autocomplete="off" placeholder="اكتب رسالتك...">
+        <button type="submit">إرسال</button>
+      </form>
+    </section>
     <section id="mission-panel" class="mission-panel hidden">
       <header><strong>مهام الوظيفة</strong><button id="mission-close" type="button">×</button></header>
       <div id="mission-list"></div>
