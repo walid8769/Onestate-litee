@@ -357,11 +357,10 @@ export class AccountStore {
     if (url.pathname === "/api/auth/register" && request.method === "POST") {
       const ip = request.headers.get("CF-Connecting-IP") || "unknown";
       const registerWindow = Math.floor(Date.now() / 600000);
-      const registerKey = `register-attempt:${ip}`;
+      // Count successful account creations only; invalid/duplicate attempts must not lock out a player.
+      const registerKey = `register-success-v2:${ip}`;
       const registerState = await this.storage.get(registerKey);
       const registerAttempts = registerState?.window === registerWindow ? registerState.count : 0;
-      if (registerAttempts >= 5) return authReply({ error: "وصلت إلى حد إنشاء الحسابات، حاول بعد عشر دقائق" }, 429);
-      await this.storage.put(registerKey, { window: registerWindow, count: registerAttempts + 1 });
       const body = await request.json().catch(() => null);
       const username = String(body?.username || "").trim();
       const displayName = String(body?.displayName || username).trim().slice(0, 20);
@@ -371,6 +370,9 @@ export class AccountStore {
       if (!displayName) return authReply({ error: "اكتب اسم ظهور صالحاً" }, 400);
       const normalized = username.toLowerCase();
       const key = "user:" + normalized;
+      const existing = await this.storage.get(key);
+      if (existing) return authReply({ error: "اسم الحساب مستخدم بالفعل، جرّب تسجيل الدخول بدلاً من إنشاء حساب جديد" }, 409);
+      if (registerAttempts >= 5) return authReply({ error: "تم إنشاء عدد كبير من الحسابات من هذا الاتصال، حاول بعد عشر دقائق" }, 429);
       const salt = toHex(crypto.getRandomValues(new Uint8Array(16)));
       const account = {
         id: crypto.randomUUID(),
@@ -382,13 +384,12 @@ export class AccountStore {
         createdAt: Date.now()
       };
       const token = crypto.randomUUID() + crypto.randomUUID();
-      const existing = await this.storage.get(key);
-      if (existing) return authReply({ error: "اسم الحساب مستخدم بالفعل" }, 409);
       await this.storage.put({
         [key]: account,
         ["id:" + account.id]: normalized,
         ["session:" + token]: { id: account.id, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 }
       });
+      await this.storage.put(registerKey, { window: registerWindow, count: registerAttempts + 1 });
       return authReply({ token, account: publicAccount(account, request.headers.get("X-Game-Server")) }, 201);
     }
     if (url.pathname === "/api/auth/login" && request.method === "POST") {
