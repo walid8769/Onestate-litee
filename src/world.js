@@ -184,7 +184,7 @@ export function createWorld(T, scene) {
       if(district.kind==='tower'){key=random()>.45?'tower':'apartment';h=50+random()*15;w=20;d=18;}
       if(district.kind==='homes'){key=random()>.82?'apartment':'house';h=key==='house'?7+random()*4:10+random()*3;w=13;d=13;}
       if(district.kind==='shops'){const choices=['shop','hotel','bank','office','restaurant','mall'];key=choices[Math.floor(random()*choices.length)];h=key==='mall'?17:13+random()*7;w=key==='mall'?20:15;d=key==='mall'?20:14;}
-      if(district.kind==='industrial'){key=random()>.5?'factory':'warehouse';h=15;w=28;d=key==='factory'?24:20;}
+      if(district.kind==='industrial'){key=random()>.5?'factory':'warehouse';h=15;w=20;d=20;}
       if(district.kind==='water'){key=random()>.5?'house':'shop';h=10+random()*5;w=14;d=14;}
       buildingPlan.push({key,x,z,w,h,d});
       obstacles.push({x,z,halfX:w*.48+1,halfZ:d*.48+1});
