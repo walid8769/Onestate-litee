@@ -8,8 +8,13 @@ const FILES={
   tower:`${KIT}/residencial/predio_alto.glb`,
   shop:`${KIT}/comercial/loja_esquina.glb`,
   market:`${KIT}/comercial/mercado.glb`,
+  bank:`${KIT}/comercial/banco.glb`,
+  office:`${KIT}/comercial/escritorio.glb`,
+  restaurant:`${KIT}/comercial/restaurante.glb`,
+  mall:`${KIT}/comercial/shopping.glb`,
   hotel:`${KIT}/comercial/hotel.glb`,
   police:`${KIT}/publicos/policia.glb`,
+  firestation:`${KIT}/publicos/bombeiros.glb`,
   hospital:`${KIT}/publicos/hospital.glb`,
   cityhall:`${KIT}/publicos/prefeitura.glb`,
   factory:`${KIT}/industrial/fabrica.glb`,
@@ -104,8 +109,8 @@ export function createWorld(T, scene) {
       if(Math.abs(x)<25&&Math.abs(z)<25)continue;
       let key='house',h=12+random()*5,w=13,d=13;
       if(district.kind==='tower'){key=random()>.45?'tower':'apartment';h=32+random()*18;w=16;d=16;}
-      if(district.kind==='homes'){key='house';h=10+random()*4;w=13;d=13;}
-      if(district.kind==='shops'){key=random()>.5?'shop':'market';h=13+random()*4;w=15;d=14;}
+      if(district.kind==='homes'){key=random()>.72?'apartment':'house';h=10+random()*5;w=13;d=13;}
+      if(district.kind==='shops'){const choices=['shop','market','hotel','bank','office','restaurant','mall'];key=choices[Math.floor(random()*choices.length)];h=key==='mall'?17:13+random()*7;w=key==='mall'?20:15;d=key==='mall'?20:14;}
       if(district.kind==='industrial'){key=random()>.5?'factory':'warehouse';h=13+random()*5;w=17;d=17;}
       if(district.kind==='water'){key=random()>.5?'house':'shop';h=10+random()*5;w=14;d=14;}
       buildingPlan.push({key,x,z,w,h,d});
@@ -116,16 +121,19 @@ export function createWorld(T, scene) {
   const landmarkPlan=[
     {key:'cityhall',x:0,z:-48,w:25,h:24,d:25},
     {key:'police',x:48,z:0,w:19,h:14,d:19},
-    {key:'hospital',x:-48,z:0,w:24,h:15,d:24}
+    {key:'hospital',x:-48,z:0,w:24,h:15,d:24},
+    {key:'firestation',x:-48,z:-48,w:21,h:15,d:21},
+    {key:'bank',x:48,z:-48,w:18,h:14,d:18}
   ];
   for(const p of landmarkPlan){
     obstacles.push({x:p.x,z:p.z,halfX:p.w*.5+1,halfZ:p.d*.5+1});
   }
 
   // Distinct asset instances; load shared source files once and clone for every placement.
-  const assetJobs=[];
-  for(const p of buildingPlan)assetJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
-  for(const p of landmarkPlan)assetJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
+  const coreJobs=[];
+  const decorJobs=[];
+  for(const p of buildingPlan)coreJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
+  for(const p of landmarkPlan)coreJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
   // A central plaza, lawn islands and a small coastal water edge.
   plane(38,38,0,0,sidewalkMat,-.035);
   const plazaLine=mat(0xd8c8a2,.75);
@@ -149,7 +157,7 @@ export function createWorld(T, scene) {
     propPlan.push({key:'bin',x,z,w:1.2,h:1.5,d:1.2});
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
-  for(const p of propPlan)assetJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
+  for(const p of propPlan)decorJobs.push(place(p.key,p.x,p.z,p.w,p.h,p.d));
 
   async function car(key,x,z,rotation=0,emergency=false){
     const model=await place(key,x,z,key==='bus'?7:4.8,key==='bus'?4.3:2.8,key==='bus'?13:6.5,rotation);
@@ -165,17 +173,25 @@ export function createWorld(T, scene) {
     ['car',-70,102,0,false],['car',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
     ['bus',-170,-30,Math.PI/2,false]
   ];
-  for(const [key,x,z,rot,emergency] of carPlan)assetJobs.push(car(key,x,z,rot,emergency));
+  for(const [key,x,z,rot,emergency] of carPlan)coreJobs.push(car(key,x,z,rot,emergency));
 
-  const ready=Promise.allSettled(assetJobs);
+  // Load the playable city first. Small street props stream in afterwards so a slow
+  // bench/tree request cannot keep the player trapped on the loading screen.
+  const ready=Promise.allSettled(coreJobs);
+  const decorReady=Promise.allSettled(decorJobs);
   districts.vehicles=vehicles;
   districts.obstacles=obstacles;
   districts.assetsReady=ready;
+  districts.decorReady=decorReady;
   districts.assetStatus='loading';
   ready.then(results=>{
     const failed=results.filter(r=>r.status==='rejected'||r.value===null).length;
     districts.assetStatus=failed?'partial':'ready';
-    console.info('[OneState] GLB city assets:',results.length-failed,'loaded,',failed,'failed');
+    console.info('[OneState] core GLB assets:',results.length-failed,'loaded,',failed,'failed');
+  });
+  decorReady.then(results=>{
+    const failed=results.filter(r=>r.status==='rejected'||r.value===null).length;
+    console.info('[OneState] street detail GLB assets:',results.length-failed,'loaded,',failed,'failed');
   });
   return districts;
 }
