@@ -1,7 +1,11 @@
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
+import { createUrbanBuilding } from './architecture.js';
 
 const KIT='https://raw.githubusercontent.com/kayquer/kit-cidade-lowpoly/main/models';
+const REAL_CAR='https://cdn.3dassets.dev/assets/18684/v1/model.glb';
+const REAL_SUV='https://cdn.3dassets.dev/assets/18686/v1/model.glb';
+const REAL_VAN='https://cdn.3dassets.dev/assets/18680/v1/model.glb';
 const FILES={
   house:`${KIT}/residencial/casa_sobrado.glb`,
   apartment:`${KIT}/residencial/predio_apartamentos.glb`,
@@ -19,10 +23,10 @@ const FILES={
   cityhall:`${KIT}/publicos/prefeitura.glb`,
   factory:`${KIT}/industrial/fabrica.glb`,
   warehouse:`${KIT}/industrial/galpao.glb`,
-  car:`${KIT}/veiculos/carro.glb`,
-  electric:`${KIT}/veiculos/carro_eletrico.glb`,
-  ambulance:`${KIT}/veiculos/ambulancia.glb`,
-  bus:`${KIT}/veiculos/onibus.glb`,
+  car:REAL_CAR,
+  electric:REAL_SUV,
+  ambulance:REAL_VAN,
+  bus:REAL_VAN,
   tree:`${KIT}/vegetacao/ipe_amarelo.glb`,
   shrubs:`${KIT}/vegetacao/arbustos.glb`,
   lamp:`${KIT}/mobiliario/poste_luz.glb`,
@@ -112,7 +116,12 @@ export function createWorld(T, scene) {
     model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){m.roughness=Math.max(m.roughness??.7,.42);}}}});
     return model;
   }
+  const architecturalKeys=new Set(['house','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','factory','warehouse']);
   async function place(key,x,z,w,h,d,rotation=0){
+    if(architecturalKeys.has(key)){
+      const building=createUrbanBuilding(T,key,w,h,d);
+      building.position.set(x,0,z);building.rotation.y=rotation;scene.add(building);return building;
+    }
     try{
       const source=await load(key);
       const model=cloneSkeleton(source);
@@ -182,6 +191,14 @@ export function createWorld(T, scene) {
     const model=await place(key,x,z,key==='bus'?7:4.8,key==='bus'?4.3:2.8,key==='bus'?13:6.5,rotation);
     if(!model)return null;
     model.userData={vehicle:true,emergency,speed:0,steer:0};
+    if(emergency){
+      const red=new T.MeshStandardMaterial({color:0xd92735,emissive:0x4a0508});
+      const blue=new T.MeshStandardMaterial({color:0x236be8,emissive:0x071a52});
+      const lightGeo=new T.BoxGeometry(.48,.16,.22);
+      const a=new T.Mesh(lightGeo,red),b=new T.Mesh(lightGeo,blue);
+      a.position.set(-.42,1.95,0);b.position.set(.42,1.95,0);model.add(a,b);
+      const beacon=new T.Mesh(new T.BoxGeometry(1.15,.12,.34),new T.MeshStandardMaterial({color:0xf0f1ef,roughness:.45}));beacon.position.set(0,1.82,0);model.add(beacon);
+    }
     vehicles.push(model);
     return model;
   }
