@@ -8,7 +8,28 @@ export default {
     if (url.pathname === "/api/health") {
       return Response.json({ status: "ok", service: "onestate-realtime", servers: [...SERVERS], capacityPerServer: MAX_PLAYERS });
     }
-    if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/profile" || url.pathname === "/api/profile/job" || url.pathname === "/api/jobs") {
+    if (url.pathname === "/api/missions/complete" && request.method === "POST") {
+      const token = (request.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "").trim();
+      if (!token) return new Response("Authentication required", { status: 401 });
+      const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
+      const accountStore = env.ACCOUNT_STORE.get(accountId);
+      const auth = await accountStore.fetch(new Request("https://accounts.internal/api/auth/resolve", { method: "POST", headers: { Authorization: "Bearer " + token } }));
+      if (!auth.ok) return new Response("Session expired", { status: 401 });
+      const identity = await auth.json();
+      const body = await request.clone().json().catch(() => null);
+      const server = body?.server;
+      if (!SERVERS.has(server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400 });
+      const roomId = env.GAME_ROOMS.idFromName(server);
+      const positionResponse = await env.GAME_ROOMS.get(roomId).fetch("https://room.internal/player-position/" + encodeURIComponent(identity.id));
+      if (!positionResponse.ok) return Response.json({ error: "يجب أن تكون متصلاً بالسيرفر لإكمال المهمة" }, { status: 409 });
+      const position = await positionResponse.json();
+      const headers = new Headers(request.headers);
+      headers.set("X-Player-X", String(position.x));
+      headers.set("X-Player-Z", String(position.z));
+      headers.set("X-Player-Server", server);
+      return accountStore.fetch(new Request(request, { headers }));
+    }
+    if (url.pathname.startsWith("/api/auth/") || url.pathname === "/api/profile" || url.pathname === "/api/profile/job" || url.pathname === "/api/jobs" || url.pathname.startsWith("/api/missions")) {
       const id = env.ACCOUNT_STORE.idFromName("global-accounts");
       return env.ACCOUNT_STORE.get(id).fetch(request);
     }
@@ -54,6 +75,11 @@ export class GameRoom {
     const url = new URL(request.url);
     if (url.pathname === "/status") {
       return Response.json({ server: this.server, online: this.sessions.size, capacity: MAX_PLAYERS });
+    }
+    const positionMatch = url.pathname.match(/^\\/player-position\\/([^/]+)$/);
+    if (positionMatch) {
+      const player = [...this.sessions.values()].find(item => item.id === decodeURIComponent(positionMatch[1]));
+      return player ? Response.json({ x: player.x, z: player.z, server: player.server }) : Response.json({ error: "player_offline" }, { status: 404 });
     }
     if (request.headers.get("Upgrade") !== "websocket") return new Response("WebSocket upgrade required", { status: 426 });
     const server = url.pathname.split("/").pop();
@@ -139,6 +165,15 @@ export class GameRoom {
 }
 
 
+const AUTH_MISSIONS = [
+  { id: "citizen_walk", job: "citizen", title: "جولة في وسط المدينة", description: "توجه إلى ساحة المدينة", destination: { x: 0, z: 0 }, reward: 180, xp: 35, minSeconds: 20 },
+  { id: "police_patrol", job: "police", title: "دورية أمنية", description: "توجه إلى الحديقة الغربية", destination: { x: -175, z: 35 }, reward: 350, xp: 70, minSeconds: 30 },
+  { id: "medical_call", job: "medic", title: "استجابة طبية", description: "توجه إلى مدخل المستشفى", destination: { x: -76, z: 54 }, reward: 420, xp: 85, minSeconds: 30 },
+  { id: "repair_call", job: "mechanic", title: "طلب صيانة", description: "توجه إلى محطة الوقود", destination: { x: 105, z: -15 }, reward: 320, xp: 65, minSeconds: 25 },
+  { id: "taxi_trip", job: "taxi", title: "رحلة أجرة", description: "أوصل الراكب إلى الحي التجاري", destination: { x: 125, z: -85 }, reward: 330, xp: 65, minSeconds: 30 },
+  { id: "bus_route", job: "bus", title: "خط الحافلة", description: "توجه إلى نهاية الخط الشمالي", destination: { x: 0, z: 280 }, reward: 500, xp: 100, minSeconds: 45 },
+  { id: "delivery_run", job: "delivery", title: "توصيل طلب", description: "وصل الطلب إلى السوبرماركت", destination: { x: 125, z: -85 }, reward: 360, xp: 70, minSeconds: 30 }
+];
 const AUTH_JOBS = [
   { id: "citizen", name: "مواطن", description: "ابدأ حياتك في المدينة" },
   { id: "police", name: "الشرطة", description: "حماية المدينة وتطبيق القانون" },
@@ -282,6 +317,66 @@ export class AccountStore {
     if (url.pathname === "/api/profile" && request.method === "GET") {
       const account = await this.userFromRequest(request);
       return account ? authReply({ account: publicAccount(account) }) : authReply({ error: "سجل الدخول أولاً" }, 401);
+    }
+    if (url.pathname === "/api/missions" && request.method === "GET") {
+      const account = await this.userFromRequest(request);
+      if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
+      const missions = AUTH_MISSIONS.filter(item => item.job === account.job);
+      return authReply({ missions, activeMission: account.activeMission || null });
+    }
+    if (url.pathname === "/api/missions/start" && request.method === "POST") {
+      const account = await this.userFromRequest(request);
+      if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
+      if (account.activeMission) return authReply({ error: "لديك مهمة نشطة بالفعل" }, 409);
+      const body = await request.json().catch(() => null);
+      const mission = AUTH_MISSIONS.find(item => item.id === body?.missionId && item.job === account.job);
+      if (!mission) return authReply({ error: "المهمة غير متاحة لوظيفتك" }, 400);
+      if (!SERVERS.has(body?.server)) return authReply({ error: "اختر سيرفراً صالحاً" }, 400);
+      const missionToken = crypto.randomUUID() + crypto.randomUUID();
+      account.activeMission = {
+        id: mission.id,
+        token: missionToken,
+        server: body.server,
+        startedAt: Date.now(),
+        expiresAt: Date.now() + 30 * 60 * 1000
+      };
+      await this.storage.put("user:" + account.username, account);
+      return authReply({ mission, missionToken, startedAt: account.activeMission.startedAt });
+    }
+    if (url.pathname === "/api/missions/cancel" && request.method === "POST") {
+      const account = await this.userFromRequest(request);
+      if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
+      account.activeMission = null;
+      await this.storage.put("user:" + account.username, account);
+      return authReply({ ok: true });
+    }
+    if (url.pathname === "/api/missions/complete" && request.method === "POST") {
+      const account = await this.userFromRequest(request);
+      if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
+      const active = account.activeMission;
+      const body = await request.json().catch(() => null);
+      if (!active || !body?.missionToken || body.missionToken !== active.token) return authReply({ error: "لا توجد مهمة صالحة للإكمال" }, 409);
+      if (active.expiresAt < Date.now()) {
+        account.activeMission = null;
+        await this.storage.put("user:" + account.username, account);
+        return authReply({ error: "انتهت مهلة المهمة" }, 410);
+      }
+      const mission = AUTH_MISSIONS.find(item => item.id === active.id && item.job === account.job);
+      if (!mission) return authReply({ error: "المهمة لم تعد متاحة" }, 409);
+      if (Date.now() - active.startedAt < mission.minSeconds * 1000) return authReply({ error: "أكمل وقت المهمة أولاً" }, 425);
+      const server = request.headers.get("X-Player-Server");
+      const x = Number(request.headers.get("X-Player-X")), z = Number(request.headers.get("X-Player-Z"));
+      if (server !== active.server || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "عد إلى السيرفر الذي بدأت فيه المهمة" }, 409);
+      if (Math.hypot(x - mission.destination.x, z - mission.destination.z) > 12) return authReply({ error: "اقترب من نقطة تسليم المهمة" }, 409);
+      account.cash = Math.max(0, Number(account.cash) || 0) + mission.reward;
+      account.xp = Math.max(0, Number(account.xp) || 0) + mission.xp;
+      while (account.xp >= account.level * 500) {
+        account.xp -= account.level * 500;
+        account.level += 1;
+      }
+      account.activeMission = null;
+      await this.storage.put("user:" + account.username, account);
+      return authReply({ account: publicAccount(account), reward: mission.reward, xp: mission.xp });
     }
     if (url.pathname === "/api/profile/job" && request.method === "POST") {
       const account = await this.userFromRequest(request);
