@@ -1,4 +1,21 @@
 // Procedural contemporary architecture: rounded massing, glazed facades, metal frames and roof equipment.
+let wallTextureCache = null;
+function wallTextures(T, asset) {
+  if (!wallTextureCache) wallTextureCache = new Map();
+  if (wallTextureCache.has(asset)) return wallTextureCache.get(asset);
+  const loader = new T.TextureLoader();
+  const base = 'https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/';
+  const load = (suffix, colorSpace) => new Promise(resolve => loader.load(
+    base + asset + '/' + asset + '_' + suffix + '_1k.jpg',
+    texture => { texture.wrapS = texture.wrapT = T.RepeatWrapping; texture.repeat.set(2, 2); if (colorSpace) texture.colorSpace = colorSpace; resolve(texture); },
+    undefined,
+    () => resolve(null)
+  ));
+  const promise = Promise.all([load('diff', T.SRGBColorSpace), load('nor_gl'), load('rough')]);
+  wallTextureCache.set(asset, promise);
+  return promise;
+}
+
 const palettes = {
   tower: [0x9da8ad, 0x263d4a, 0x647780],
   apartment: [0xb7a995, 0x253d49, 0x6e6254],
@@ -21,6 +38,13 @@ export function createUrbanBuilding(T, key, width, height, depth) {
   const group = new T.Group();
   const palette = palettes[key] || palettes.apartment;
   const wall = new T.MeshStandardMaterial({color:palette[0], roughness:.82});
+  const wallAsset = ['house','factory','warehouse'].includes(key) ? 'brick_wall_001' : 'plastered_wall';
+  wallTextures(T, wallAsset).then(([map, normal, rough]) => {
+    if (map) wall.map = map;
+    if (normal) wall.normalMap = normal;
+    if (rough) wall.roughnessMap = rough;
+    wall.needsUpdate = true;
+  });
   const glass = new T.MeshPhysicalMaterial({color:palette[1], roughness:.16, metalness:.35, transmission:.08, transparent:true, opacity:.94, envMapIntensity:1.1});
   const metal = new T.MeshStandardMaterial({color:palette[2], roughness:.38, metalness:.72});
   const concrete = new T.MeshStandardMaterial({color:0x777b7b, roughness:.92});
