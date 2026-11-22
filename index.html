@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#10151b">
+  <meta name="description" content="OneState Lite - تجربة عالم مفتوح ثلاثية الأبعاد عبر المتصفح.">
+  <title>OneState Lite</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="loading" class="loading"><div class="loader"></div><p>جارٍ تجهيز المدينة...</p></div>
+  <main id="menu" class="menu">
+    <div class="brand">ONESTATE <span>LITE</span></div>
+    <p class="eyebrow">ROLEPLAY • OPEN WORLD</p>
+    <h1>مدينتك، قصتك.</h1>
+    <p class="subtitle">ادخل إلى عالم OneState Lite وابدأ رحلتك.</p>
+    <section class="server-panel">
+      <h2>اختر السيرفر</h2>
+      <div class="servers">
+        <button class="server active" data-server="ME1"><b>ME1</b><small>الشرق الأوسط 1</small></button>
+        <button class="server" data-server="ME2"><b>ME2</b><small>الشرق الأوسط 2</small></button>
+        <button class="server" data-server="ME3"><b>ME3</b><small>الشرق الأوسط 3</small></button>
+      </div>
+      <button id="play" class="play">دخول المدينة <span>←</span></button>
+      <p class="note">نسخة تجريبية محلية — اختيار السيرفر للواجهة فقط حالياً.</p>
+    </section>
+  </main>
+  <div id="game" class="game hidden">
+    <div class="hud"><div class="hud-brand">ONESTATE <span>LITE</span></div><div id="server-label">ME1</div></div>
+    <div class="tip">اسحب الشاشة لتحريك الكاميرا • استخدم عصا الحركة</div>
+    <div id="joystick" class="joystick"><div id="stick" class="stick"></div></div>
+    <button id="run" class="run">ركض</button>
+    <button id="exit" class="exit">القائمة</button>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
