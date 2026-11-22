@@ -163,7 +163,7 @@ function setNameTag(group,name){
 }
 function makeRemotePlayer(id,name){
   const group=createAvatar(0x9b3940,0x252b35);group.userData.remote=true;setNameTag(group,name);scene.add(group);upgradeAvatar(group,renderer);
-  remotePlayers.set(id,{group,name,target:new THREE.Vector3(),targetYaw:0,lastPosition:new THREE.Vector3()});return group;
+  remotePlayers.set(id,{group,name,target:new THREE.Vector3(),targetYaw:0,lastPosition:new THREE.Vector3(),running:false});return group;
 }
 function clearRemotePlayers(){
   for(const item of remotePlayers.values())disposeAvatarGroup(item.group);
@@ -234,6 +234,7 @@ function updateRemote(p){
   const nextName=p.name||item.name;
   if(nextName!==item.name){item.name=nextName;setNameTag(item.group,nextName);}
   item.target.set(p.x,0,p.z);
+  item.running=Boolean(p.running);
   if(Number.isFinite(p.yaw))item.targetYaw=p.yaw;
 }
 
@@ -536,7 +537,7 @@ const wheelSpinAxis=new THREE.Vector3(1,0,0),wheelSteerAxis=new THREE.Vector3(0,
 const wheelSpinQ=new THREE.Quaternion(),wheelSteerQ=new THREE.Quaternion(),wheelIdentityQ=new THREE.Quaternion();
 function animate(){
   requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);
-  const moving=Math.abs(moveX)+Math.abs(moveY)>.08,speed=running?13.5:6.4;
+  const moving=Math.abs(moveX)+Math.abs(moveY)>.08,speed=running?5.3:2.8;
   const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
   const direction=forward.clone().multiplyScalar(-moveY).add(right.clone().multiplyScalar(moveX));
   if(direction.lengthSq()>1)direction.normalize();
@@ -582,7 +583,7 @@ function animate(){
     const angleDelta=Math.atan2(Math.sin(remote.targetYaw-remote.group.rotation.y),Math.cos(remote.targetYaw-remote.group.rotation.y));
     remote.group.rotation.y+=angleDelta*(1-Math.exp(-dt*12));
     const remoteMoving=remote.group.position.distanceToSquared(remote.lastPosition)>.0008;
-    if(remote.group.position.distanceToSquared(player.position)<22500)updateAvatar(remote.group,remoteMoving?'walk':'idle',dt);
+    if(remote.group.position.distanceToSquared(player.position)<22500)updateAvatar(remote.group,remoteMoving?(remote.running?'run':'walk'):'idle',dt);
     remote.lastPosition.copy(remote.group.position);
   }
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
@@ -624,7 +625,7 @@ function animate(){
   if(missionMarker)missionMarker.rotation.y+=dt*.65;
   updateMissionProgress();
   updateDistrict();
-  realtime.move(player.position.x,player.position.z,player.rotation.y);
+  realtime.move(player.position.x,player.position.z,player.rotation.y,running);
   profileSaveTimer+=dt;
   if(profileSaveTimer>=30){profileSaveTimer=0;savePlayerPosition();}
   mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
