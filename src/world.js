@@ -173,9 +173,9 @@ export function createWorld(T, scene) {
   districts.assetsReady=ready;
   districts.assetStatus='loading';
   ready.then(results=>{
-    const failed=results.filter(r=>r.status==='rejected').length;
+    const failed=results.filter(r=>r.status==='rejected'||r.value===null).length;
     districts.assetStatus=failed?'partial':'ready';
-    console.info('[OneState] GLB city assets ready:',results.length-failed,'loaded,',failed,'failed');
+    console.info('[OneState] GLB city assets:',results.length-failed,'loaded,',failed,'failed');
   });
   return districts;
 }
