@@ -13,6 +13,7 @@ const REAL_CITY_CAR='https://tevy.dev/models/city-taxi/v1/lod1.glb';
 const REAL_SALOON='https://tevy.dev/models/family-sedan/v1/lod1.glb';
 const REAL_AMBULANCE='https://tevy.dev/models/ambulance/v1/lod1.glb';
 const REAL_BUS='https://tevy.dev/models/city-bus/v1/lod1.glb';
+const REAL_POLICE='https://tevy.dev/models/police-car/v1/lod1.glb';
 const BUILDING_ASSETS={
   tower:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
   apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
@@ -44,7 +45,7 @@ const FILES={
   coupe:REAL_COUPE,
   citycar:REAL_CITY_CAR,
   saloon:REAL_SALOON,
-  policecar:REAL_SALOON,
+  policecar:REAL_POLICE,
   tree:'https://tevy.dev/models/european-beech/v1/lod2.glb',
   tree2:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
   lamp:'https://tevy.dev/models/city-street-lamp/v1/lod1.glb',
