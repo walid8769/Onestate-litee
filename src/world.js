@@ -184,7 +184,7 @@ export function createWorld(T, scene, renderer) {
     const fitted=new T.Box3().setFromObject(model);
     const center=fitted.getCenter(new T.Vector3());
     model.position.x-=center.x;model.position.z-=center.z;model.position.y-=fitted.min.y;
-    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){const minimum=(m.transmission>0||m.transparent)?0.08:(m.metalness>0.25?0.18:0.32);m.roughness=Math.max(m.roughness??.7,minimum);}}}});
+    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){// Preserve authored PBR values from the asset. Forcing roughness here washed out paint, glass and facade finishes.}}}});
     return model;
   }
   const architecturalKeys=new Set(['house','villa','cottage','apartment','tower','shop','market','bank','office','restaurant','mall','hotel','police','firestation','hospital','cityhall','supermarket','factory','warehouse','fuelstation']);
