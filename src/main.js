@@ -389,14 +389,6 @@ renderer.domElement.addEventListener('pointercancel',endDrag);
 
 $('#play').addEventListener('click',async()=>{
   const playerName=(playerNameInput.value||'لاعب').trim().slice(0,20)||'لاعب';
-  setNameTag(player,playerName);
-  if(currentAccount){
-    player.position.set(
-      THREE.MathUtils.clamp(Number(currentAccount.spawnX)||0,-345,345),
-      0,
-      THREE.MathUtils.clamp(Number(currentAccount.spawnZ)||0,-345,345)
-    );
-  }
   const endpoint=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
   try{localStorage.setItem('onestate-player-name',playerName);if(endpoint)localStorage.setItem('onestate-realtime-url',endpoint);}catch{}
   if(endpoint&&!sessionToken){
@@ -404,13 +396,22 @@ $('#play').addEventListener('click',async()=>{
     return;
   }
   if(endpoint&&sessionToken){
-    try{await accountApi('/api/auth/me');}
+    try{await refreshAccount();}
     catch(error){
       sessionToken='';
+      currentAccount=null;
       try{localStorage.removeItem('onestate-session-token');}catch{}
-      setAccountStatus('انتهت الجلسة. سجّل الدخول من جديد.','error');
+      setAccountStatus('تعذر تحميل الشخصية أو انتهت الجلسة. سجّل الدخول من جديد.','error');
       return;
     }
+  }
+  setNameTag(player,playerName);
+  if(currentAccount){
+    player.position.set(
+      THREE.MathUtils.clamp(Number(currentAccount.spawnX)||0,-345,345),
+      0,
+      THREE.MathUtils.clamp(Number(currentAccount.spawnZ)||0,-345,345)
+    );
   }
   $('#server-label').textContent=selectedServer;
   menu.classList.add('hidden');game.classList.remove('hidden');
