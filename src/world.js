@@ -5,10 +5,10 @@ import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples
 import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/utils/SkeletonUtils.js';
 import { createUrbanBuilding } from './architecture.js';
 
-const REAL_CAR='https://tevy.dev/models/estate-car/v1/lod1.glb';
+const REAL_CAR='https://tevy.dev/models/electric-gt/v1/lod1.glb';
 const REAL_SUV='https://tevy.dev/models/suv/v1/lod1.glb';
 const REAL_VAN='https://tevy.dev/models/family-minivan/v1/lod1.glb';
-const REAL_COUPE='https://tevy.dev/models/muscle-car/v1/lod1.glb';
+const REAL_COUPE='https://tevy.dev/models/supercar/v2/lod1.glb';
 const REAL_CITY_CAR='https://tevy.dev/models/city-taxi/v1/lod1.glb';
 const REAL_SALOON='https://tevy.dev/models/family-sedan/v1/lod1.glb';
 const REAL_AMBULANCE='https://tevy.dev/models/ambulance/v1/lod1.glb';
