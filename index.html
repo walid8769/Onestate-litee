@@ -17,8 +17,18 @@
     <p class="subtitle">ادخل إلى عالم OneState Lite وابدأ رحلتك.</p>
     <section class="server-panel">
       <h2>بيانات الدخول</h2>
-      <label class="field-label" for="player-name">اسم اللاعب</label>
-      <input id="player-name" class="menu-input" maxlength="20" autocomplete="nickname" value="لاعب" placeholder="اكتب اسمك داخل اللعبة">
+      <label class="field-label" for="player-name">اسم الحساب / اسم اللاعب</label>
+      <input id="player-name" class="menu-input" maxlength="20" autocomplete="username" value="لاعب" placeholder="اسم حسابك داخل اللعبة">
+      <label class="field-label" for="account-password">كلمة المرور</label>
+      <input id="account-password" class="menu-input" type="password" maxlength="128" autocomplete="current-password" placeholder="8 أحرف على الأقل">
+      <div class="account-actions">
+        <button id="account-login" type="button">تسجيل الدخول</button>
+        <button id="account-register" type="button">إنشاء حساب</button>
+        <button id="account-logout" type="button">خروج</button>
+      </div>
+      <p id="account-status" class="account-status">سجّل الدخول لحفظ شخصيتك وتفعيل اللعب الجماعي.</p>
+      <label class="field-label" for="job-select">الوظيفة</label>
+      <select id="job-select" class="menu-input" disabled><option value="citizen">مواطن</option></select>
       <label class="field-label" for="realtime-url">رابط خدمة اللعب الجماعي (إعداد مرة واحدة)</label>
       <input id="realtime-url" class="menu-input" type="url" inputmode="url" autocomplete="url" placeholder="https://اسم-الخدمة.workers.dev">
       <h2 class="server-heading">اختر السيرفر</h2>
@@ -46,7 +56,8 @@
         <div id="network-status" class="network-status" data-state="offline">غير متصل</div>
         <div class="hud-brand">ONESTATE <span>LITE</span></div>
         <div class="hud-info"><span id="server-label">ME1</span><span id="district-label">وسط المدينة</span></div>
-        <div class="cash"><b>$</b> 2,500</div>
+        <div class="cash"><b>$</b> <span id="cash-value">2,500</span></div>
+        <div class="hud-info"><span id="job-label">مواطن</span><span>مستوى <b id="level-value">1</b></span></div>
       </div>
     </div>
     <div class="tip">اسحب الشاشة لتحريك الكاميرا • استخدم عصا الحركة</div>
