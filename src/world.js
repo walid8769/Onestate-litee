@@ -427,7 +427,9 @@ export function createWorld(T, scene, renderer) {
     {x:280,z:-30,rot:Math.PI,index:2,key:'saloon'},
     {x:235,z:280,rot:-Math.PI/2,index:3,key:'coupe'},
     {x:-280,z:30,rot:0,index:0,key:'van'},
-    {x:0,z:-140,rot:-Math.PI/2,index:1,key:'bus',speed:4.5}
+    {x:0,z:-140,rot:-Math.PI/2,index:1,key:'bus',speed:4.5},
+    {x:120,z:-280,rot:Math.PI/2,index:1,key:'suv',speed:6.8},
+    {x:-280,z:-160,rot:0,index:0,key:'saloon',speed:8}
   ];
   for(const p of trafficPlan){
     coreJobs.push(car(p.key||'car',p.x,p.z,p.rot,false).then(vehicle=>{
