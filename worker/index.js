@@ -9,7 +9,7 @@ export default {
       return Response.json({ status: "ok", service: "onestate-realtime", servers: [...SERVERS], capacityPerServer: MAX_PLAYERS });
     }
     if (url.pathname === "/api/missions/complete" && request.method === "POST") {
-      const token = (request.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "").trim();
+      const token = (request.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
       if (!token) return new Response("Authentication required", { status: 401 });
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const accountStore = env.ACCOUNT_STORE.get(accountId);
@@ -76,7 +76,7 @@ export class GameRoom {
     if (url.pathname === "/status") {
       return Response.json({ server: this.server, online: this.sessions.size, capacity: MAX_PLAYERS });
     }
-    const positionMatch = url.pathname.match(/^\\/player-position\\/([^/]+)$/);
+    const positionMatch = url.pathname.match(/^\/player-position\/([^/]+)$/);
     if (positionMatch) {
       const player = [...this.sessions.values()].find(item => item.id === decodeURIComponent(positionMatch[1]));
       return player ? Response.json({ x: player.x, z: player.z, server: player.server }) : Response.json({ error: "player_offline" }, { status: 404 });
