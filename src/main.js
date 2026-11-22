@@ -519,6 +519,8 @@ function drawMiniMap(){
 }
 function updateDistrict(){let nearest=districts[0],best=Infinity;for(const d of districts){const dist=Math.hypot(player.position.x-d.cx,player.position.z-d.cz);if(dist<best){best=dist;nearest=d;}}districtLabel.textContent=best<115?nearest.name:'أطراف المدينة';}
 const clock=new THREE.Clock();let mapTimer=0,walkTime=0;
+const wheelSpinAxis=new THREE.Vector3(1,0,0),wheelSteerAxis=new THREE.Vector3(0,1,0);
+const wheelSpinQ=new THREE.Quaternion(),wheelSteerQ=new THREE.Quaternion(),wheelIdentityQ=new THREE.Quaternion();
 function animate(){
   requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04);
   const moving=Math.abs(moveX)+Math.abs(moveY)>.08,speed=running?13.5:6.4;
@@ -534,7 +536,6 @@ function animate(){
     activeVehicle.rotation.y-=moveX*vehicleSpeed*.018*dt;
     const fwd=new THREE.Vector3(-Math.sin(activeVehicle.rotation.y),0,-Math.cos(activeVehicle.rotation.y));
     moveWithCollision(activeVehicle,fwd.x*vehicleSpeed*dt,fwd.z*vehicleSpeed*dt,2.2);
-    if(!activeVehicle.userData.mixer)for(const wheel of activeVehicle.userData.wheels||[])wheel.rotation.x+=vehicleSpeed*dt*.72;
     player.position.copy(activeVehicle.position);player.rotation.y=activeVehicle.rotation.y;
   }else{
     moveWithCollision(player,direction.x*speed*dt,direction.z*speed*dt,.8);
@@ -580,6 +581,16 @@ function animate(){
         vehicle.position.x+=dx/distance*step;
         vehicle.position.z+=dz/distance*step;
         vehicle.rotation.y=Math.atan2(-dx,-dz);
+      }
+    }
+    if(!vehicle.userData.mixer){
+      const wheelSpeed=vehicle===activeVehicle?vehicleSpeed:(traffic?traffic.speed:0);
+      const steerAngle=vehicle===activeVehicle?moveX*.42:0;
+      wheelSpinQ.setFromAxisAngle(wheelSpinAxis,wheelSpeed*dt*.72);
+      wheelSteerQ.setFromAxisAngle(wheelSteerAxis,steerAngle);
+      for(const wheel of vehicle.userData.wheels||[]){
+        const rest=wheel.userData.restQuaternion||wheelIdentityQ;
+        wheel.quaternion.copy(wheel.userData.frontWheel?wheelSteerQ:wheelIdentityQ).multiply(wheelSpinQ).multiply(rest);
       }
     }
   }
