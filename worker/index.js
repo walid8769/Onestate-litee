@@ -1,6 +1,6 @@
 const SERVERS = new Set(["ME1", "ME2", "ME3"]);
 const MAX_PLAYERS = 100;
-const WORLD_LIMIT = 350;
+const WORLD_LIMIT = 560;
 const PLAYER_VISIBILITY_RANGE = 220;
 
 export default {
