@@ -338,7 +338,6 @@ export class AccountStore {
       if (!displayName) return authReply({ error: "اكتب اسم ظهور صالحاً" }, 400);
       const normalized = username.toLowerCase();
       const key = "user:" + normalized;
-      if (await this.storage.get(key)) return authReply({ error: "اسم الحساب مستخدم بالفعل" }, 409);
       const salt = toHex(crypto.getRandomValues(new Uint8Array(16)));
       const account = {
         id: crypto.randomUUID(),
@@ -350,12 +349,18 @@ export class AccountStore {
         job: "citizen",
         level: 1,
         xp: 0,
+        spawnX: 0,
+        spawnZ: 0,
         createdAt: Date.now()
       };
-      await this.storage.put(key, account);
-      await this.storage.put("id:" + account.id, normalized);
       const token = crypto.randomUUID() + crypto.randomUUID();
-      await this.storage.put("session:" + token, { id: account.id, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 });
+      const existing = await this.storage.get(key);
+      if (existing) return authReply({ error: "اسم الحساب مستخدم بالفعل" }, 409);
+      await this.storage.put({
+        [key]: account,
+        ["id:" + account.id]: normalized,
+        ["session:" + token]: { id: account.id, expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 }
+      });
       return authReply({ token, account: publicAccount(account) }, 201);
     }
     if (url.pathname === "/api/auth/login" && request.method === "POST") {
