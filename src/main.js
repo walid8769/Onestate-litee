@@ -217,7 +217,7 @@ function animate(){
   renderer.render(scene,camera);
 }
 animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.25:1.6));renderer.setSize(innerWidth,innerHeight);sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);});
 // Keep the loading screen visible until the real GLB environment has either loaded or failed.
 await districts.assetsReady;
 loading.classList.add('hidden');
