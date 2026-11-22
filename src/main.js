@@ -140,7 +140,7 @@ scene.add(new THREE.HemisphereLight(0xeaf4ff,0x59614e,2.15));
 const sun=new THREE.DirectionalLight(0xffe6bd,2.35);
 sun.position.set(-90,140,75); sun.castShadow=true;
 sun.shadow.mapSize.set(innerWidth<700?1024:2048,innerWidth<700?1024:2048);
-sun.shadow.camera.left=-180;sun.shadow.camera.right=180;sun.shadow.camera.top=180;sun.shadow.camera.bottom=-180;
+sun.shadow.camera.left=-360;sun.shadow.camera.right=360;sun.shadow.camera.top=360;sun.shadow.camera.bottom=-360;sun.shadow.camera.far=700;sun.shadow.camera.updateProjectionMatrix();
 sun.shadow.bias=-.00012;sun.shadow.normalBias=.025;
 scene.add(sun);
 const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100);scene.add(fill);
