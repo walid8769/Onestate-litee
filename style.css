@@ -43,3 +43,4 @@ button{font:inherit;color:inherit;border:0;cursor:pointer}.hidden{display:none!i
  .game .exit{top:111px;right:8px}
 }
 @media(min-width:700px){.tip{top:165px}.game .run{width:100px;height:100px;min-width:100px;min-height:100px}}
+
