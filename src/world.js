@@ -332,6 +332,7 @@ export function createWorld(T, scene) {
   ];
   for(const [key,x,z,rot,emergency] of carPlan)coreJobs.push(car(key,x,z,rot,emergency));
   const trafficLoop=[[-280,-280],[280,-280],[280,280],[-280,280]];
+  const busRoute=[[0,-280],[0,280],[70,280],[70,-280]];
   const trafficPlan=[
     {x:-235,z:-280,rot:Math.PI/2,index:1,key:'citycar'},
     {x:280,z:-30,rot:Math.PI,index:2,key:'saloon'},
@@ -341,7 +342,7 @@ export function createWorld(T, scene) {
   ];
   for(const p of trafficPlan){
     coreJobs.push(car(p.key||'car',p.x,p.z,p.rot,false).then(vehicle=>{
-      if(vehicle)vehicle.userData.traffic={points:trafficLoop,index:p.index,speed:p.speed||7.5};
+      if(vehicle)vehicle.userData.traffic={points:p.key==='bus'?busRoute:trafficLoop,index:p.index,speed:p.speed||7.5};
       return vehicle;
     }));
   }
