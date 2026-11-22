@@ -14,7 +14,7 @@ export default {
       if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
       const body = await request.clone().json().catch(() => null);
       const server = body?.server;
-      if (!SERVERS.has(server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400, headers: AUTH_CORS });
+      if (!SERVERS.has(server) || (request.headers.get("X-Game-Server") && request.headers.get("X-Game-Server") !== server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400, headers: AUTH_CORS });
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const accountStore = env.ACCOUNT_STORE.get(accountId);
       const auth = await accountStore.fetch(new Request("https://accounts.internal/api/auth/resolve", { method: "POST", headers: { Authorization: "Bearer " + token, "X-Game-Server": server } }));
@@ -35,7 +35,7 @@ export default {
       if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
       const body = await request.clone().json().catch(() => null);
       const server = body?.server;
-      if (!SERVERS.has(server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400, headers: AUTH_CORS });
+      if (!SERVERS.has(server) || (request.headers.get("X-Game-Server") && request.headers.get("X-Game-Server") !== server)) return Response.json({ error: "اختر سيرفراً صالحاً" }, { status: 400, headers: AUTH_CORS });
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const accountStore = env.ACCOUNT_STORE.get(accountId);
       const auth = await accountStore.fetch(new Request("https://accounts.internal/api/auth/resolve", { method: "POST", headers: { Authorization: "Bearer " + token, "X-Game-Server": server } }));
@@ -430,9 +430,10 @@ export class AccountStore {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
       const server = request.headers.get("X-Player-Server");
+      const requestedServer = request.headers.get("X-Game-Server");
       const x = Number(request.headers.get("X-Player-X"));
       const z = Number(request.headers.get("X-Player-Z"));
-      if (!SERVERS.has(server) || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "تعذر التحقق من موقع اللاعب" }, 400);
+      if (!SERVERS.has(server) || (requestedServer && requestedServer !== server) || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "تعذر التحقق من موقع اللاعب" }, 400);
       const profile = account.serverProfiles[server];
       profile.spawnX = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, x));
       profile.spawnZ = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, z));
@@ -452,17 +453,19 @@ export class AccountStore {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
       const body = await request.json().catch(() => null);
-      const serverProfile = account.serverProfiles[body?.server];
+      const requestedServer = body?.server;
+      const headerServer = request.headers.get("X-Game-Server");
+      if (!SERVERS.has(requestedServer) || (headerServer && headerServer !== requestedServer)) return authReply({ error: "اختر سيرفراً صالحاً" }, 400);
+      const serverProfile = account.serverProfiles[requestedServer];
       if (!serverProfile) return authReply({ error: "اختر سيرفراً صالحاً" }, 400);
       if (serverProfile.activeMission) return authReply({ error: "لديك مهمة نشطة بالفعل" }, 409);
       const mission = AUTH_MISSIONS.find(item => item.id === body?.missionId && item.job === serverProfile.job);
       if (!mission) return authReply({ error: "المهمة غير متاحة لوظيفتك" }, 400);
-      if (!SERVERS.has(body?.server)) return authReply({ error: "اختر سيرفراً صالحاً" }, 400);
       const missionToken = crypto.randomUUID() + crypto.randomUUID();
       serverProfile.activeMission = {
         id: mission.id,
         token: missionToken,
-        server: body.server,
+        server: requestedServer,
         startedAt: Date.now(),
         expiresAt: Date.now() + 30 * 60 * 1000
       };
@@ -494,8 +497,9 @@ export class AccountStore {
       const mission = AUTH_MISSIONS.find(item => item.id === active.id && item.job === profile.job);
       if (!mission) return authReply({ error: "المهمة لم تعد متاحة" }, 409);
       if (Date.now() - active.startedAt < mission.minSeconds * 1000) return authReply({ error: "أكمل وقت المهمة أولاً" }, 425);
+      const playerServer = request.headers.get("X-Player-Server") || profileServer;
       const x = Number(request.headers.get("X-Player-X")), z = Number(request.headers.get("X-Player-Z"));
-      if (profileServer !== active.server || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "عد إلى السيرفر الذي بدأت فيه المهمة" }, 409);
+      if (profileServer !== active.server || playerServer !== active.server || !Number.isFinite(x) || !Number.isFinite(z)) return authReply({ error: "عد إلى السيرفر الذي بدأت فيه المهمة" }, 409);
       if (Math.hypot(x - mission.destination.x, z - mission.destination.z) > 12) return authReply({ error: "اقترب من نقطة تسليم المهمة" }, 409);
       profile.cash = Math.max(0, Number(profile.cash) || 0) + mission.reward;
       profile.xp = Math.max(0, Number(profile.xp) || 0) + mission.xp;
