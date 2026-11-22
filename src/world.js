@@ -282,7 +282,7 @@ export function createWorld(T, scene) {
     propPlan.push({key:'bin',x:x+12,z:z+8,w:1.2,h:1.5,d:1.2});
   }
   for(let p=-280;p<=280;p+=70){
-    if(Math.abs(p)<70)continue;
+    if(Math.abs(p)<=175)continue;
     for(const side of [-1,1]){
       propPlan.push({key:'lamp',x:p,z:side*11,w:.5,h:9,d:3.42});
       propPlan.push({key:'lamp',x:side*11,z:p,w:.5,h:9,d:3.42});
