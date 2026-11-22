@@ -103,6 +103,18 @@ const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100
 const districts=createWorld(THREE,scene);
 const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player);
 player.position.set(0,0,0);
+const pedestrianSpecs=[
+  {color:0x9b563d,pants:0x26384a,start:[-175,35],path:[[-183,27],[-167,27],[-167,43],[-183,43]]},
+  {color:0x315f88,pants:0x30343b,start:[175,-35],path:[[167,-43],[183,-43],[183,-27],[167,-27]]},
+  {color:0x9b8742,pants:0x273d34,start:[35,175],path:[[27,167],[43,167],[43,183],[27,183]]},
+  {color:0x674c82,pants:0x252c37,start:[118,35],path:[[108,28],[124,28],[124,42],[108,42]]}
+];
+const pedestrians=pedestrianSpecs.map((spec,index)=>{
+  const group=createAvatar(spec.color,spec.pants);
+  group.position.set(spec.start[0],0,spec.start[1]);
+  scene.add(group);upgradeAvatar(group);
+  return {group,path:spec.path,index:0,phase:index*.9,speed:1.05+index*.08};
+});
 
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
 let activeVehicle=null,vehicleSpeed=0;
@@ -203,6 +215,22 @@ function animate(){
   if(moving&&!activeVehicle){player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,Math.atan2(direction.x,direction.z),Math.min(1,dt*12));walkTime+=dt*(running?12:8);}
   const swing=moving?Math.sin(walkTime)*.58:0;
   updateAvatar(player, activeVehicle?'idle':(moving?(running?'run':'walk'):'idle'), dt);
+  for(const npc of pedestrians){
+    const target=npc.path[npc.index],dx=target[0]-npc.group.position.x,dz=target[1]-npc.group.position.z;
+    const distance=Math.hypot(dx,dz);
+    if(distance<.55)npc.index=(npc.index+1)%npc.path.length;
+    else{
+      const step=Math.min(distance,npc.speed*dt);
+      npc.group.position.x+=dx/distance*step;npc.group.position.z+=dz/distance*step;
+      npc.group.rotation.y=Math.atan2(dx,dz);npc.phase+=dt*7;
+    }
+    updateAvatar(npc.group,'walk',dt);
+    if(!npc.group.userData.realAvatarLoaded){
+      const swing=Math.sin(npc.phase)*.32;
+      npc.group.userData.arms[0].rotation.x=swing;npc.group.userData.arms[1].rotation.x=-swing;
+      npc.group.userData.legs[0].rotation.x=-swing;npc.group.userData.legs[1].rotation.x=swing;
+    }
+  }
   for(const remote of remotePlayers.values())updateAvatar(remote.group,'idle',dt);
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
   for(const vehicle of vehicles){
