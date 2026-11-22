@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
-import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/environments/RoomEnvironment.js';
+import { RGBELoader } from 'https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/loaders/RGBELoader.js';
 import { createWorld } from './world.js';
 import { NetworkClient } from './network.js';
 import { upgradeAvatar, updateAvatar } from './avatar.js';
@@ -72,14 +72,22 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure=1.12;
-// Give PBR city assets a real image-based lighting source instead of flat ambient light.
+// CC0 1K outdoor HDRI: real sky reflections for glass, paint and wet surfaces.
 const pmrem=new THREE.PMREMGenerator(renderer);
-const roomEnvironment=new RoomEnvironment();
-const environment=pmrem.fromScene(roomEnvironment,0.04);
-scene.environment=environment.texture;
-scene.environmentIntensity=.62;
-roomEnvironment.dispose();
-pmrem.dispose();
+new RGBELoader().load(
+  'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr',
+  hdr=>{
+    hdr.mapping=THREE.EquirectangularReflectionMapping;
+    const baked=pmrem.fromEquirectangular(hdr);
+    scene.environment=baked.texture;
+    scene.environmentIntensity=.8;
+    scene.background=hdr;
+    scene.backgroundBlurriness=.12;
+    pmrem.dispose();
+  },
+  undefined,
+  error=>{console.warn('[OneState] Outdoor HDRI unavailable; using built-in lighting.',error);pmrem.dispose();}
+);
 game.prepend(renderer.domElement);
 renderer.domElement.style.touchAction='none';
 
