@@ -36,6 +36,7 @@ const FILES={
   coupe:REAL_COUPE,
   citycar:REAL_CITY_CAR,
   saloon:REAL_SALOON,
+  policecar:REAL_SALOON,
   tree:'https://tevy.dev/models/european-beech/v1/lod2.glb',
   tree2:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
   lamp:'https://tevy.dev/models/city-street-lamp/v1/lod1.glb',
@@ -228,7 +229,7 @@ export function createWorld(T, scene) {
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const dims=key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'?[2,1.403,4.822]:[2.27,1.57,5.2];
+    const dims=key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='electric'?[2.37,1.94,5.05]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
     const loaded=await place(key,x,z,...dims,rotation);
     if(!loaded)return null;
     // 3DAssets vehicle models face +Z; the driving rig uses -Z as forward.
@@ -251,11 +252,22 @@ export function createWorld(T, scene) {
       a.position.set(-.42,1.95,0);b.position.set(.42,1.95,0);model.add(a,b);
       const beacon=new T.Mesh(new T.BoxGeometry(1.15,.12,.34),new T.MeshStandardMaterial({color:0xf0f1ef,roughness:.45}));beacon.position.set(0,1.82,0);model.add(beacon);
     }
+    if(key==='policecar'){
+      const canvas=document.createElement('canvas');canvas.width=512;canvas.height=128;
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#12385f';ctx.fillRect(0,0,512,128);
+      ctx.fillStyle='#ffffff';ctx.font='bold 78px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('POLICE',256,66);
+      const decal=new T.CanvasTexture(canvas);decal.colorSpace=T.SRGBColorSpace;
+      const material=new T.MeshBasicMaterial({map:decal,transparent:true,side:T.DoubleSide});
+      for(const side of [-1,1]){
+        const panel=new T.Mesh(new T.PlaneGeometry(1.25,.31),material);
+        panel.position.set(side*1.015,.92,0);panel.rotation.y=side>0?Math.PI/2:-Math.PI/2;model.add(panel);
+      }
+    }
     vehicles.push(model);
     return model;
   }
   const carPlan=[
-    ['car',31,-12,.05,false],['electric',38,-12,.05,false],['coupe',-32,15,Math.PI,false],
+    ['car',31,-12,.05,false],['electric',38,-12,.05,false],['coupe',-32,15,Math.PI,false],['policecar',38,-54,0,true],
     ['saloon',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
     ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
