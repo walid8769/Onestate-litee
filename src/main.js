@@ -69,11 +69,22 @@ function makeRemotePlayer(id,name){
   const group=createAvatar(0x9b3940,0x252b35);group.userData.remote=true;setNameTag(group,name);scene.add(group);upgradeAvatar(group);
   remotePlayers.set(id,{group,name,target:new THREE.Vector3(),targetYaw:0,lastPosition:new THREE.Vector3()});return group;
 }
+function clearRemotePlayers(){
+  for(const item of remotePlayers.values())disposeAvatarGroup(item.group);
+  remotePlayers.clear();
+}
 function handleNetworkEvent(event){
   if(event.type==='connected'){networkStatus.textContent='متصل';networkStatus.dataset.state='online';}
-  else if(event.type==='offline'||event.type==='network_error'||event.type==='disconnected'){networkStatus.textContent='غير متصل';networkStatus.dataset.state='offline';}
+  else if(event.type==='offline'||event.type==='network_error'||event.type==='disconnected'){
+    networkStatus.textContent='غير متصل';networkStatus.dataset.state='offline';
+    clearRemotePlayers();
+  }
   if(event.type==='welcome'){networkStatus.textContent=`متصل • ${event.online||1}/100`;networkStatus.dataset.state='online';}
-  if(event.type==='snapshot'){for(const p of event.players||[])updateRemote(p);}
+  if(event.type==='snapshot'){
+    const active=new Set();
+    for(const p of event.players||[]){if(p?.id){active.add(p.id);updateRemote(p);}}
+    for(const [id,item] of remotePlayers){if(!active.has(id)){disposeAvatarGroup(item.group);remotePlayers.delete(id);}}
+  }
   if(event.type==='player_joined'||event.type==='player_moved'){updateRemote(event.player);if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
   if(event.type==='player_left'){const p=remotePlayers.get(event.id);if(p){disposeAvatarGroup(p.group);remotePlayers.delete(event.id);}if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
   if(event.type==='error'&&networkStatus){networkStatus.textContent=event.message||'تعذر الاتصال';networkStatus.dataset.state='offline';}
