@@ -47,7 +47,7 @@
       <div class="hud-left">
         <div class="map-frame"><canvas id="mini-map" width="180" height="180" aria-label="الخريطة المصغرة"></canvas><span class="map-player"></span></div>
         <div class="player-status">
-          <div class="level">LVL <b>1</b></div>
+          <div class="level">LVL <b id="level-top">1</b></div>
           <div class="status-line"><span>الصحة</span><div class="status-track"><i class="health-fill"></i></div><b>100%</b></div>
           <div class="status-line"><span>الدرع</span><div class="status-track"><i class="armor-fill"></i></div><b>0%</b></div>
         </div>
@@ -60,6 +60,20 @@
         <div class="hud-info"><span id="job-label">مواطن</span><span>مستوى <b id="level-value">1</b></span></div>
       </div>
     </div>
+    <button id="mission-toggle" class="mission-toggle" type="button">المهام</button>
+    <section id="mission-panel" class="mission-panel hidden">
+      <header><strong>مهام الوظيفة</strong><button id="mission-close" type="button">×</button></header>
+      <div id="mission-list"></div>
+      <div id="mission-active" class="mission-active hidden">
+        <strong id="mission-title"></strong>
+        <p id="mission-description"></p>
+        <div id="mission-progress">اتجه إلى نقطة المهمة</div>
+        <div class="mission-actions">
+          <button id="mission-complete" type="button" disabled>إكمال المهمة</button>
+          <button id="mission-cancel" type="button">إلغاء</button>
+        </div>
+      </div>
+    </section>
     <div class="tip">اسحب الشاشة لتحريك الكاميرا • استخدم عصا الحركة</div>
     <div id="joystick" class="joystick"><div id="stick" class="stick"></div></div>
     <button id="run" class="run">ركض</button>
