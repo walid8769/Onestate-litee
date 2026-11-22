@@ -101,7 +101,8 @@ export function createWorld(T, scene) {
         const t=T.MathUtils.clamp((radius-245)/165,0,1);
         const smooth=t*t*(3-2*t);
         const hills=Math.max(4,15+12*Math.sin(x*.014)*Math.cos(z*.012)+8*Math.sin((x+z)*.022)+5*Math.cos((x-z)*.019));
-        const y=-.2+smooth*hills;
+        const coastalBed=x<-135&&x>-275&&z>95&&z<185;
+        const y=coastalBed?-.28:-.2+smooth*hills;
         positions.push(x,y,z);
         uvs.push(ix/segments,iz/segments);
         if(ix<segments&&iz<segments){
@@ -238,8 +239,11 @@ export function createWorld(T, scene) {
   plane(38,38,0,0,sidewalkMat,-.035);
   const plazaLine=mat(0xd8c8a2,.75);
   for(let k=-1;k<=1;k++){plane(34,.18,0,k*11,plazaLine,.005);plane(.18,34,k*11,0,plazaLine,.005);}
-  const waterMat=new T.MeshStandardMaterial({color:0x3f8294,roughness:.22,metalness:.12});
+  const waterMat=new T.MeshPhysicalMaterial({color:0x3f8294,roughness:.13,metalness:.05,clearcoat:1,clearcoatRoughness:.08,envMapIntensity:1.1});
+  const sandMat=mat(0xc7b48c,.94);
   plane(130,42,-205,140,waterMat,-.13);
+  plane(18,42,-131,140,sandMat,-.105);
+  plane(9,42,-117,140,sidewalkMat,-.075);
 
   const propPlan=[];
   for(const [x,z] of [[-105,-105],[-105,105],[105,-105],[105,105],[-175,0],[175,0]]){
