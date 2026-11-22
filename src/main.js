@@ -59,7 +59,7 @@ async function refreshAccount(){
   $('#cash-value').textContent=Number(currentAccount.cash||0).toLocaleString('en-US');
   $('#level-value').textContent=String(currentAccount.level||1);
   $('#level-top').textContent=String(currentAccount.level||1);
-  $('#job-label').textContent=({citizen:'مواطن',police:'الشرطة',medic:'الإسعاف',mechanic:'ميكانيكي',taxi:'سائق أجرة',bus:'سائق حافلة',delivery:'التوصيل'})[currentAccount.job]||'مواطن';
+  $('#job-label').textContent=({citizen:'مواطن',police:'الشرطة',medic:'المستشفى والإسعاف',army:'الجيش',fbi:'FBI',council:'مجلس المدينة',mechanic:'ميكانيكي',taxi:'سائق أجرة',bus:'سائق حافلة',delivery:'التوصيل'})[currentAccount.job]||'مواطن';
   const jobsResult=await accountApi('/api/jobs');
   jobSelect.innerHTML='';
   for(const job of jobsResult.jobs||[]){
