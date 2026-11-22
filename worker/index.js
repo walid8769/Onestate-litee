@@ -53,7 +53,7 @@ export class GameRoom {
       return new Response(null, { status: 101, webSocket: client });
     }
     socket.accept();
-    const player = { id, name, x: 0, z: 36, yaw: 0, lastMove: 0, server };
+    const player = { id, name, x: 0, z: 0, yaw: 0, lastMove: 0, server };
     this.sessions.set(socket, player);
     socket.addEventListener("message", event => this.onMessage(socket, event.data));
     socket.addEventListener("close", () => this.onClose(socket));
