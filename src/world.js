@@ -152,6 +152,7 @@ export function createWorld(T, scene) {
             }
             if(farGltf){
               const far=cloneSkeleton(farGltf.scene);fitModel(far,w,h,d);
+              far.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=false;}});
               lod.addLevel(far,145);
             }
           });
