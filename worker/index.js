@@ -261,10 +261,10 @@ export class GameRoom {
 const AUTH_MISSIONS = [
   { id: "citizen_walk", job: "citizen", title: "جولة في وسط المدينة", description: "توجه إلى ساحة المدينة", destination: { x: -54, z: -75 }, reward: 180, xp: 35, minSeconds: 20 },
   { id: "police_patrol", job: "police", title: "دورية أمنية", description: "توجه إلى الحديقة الغربية", destination: { x: -175, z: 35 }, reward: 350, xp: 70, minSeconds: 30 },
-  { id: "medical_call", job: "medic", title: "استجابة طبية", description: "توجه إلى مدخل المستشفى", destination: { x: -76, z: 54 }, reward: 420, xp: 85, minSeconds: 30 },
+  { id: "medical_call", job: "medic", title: "استجابة طبية", description: "توجه إلى مدخل المستشفى", destination: { x: -54, z: 82 }, reward: 420, xp: 85, minSeconds: 30 },
   { id: "army_checkpoint", job: "army", title: "تفقد نقطة الحراسة", description: "توجه إلى بوابة القاعدة العسكرية", destination: { x: 420, z: 430 }, reward: 520, xp: 100, minSeconds: 40 },
-  { id: "fbi_investigation", job: "fbi", title: "تحقيق فيدرالي", description: "توجه إلى المقر الفيدرالي", destination: { x: 385, z: -385 }, reward: 560, xp: 110, minSeconds: 40 },
-  { id: "council_service", job: "council", title: "خدمة بلدية", description: "توجه إلى مجلس المدينة", destination: { x: -54, z: -54 }, reward: 450, xp: 90, minSeconds: 35 },
+  { id: "fbi_investigation", job: "fbi", title: "تحقيق فيدرالي", description: "توجه إلى المقر الفيدرالي", destination: { x: 385, z: -365 }, reward: 560, xp: 110, minSeconds: 40 },
+  { id: "council_service", job: "council", title: "خدمة بلدية", description: "توجه إلى مجلس المدينة", destination: { x: -54, z: -32 }, reward: 450, xp: 90, minSeconds: 35 },
   { id: "repair_call", job: "mechanic", title: "طلب صيانة", description: "توجه إلى محطة الوقود", destination: { x: 105, z: -15 }, reward: 320, xp: 65, minSeconds: 25 },
   { id: "taxi_trip", job: "taxi", title: "رحلة أجرة", description: "أوصل الراكب إلى الحي التجاري", destination: { x: 125, z: -85 }, reward: 330, xp: 65, minSeconds: 30 },
   { id: "bus_route", job: "bus", title: "خط الحافلة", description: "توجه إلى نهاية الخط الشمالي", destination: { x: 0, z: 280 }, reward: 500, xp: 100, minSeconds: 45 },
