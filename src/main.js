@@ -161,7 +161,7 @@ function setNameTag(group,name){
   group.userData.nameTag=sprite;group.add(sprite);
 }
 function makeRemotePlayer(id,name){
-  const group=createAvatar(0x9b3940,0x252b35);group.userData.remote=true;setNameTag(group,name);scene.add(group);upgradeAvatar(group);
+  const group=createAvatar(0x9b3940,0x252b35);group.userData.remote=true;setNameTag(group,name);scene.add(group);upgradeAvatar(group,renderer);
   remotePlayers.set(id,{group,name,target:new THREE.Vector3(),targetYaw:0,lastPosition:new THREE.Vector3()});return group;
 }
 function clearRemotePlayers(){
@@ -245,8 +245,8 @@ sun.shadow.bias=-.00012;sun.shadow.normalBias=.025;
 scene.add(sun);
 const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100);scene.add(fill);
 
-const districts=createWorld(THREE,scene);
-const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player);
+const districts=createWorld(THREE,scene,renderer);
+const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player,renderer);
 player.position.set(0,0,0);
 
 let missionState=null,missionMarker=null;
@@ -353,7 +353,7 @@ const pedestrianSpecs=[
 const pedestrians=pedestrianSpecs.map((spec,index)=>{
   const group=createAvatar(spec.color,spec.pants);group.userData.remote=true;
   group.position.set(spec.start[0],0,spec.start[1]);
-  scene.add(group);upgradeAvatar(group);
+  scene.add(group);upgradeAvatar(group,renderer);
   return {group,path:spec.path,index:0,phase:index*.9,speed:1.05+index*.08};
 });
 
