@@ -83,7 +83,8 @@ export async function upgradeAvatar(root, renderer, variant = 'casual') {
     // The CC0 civilian rigs ship idle/walk/wave/look-around, not a run clip.
     // Never fall back to clip index 2: that is the wave animation and made sprinting look broken.
     const run = findClip(clips, /run/i) || walk;
-    const actions = { idle, walk, run };
+    const look = findClip(clips, /look.?around|look/i);
+    const actions = { idle, walk, run, look };
     const active = { action: null };
     const setState = (state, speedMultiplier = (state === 'run' ? (run === walk ? 5.4 : 4.1) : state === 'walk' ? 2.9 : 1)) => {
       const clip = actions[state] || idle;
