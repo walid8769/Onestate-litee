@@ -36,7 +36,7 @@ export function createUrbanBuilding(T, key, width, height, depth) {
   const shellGeo = new T.ExtrudeGeometry(shape,{depth:height,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.12,bevelThickness:.12,curveSegments:5});
   // Shape is the footprint; rotate its extrusion upright.
   shellGeo.rotateX(-Math.PI/2);
-  shellGeo.translate(0,height,depth/2);
+  shellGeo.translate(0,0,depth/2);
   const shell = new T.Mesh(shellGeo,wall); shell.castShadow=true; shell.receiveShadow=true; group.add(shell);
   const floorGeo = new T.BoxGeometry(width+.25,.16,depth+.25);
   for(let f=0;f<=floors;f++){
