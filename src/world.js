@@ -46,9 +46,31 @@ export function createWorld(T, scene) {
     {name:'الواجهة البحرية',cx:-140,cz:140,kind:'water'}
   ];
   const mat=(color,roughness=1,metalness=0)=>new T.MeshStandardMaterial({color,roughness,metalness});
-  const groundMat=mat(0x64765b);
+  const groundMat=mat(0x64765b,1);
   const roadMat=mat(0x30363b,.96);
   const sidewalkMat=mat(0xbcb9ae,.94);
+  // CC0 PBR surface maps from Poly Haven; small 1K maps keep mobile memory bounded.
+  const textureLoader=new T.TextureLoader();
+  const textureBase='https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/';
+  function applyPBR(material,asset,repeatX,repeatY){
+    const loadMap=(suffix,space)=>new Promise(resolve=>{
+      textureLoader.load(textureBase+asset+'/'+asset+'_'+suffix+'_1k.jpg',texture=>{
+        texture.wrapS=texture.wrapT=T.RepeatWrapping;
+        texture.repeat.set(repeatX,repeatY);
+        if(space)texture.colorSpace=space;
+        resolve(texture);
+      },undefined,()=>resolve(null));
+    });
+    Promise.all([loadMap('diff',T.SRGBColorSpace),loadMap('nor_gl'),loadMap('rough')]).then(([color,normal,rough])=>{
+      if(color)material.map=color;
+      if(normal)material.normalMap=normal;
+      if(rough)material.roughnessMap=rough;
+      material.needsUpdate=true;
+    });
+  }
+  applyPBR(groundMat,'grass',80,80);
+  applyPBR(roadMat,'asphalt_01',90,3);
+  applyPBR(sidewalkMat,'concrete_pavement',80,3);
   const markingMat=mat(0xe8e1cc,.85);
   const plane=(w,d,x,z,material,y=-.12)=>{
     const mesh=new T.Mesh(new T.PlaneGeometry(w,d),material);
