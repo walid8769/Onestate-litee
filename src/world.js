@@ -46,13 +46,13 @@ const FILES={
   electric:REAL_SUV,
   ambulance:REAL_VAN,
   bus:REAL_VAN,
-  tree:`${KIT}/vegetacao/ipe_amarelo.glb`,
+  tree:'https://tevy.dev/models/ginkgo-tree/v1/lod1.glb',
   shrubs:`${KIT}/vegetacao/arbustos.glb`,
-  lamp:`${KIT}/mobiliario/poste_luz.glb`,
-  bench:`${KIT}/mobiliario/banco_praca.glb`,
-  signal:`${KIT}/mobiliario/semaforo.glb`,
-  shelter:`${KIT}/mobiliario/ponto_onibus.glb`,
-  bin:`${KIT}/mobiliario/lixeira.glb`,
+  lamp:'https://tevy.dev/models/city-street-lamp/v1/lod1.glb',
+  bench:'https://tevy.dev/models/empty-mall-bench/v1/lod0.glb',
+  signal:'https://tevy.dev/models/traffic-light/v1/lod1.glb',
+  shelter:'https://tevy.dev/models/glass-bus-shelter/v1/lod2.glb',
+  bin:'https://tevy.dev/models/waste-bin/v1/lod1.glb',
   hydrant:`${KIT}/mobiliario/hidrante.glb`
 };
 
@@ -219,10 +219,13 @@ export function createWorld(T, scene) {
   }
   for(let p=-175;p<=175;p+=35)for(const side of [-1,1]){
     if(Math.abs(p)<45)continue;
-    propPlan.push({key:'lamp',x:p,z:side*11,w:1.5,h:7,d:1.5});
-    propPlan.push({key:'lamp',x:side*11,z:p,w:1.5,h:7,d:1.5});
+    propPlan.push({key:'lamp',x:p,z:side*11,w:.5,h:9,d:3.42});
+    propPlan.push({key:'lamp',x:side*11,z:p,w:.5,h:9,d:3.42});
   }
   for(const [x,z] of [[-35,-118],[35,-118],[118,-35],[118,35],[-118,35],[-118,-35]])propPlan.push({key:'shelter',x,z,w:7,h:4,d:3});
+  for(const [x,z] of [[-9,-9],[9,-9],[-9,9],[9,9],[61,-9],[79,-9],[-79,9],[-61,9]]){
+    propPlan.push({key:'signal',x,z,w:.58,h:3.51,d:.73});
+  }
   for(const [x,z] of [[-20,-24],[20,-24],[-24,20],[24,20],[-90,12],[90,-12],[12,90],[-12,-90]]){
     propPlan.push({key:'bin',x,z,w:1.2,h:1.5,d:1.2});
     propPlan.push({key:'hydrant',x:x+1.7,z,w:.8,h:1.2,d:.8});
