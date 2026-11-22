@@ -49,6 +49,7 @@ export async function upgradeAvatar(root) {
 
     // Keep the procedural avatar visible until the complete model is ready.
     for (const child of [...root.children]) {
+      if (child === root.userData.nameTag) continue;
       root.remove(child);
       child.traverse?.(node => {
         node.geometry?.dispose?.();
