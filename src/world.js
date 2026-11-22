@@ -242,6 +242,7 @@ export function createWorld(T, scene) {
   const waterMat=new T.MeshPhysicalMaterial({color:0x3f8294,roughness:.13,metalness:.05,clearcoat:1,clearcoatRoughness:.08,envMapIntensity:1.1});
   const sandMat=mat(0xc7b48c,.94);
   plane(130,42,-205,140,waterMat,-.13);
+  obstacles.push({x:-205,z:140,halfX:65,halfZ:21});
   plane(18,42,-131,140,sandMat,-.105);
   plane(9,42,-117,140,sidewalkMat,-.075);
 
