@@ -45,7 +45,7 @@ export default {
     if (match) {
       if (request.headers.get("Upgrade") !== "websocket") return new Response("WebSocket upgrade required", { status: 426 });
       const token = url.searchParams.get("token");
-      if (!token) return new Response("Authentication required", { status: 401 });
+      if (!token) return Response.json({ error: "سجل الدخول أولاً" }, { status: 401, headers: AUTH_CORS });
       const accountId = env.ACCOUNT_STORE.idFromName("global-accounts");
       const authResponse = await env.ACCOUNT_STORE.get(accountId).fetch(new Request("https://accounts.internal/api/auth/resolve", {
         method: "POST",
