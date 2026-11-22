@@ -100,6 +100,43 @@ export function createWorld(T, scene) {
   function tree(x,z,scale=1){cyl(.2*scale,.34*scale,3.5*scale,x,1.75*scale,z,mats.trunk,10);const crown=new T.Mesh(new T.SphereGeometry(1.75*scale,14,11),mats.leaf);crown.position.set(x,3.9*scale,z);crown.scale.set(1,1.22,.95);crown.castShadow=true;scene.add(crown);const top=new T.Mesh(new T.SphereGeometry(1.1*scale,12,9),mat(0x527b4c,1));top.position.set(x+.45*scale,5*scale,z);scene.add(top);}
   for(const [x,z] of [[-105,-105],[-105,105],[105,-105],[105,105],[-175,0],[175,0]]){box(25,.16,25,x,.02,z,mat(0x536f4c),false);for(let k=-1;k<=1;k++)tree(x+k*7,z+(k%2)*3,.82);box(4,.34,.55,x,.65,z+8,mats.wood,false);box(4,.12,.7,x,.9,z+8,mats.dark,false);}
   for(let p=-175;p<=175;p+=35)for(const s of [-1,1]){cyl(.09,.13,5,p,2.5,s*11,mats.dark,8);box(1.5,.12,.14,p+.65,4.85,s*11,mats.dark,false);const bulb=new T.Mesh(new T.SphereGeometry(.18,10,8),new T.MeshStandardMaterial({color:0xffd28a,emissive:0xffb84d,emissiveIntensity:.65}));bulb.position.set(p+1.35,4.78,s*11);scene.add(bulb);}
+  // City furniture: signal poles, pedestrian crossings, bus shelters and safety bollards.
+  const signalRed=new T.MeshStandardMaterial({color:0x3b1717,emissive:0x8e1717,emissiveIntensity:.55});
+  const signalAmber=new T.MeshStandardMaterial({color:0x473313,emissive:0xb87818,emissiveIntensity:.45});
+  const signalGreen=new T.MeshStandardMaterial({color:0x153c27,emissive:0x1b9c50,emissiveIntensity:.5});
+  for(const [ix,iz] of [[-70,-70],[0,-70],[70,-70],[-70,0],[70,0],[-70,70],[0,70],[70,70]]){
+    for(const side of [-1,1]){
+      const sx=ix+side*12,sz=iz+side*12;
+      cyl(.12,.16,5.8,sx,2.9,sz,mats.dark,10);
+      box(1.45,.13,.13,sx+side*.62,5.55,sz,mats.dark,false);
+      box(.42,.95,.38,sx+side*1.22,5.02,sz,mats.dark,false);
+      for(let k=0;k<3;k++){const bulb=new T.Mesh(new T.SphereGeometry(.13,10,8),[signalRed,signalAmber,signalGreen][k]);bulb.position.set(sx+side*1.22,5.32-k*.29,sz+.2);scene.add(bulb);}
+    }
+    // Zebra crossing bars on both sides of the junction.
+    for(let n=-4;n<=4;n++){box(.82,.025,4.8,ix+n*1.05,.065,iz-12.4,mats.white,false);box(4.8,.025,.82,ix-12.4,.065,iz+n*1.05,mats.white,false);}
+  }
+  for(const [x,z] of [[-35,-118],[35,-118],[118,-35],[118,35],[-118,35],[-118,-35]]){
+    // Glass bus shelter with a bench and route sign.
+    box(5.8,.12,2.3,x,.1,z,mats.concrete,false);
+    for(const sx of [-2.55,2.55])for(const sz of [-.88,.88])box(.12,2.35,.12,x+sx,1.25,z+sz,mats.metal,false);
+    box(5.1,2.05,.09,x,1.25,z-.88,mats.glassLite,false);
+    box(5.4,.16,2.15,x,2.48,z,mats.dark,false);
+    box(3.3,.16,.55,x,.72,z+.48,mats.wood,false);
+    box(.13,1.4,.16,x-2.85,1,z,mats.dark,false);
+    box(.9,1.05,.12,x-2.85,1.35,z-.12,mat(0xd2b477,.5),false);
+  }
+  for(const [x,z] of [[-20,-24],[20,-24],[-24,20],[24,20],[-90,12],[90,-12],[12,90],[-12,-90]]){
+    // Street bins and fire hydrants add human-scale detail to sidewalks.
+    cyl(.32,.38,.85,x,.53,z,mat(0x35434a,.9),12);
+    cyl(.12,.12,.7,x+1.15,.45,z,mat(0xb8322d,.55),10);
+    cyl(.23,.23,.16,x+1.15,.76,z,mat(0xb8322d,.55),10);
+    box(.62,.13,.14,x+1.15,.53,z,mat(0xb8322d,.55),false);
+  }
+  // Tree-lined avenues outside the central blocks.
+  for(let p=-210;p<=210;p+=35)for(const side of [-1,1]){
+    if(Math.abs(p)<45)continue;
+    tree(p,side*15,.72);tree(side*15,p,.72);
+  }
   // Parked vehicles: recognizable proportions, glass cabin, bumpers, lights and wheels.
   const vehicles=[];
   function car(x,z,color=0xd8dce0,rot=0,emergency=false){
