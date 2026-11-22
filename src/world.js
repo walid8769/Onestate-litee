@@ -322,7 +322,7 @@ export function createWorld(T, scene, renderer) {
   function createVehicleFallback(key,dims,emergency=false){
     const [width,height,length]=dims;
     const group=new T.Group();
-    const paintColor=key==='policecar'?0x172f50:key==='ambulance'?0xe7e9e5:key==='bus'?0x277e82:key==='coupe'?0x9b3029:key==='suv'?0x8cabb2:key==='van'?0xb8b9b5:0x536c7b;
+    const paintColor=key==='policecar'?0x172f50:key==='fireengine'?0xc62c2c:key==='ambulance'?0xe7e9e5:key==='bus'?0x277e82:key==='coupe'?0x9b3029:key==='suv'?0x8cabb2:key==='van'?0xb8b9b5:0x536c7b;
     const paint=new T.MeshPhysicalMaterial({color:paintColor,metalness:.48,roughness:.3,clearcoat:.8,clearcoatRoughness:.22});
     const glass=new T.MeshPhysicalMaterial({color:0x1c3440,metalness:.22,roughness:.12,transparent:true,opacity:.88});
     const rubber=new T.MeshStandardMaterial({color:0x111417,roughness:.94});
@@ -370,7 +370,7 @@ export function createWorld(T, scene, renderer) {
     return group;
   }
   async function car(key,x,z,rotation=0,emergency=false){
-    const dims=key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='suv'?[2.14,1.7,4.65]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
+    const dims=key==='fireengine'?[3.21,3.68,10.53]:key==='bus'?[2.89,3.1,12.4]:key==='ambulance'?[2.55,3.01,7.29]:key==='van'?[2.46,2.4,5.53]:key==='suv'?[2.14,1.7,4.65]:key==='coupe'?[2.058,1.33,4.702]:key==='citycar'?[1.828,1.533,3.592]:key==='saloon'||key==='policecar'?[2,1.403,4.822]:[2.27,1.57,5.2];
     let loaded=await place(key,x,z,...dims,rotation);
     if(!loaded){
       loaded=createVehicleFallback(key,dims,emergency);
