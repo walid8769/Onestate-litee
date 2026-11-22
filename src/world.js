@@ -60,7 +60,6 @@ const FILES={
 export function createWorld(T, scene) {
   const loader=new GLTFLoader();
   const cache=new Map();
-  const buildingCache=new Map();
   const obstacles=[];
   const vehicles=[];
   const districts=[
@@ -125,10 +124,6 @@ export function createWorld(T, scene) {
     return cache.get(url);
   }
   function load(key){return loadUrl(FILES[key]);}
-  function loadBuilding(key){
-    if(!buildingCache.has(key))buildingCache.set(key,Promise.all(BUILDING_ASSETS[key].map(loadUrl)));
-    return buildingCache.get(key);
-  }
   function fitModel(model,targetW,targetH,targetD){
     model.updateMatrixWorld(true);
     const b=new T.Box3().setFromObject(model);
@@ -147,14 +142,23 @@ export function createWorld(T, scene) {
     if(architecturalKeys.has(key)){
       if(BUILDING_ASSETS[key]){
         try{
-          const levels=await loadBuilding(key);
+          const urls=BUILDING_ASSETS[key];
+          const middleGltf=await loadUrl(urls[1]);
           const lod=new T.LOD();
-          [0,72,145].forEach((distance,index)=>{
-            const model=cloneSkeleton(levels[index].scene);
-            fitModel(model,w,h,d);
-            lod.addLevel(model,distance);
-          });
+          const middle=cloneSkeleton(middleGltf.scene);
+          fitModel(middle,w,h,d);
+          lod.addLevel(middle,0);
           lod.position.set(x,0,z);lod.rotation.y=rotation;lod.updateMatrixWorld(true);scene.add(lod);
+          Promise.all([loadUrl(urls[0]).catch(()=>null),loadUrl(urls[2]).catch(()=>null)]).then(([highGltf,farGltf])=>{
+            if(highGltf){
+              const high=cloneSkeleton(highGltf.scene);fitModel(high,w,h,d);
+              lod.levels[0].object=high;lod.remove(middle);lod.add(high);lod.addLevel(middle,72);
+            }
+            if(farGltf){
+              const far=cloneSkeleton(farGltf.scene);fitModel(far,w,h,d);
+              lod.addLevel(far,145);
+            }
+          });
           return lod;
         }catch(error){console.warn('[OneState buildings] realistic GLB failed:',key,error);}
       }
