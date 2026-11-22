@@ -91,8 +91,10 @@ let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=
 let activeVehicle=null,vehicleSpeed=0;
 const vehicles= districts.vehicles || [];
 const vehicleButton=document.createElement('button');vehicleButton.id='vehicle';vehicleButton.className='vehicle-action';vehicleButton.textContent='قيادة';game.appendChild(vehicleButton);
+const vehiclePanel=document.createElement('div');vehiclePanel.className='vehicle-panel';vehiclePanel.innerHTML='<span>السرعة</span><strong id="vehicle-speed">0</strong><small>KM/H</small>';game.appendChild(vehiclePanel);
+const speedReadout=vehiclePanel.querySelector('#vehicle-speed');
 function nearestVehicle(){let best=null,dist=Infinity;for(const v of vehicles){const d=v.position.distanceTo(player.position);if(d<dist){dist=d;best=v;}}return dist<8?best:null;}
-function toggleVehicle(){if(activeVehicle){activeVehicle.userData.speed=0;activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';return;}const near=nearestVehicle();if(!near)return;activeVehicle=near;vehicleSpeed=0;player.visible=false;vehicleButton.textContent='نزول';}
+function toggleVehicle(){if(activeVehicle){activeVehicle.userData.speed=0;activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';vehiclePanel.style.display='none';runButton.textContent='ركض';return;}const near=nearestVehicle();if(!near)return;activeVehicle=near;vehicleSpeed=0;player.visible=false;vehicleButton.textContent='نزول';vehiclePanel.style.display='flex';runButton.textContent='توربو';}
 vehicleButton.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();toggleVehicle();});
 const joystick=$('#joystick'),stick=$('#stick'),runButton=$('#run');
 function setStick(e){
@@ -124,7 +126,7 @@ renderer.domElement.addEventListener('pointerup',endDrag);
 renderer.domElement.addEventListener('pointercancel',endDrag);
 
 $('#play').addEventListener('click',()=>{$('#server-label').textContent=selectedServer;menu.classList.add('hidden');game.classList.remove('hidden');const endpoint=window.ONESTATE_REALTIME_URL||'';realtime.connect(endpoint,selectedServer,'لاعب');});
-$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())scene.remove(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
+$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())scene.remove(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.style.display='none';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
 const districtLabel=$('#district-label'),mapCanvas=$('#mini-map'),mapCtx=mapCanvas.getContext('2d');
 function drawMiniMap(){
   const ctx=mapCtx,w=mapCanvas.width,h=mapCanvas.height,s=1.05;
@@ -146,7 +148,11 @@ function animate(){
   const direction=forward.clone().multiplyScalar(-moveY).add(right.clone().multiplyScalar(moveX));
   if(direction.lengthSq()>1)direction.normalize();
   if(activeVehicle){
-    const throttle=THREE.MathUtils.clamp(-moveY,-1,1);vehicleSpeed=THREE.MathUtils.damp(vehicleSpeed,throttle*23,2.4,dt);
+    const throttle=THREE.MathUtils.clamp(-moveY,-1,1);
+    const maxSpeed=running?31:22;
+    vehicleSpeed=THREE.MathUtils.damp(vehicleSpeed,throttle*maxSpeed,throttle===0?3.4:1.9,dt);
+    if(Math.abs(throttle)<.05)vehicleSpeed=THREE.MathUtils.damp(vehicleSpeed,0,1.8,dt);
+    speedReadout.textContent=String(Math.round(Math.abs(vehicleSpeed)*3.6));
     activeVehicle.rotation.y-=moveX*vehicleSpeed*.018*dt;
     const fwd=new THREE.Vector3(-Math.sin(activeVehicle.rotation.y),0,-Math.cos(activeVehicle.rotation.y));
     activeVehicle.position.addScaledVector(fwd,vehicleSpeed*dt);
@@ -161,7 +167,7 @@ function animate(){
   updateAvatar(player, activeVehicle?'idle':(moving?(running?'run':'walk'):'idle'), dt);
   for(const remote of remotePlayers.values())updateAvatar(remote.group,'idle',dt);
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
-  if(activeVehicle)yaw=activeVehicle.rotation.y;
+  if(activeVehicle){yaw=activeVehicle.rotation.y;vehiclePanel.style.display='flex';}else vehiclePanel.style.display='none';
   const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)* (activeVehicle?11:8), (activeVehicle?4.5:3.4)+pitch*3,Math.cos(yaw)*(activeVehicle?11:8)));
   camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
   if(!activeVehicle){const near=nearestVehicle();vehicleButton.style.display=near?'block':'none';vehicleButton.textContent='قيادة';}else vehicleButton.style.display='block';
