@@ -379,7 +379,13 @@ export function createWorld(T, scene, renderer) {
     model.add(loaded);
     scene.add(model);
     const wheelNodes=[];
-    loaded.traverse(node=>{if(/(wheel-(front|rear).*(rubber|metal|accent)|wheel_(fl|fr|rl|rr))/i.test(node.name))wheelNodes.push(node);});
+    loaded.traverse(node=>{
+      if(/(wheel-(front|rear).*(rubber|metal|accent)|wheel_(fl|fr|rl|rr))/i.test(node.name)){
+        node.userData.restQuaternion=node.quaternion.clone();
+        node.userData.frontWheel=/wheel_(fl|fr)/i.test(node.name)||/wheel-front/i.test(node.name);
+        wheelNodes.push(node);
+      }
+    });
     model.userData={vehicle:true,type:key,emergency,speed:0,steer:0,wheels:wheelNodes,mixer:loaded.userData.mixer||null};
     if(emergency){
       const red=new T.MeshStandardMaterial({color:0xd92735,emissive:0x4a0508});
