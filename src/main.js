@@ -144,7 +144,7 @@ const pedestrianSpecs=[
   {color:0x674c82,pants:0x252c37,start:[-50,-190],path:[[-50,-190],[-20,-190],[-20,-160],[-50,-160]]}
 ];
 const pedestrians=pedestrianSpecs.map((spec,index)=>{
-  const group=createAvatar(spec.color,spec.pants);
+  const group=createAvatar(spec.color,spec.pants);group.userData.remote=true;
   group.position.set(spec.start[0],0,spec.start[1]);
   scene.add(group);upgradeAvatar(group);
   return {group,path:spec.path,index:0,phase:index*.9,speed:1.05+index*.08};
