@@ -1,6 +1,7 @@
 const SERVERS = new Set(["ME1", "ME2", "ME3"]);
 const MAX_PLAYERS = 100;
 const WORLD_LIMIT = 350;
+const PLAYER_VISIBILITY_RANGE = 220;
 
 export default {
   async fetch(request, env) {
@@ -68,6 +69,7 @@ export class GameRoom {
   constructor(state) {
     this.state = state;
     this.sessions = new Map();
+    this.visiblePlayers = new Map();
     this.server = "unknown";
   }
 
@@ -107,10 +109,19 @@ export class GameRoom {
     socket.addEventListener("message", event => this.onMessage(socket, event.data));
     socket.addEventListener("close", () => this.onClose(socket));
     socket.addEventListener("error", () => this.onClose(socket));
+    const nearby = [...this.sessions.entries()].filter(([s, p]) => s !== socket && Math.hypot(p.x-player.x,p.z-player.z) <= PLAYER_VISIBILITY_RANGE);
+    this.visiblePlayers.set(socket, new Set(nearby.map(([, p]) => p.id)));
     socket.send(JSON.stringify({ type: "welcome", id, server, online: this.sessions.size, capacity: MAX_PLAYERS }));
-    const players = [...this.sessions.entries()].filter(([s]) => s !== socket).map(([, p]) => this.publicPlayer(p));
-    socket.send(JSON.stringify({ type: "snapshot", players }));
-    this.broadcast({ type: "player_joined", player: this.publicPlayer(player), online: this.sessions.size }, socket);
+    socket.send(JSON.stringify({ type: "snapshot", players: nearby.map(([, p]) => this.publicPlayer(p)) }));
+    for (const [otherSocket, otherPlayer] of this.sessions) {
+      if (otherSocket === socket) continue;
+      if (Math.hypot(otherPlayer.x-player.x,otherPlayer.z-player.z) <= PLAYER_VISIBILITY_RANGE) {
+        const visible = this.visiblePlayers.get(otherSocket) || new Set();
+        visible.add(player.id);
+        this.visiblePlayers.set(otherSocket, visible);
+        try { otherSocket.send(JSON.stringify({ type: "player_joined", player: this.publicPlayer(player), online: this.sessions.size })); } catch {}
+      }
+    }
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -122,7 +133,25 @@ export class GameRoom {
     const data = JSON.stringify(message);
     for (const socket of this.sessions.keys()) {
       if (socket === except) continue;
-      try { socket.send(data); } catch { this.sessions.delete(socket); }
+      try { socket.send(data); } catch { this.onClose(socket); }
+    }
+  }
+
+  broadcastMovement(player, sourceSocket) {
+    const online = this.sessions.size;
+    const moved = this.publicPlayer(player);
+    for (const [socket, recipient] of this.sessions) {
+      if (socket === sourceSocket) continue;
+      const visible = this.visiblePlayers.get(socket) || new Set();
+      const inRange = Math.hypot(recipient.x-player.x,recipient.z-player.z) <= PLAYER_VISIBILITY_RANGE;
+      if (inRange) {
+        const type = visible.has(player.id) ? "player_moved" : "player_joined";
+        visible.add(player.id);
+        this.visiblePlayers.set(socket, visible);
+        try { socket.send(JSON.stringify(type === "player_joined" ? { type, player: moved, online } : { type, player: moved })); } catch { this.onClose(socket); }
+      } else if (visible.delete(player.id)) {
+        try { socket.send(JSON.stringify({ type: "player_left", id: player.id, online })); } catch { this.onClose(socket); }
+      }
     }
   }
 
@@ -134,7 +163,7 @@ export class GameRoom {
     if (data.type !== "move") return;
     const now = Date.now();
     const elapsedMs = now - player.lastMove;
-    if (elapsedMs < 45) return;
+    if (elapsedMs < 95) return;
     const x = Number(data.x), z = Number(data.z), yaw = Number(data.yaw);
     if (![x, z, yaw].every(Number.isFinite)) return;
     const targetX = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, x));
@@ -153,14 +182,20 @@ export class GameRoom {
     }
     player.lastMove = now;
     player.yaw = Math.max(-Math.PI * 4, Math.min(Math.PI * 4, yaw));
-    this.broadcast({ type: "player_moved", player: this.publicPlayer(player) }, socket);
+    this.broadcastMovement(player, socket);
   }
 
   onClose(socket) {
     const player = this.sessions.get(socket);
     if (!player) return;
     this.sessions.delete(socket);
-    this.broadcast({ type: "player_left", id: player.id, online: this.sessions.size });
+    this.visiblePlayers.delete(socket);
+    const online = this.sessions.size;
+    for (const [recipientSocket, visible] of this.visiblePlayers) {
+      if (visible.delete(player.id)) {
+        try { recipientSocket.send(JSON.stringify({ type: "player_left", id: player.id, online })); } catch {}
+      }
+    }
   }
 }
 
