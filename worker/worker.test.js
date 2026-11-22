@@ -137,8 +137,8 @@ test("saved spawn is clamped and returned in the persistent profile", async () =
   }));
   assert.equal(verified.status, 200);
   const saved = await verified.json();
-  assert.equal(saved.account.spawnX, 350);
-  assert.equal(saved.account.spawnZ, -350);
+  assert.equal(saved.account.spawnX, 560);
+  assert.equal(saved.account.spawnZ, -560);
 });
 
 
