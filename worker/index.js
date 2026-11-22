@@ -201,7 +201,7 @@ export class GameRoom {
     if (data.type === "chat") {
       const now = Date.now();
       if (now - player.lastChat < 1400) return;
-      const message = String(data.message || "").replace(/[\\u0000-\\u001f\\u007f]/g, " ").trim().slice(0, 160);
+      const message = String(data.message || "").replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 160);
       if (!message) return;
       player.lastChat = now;
       const payload = JSON.stringify({ type: "chat", playerId: player.id, name: player.name, message, timestamp: now });
