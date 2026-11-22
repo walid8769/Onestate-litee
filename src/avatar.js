@@ -81,11 +81,11 @@ export async function upgradeAvatar(root, renderer) {
     const run = findClip(clips, /run/i, 2);
     const actions = { idle, walk, run };
     const active = { action: null };
-    const setState = state => {
+    const setState = (state, speedMultiplier = (state === 'run' ? 4.1 : state === 'walk' ? 2.15 : 1)) => {
       const clip = actions[state] || idle;
       if (!clip) return;
       const next = mixer.clipAction(clip);
-      next.timeScale = state === 'run' ? 4.1 : state === 'walk' ? 2.15 : 1;
+      next.timeScale = speedMultiplier;
       if (active.action !== next) {
         next.reset().fadeIn(.2).play();
         active.action?.fadeOut(.2);
@@ -103,7 +103,7 @@ export async function upgradeAvatar(root, renderer) {
     root.userData.avatarLoading = false;
   }
 }
-export function updateAvatar(root, state, delta) {
+export function updateAvatar(root, state, delta, speedMultiplier) {
   root.userData.avatarMixer?.update(delta);
-  root.userData.setAvatarState?.(state);
+  root.userData.setAvatarState?.(state, speedMultiplier);
 }
