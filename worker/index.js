@@ -481,8 +481,8 @@ export class AccountStore {
     if (url.pathname === "/api/missions/complete" && request.method === "POST") {
       const account = await this.userFromRequest(request);
       if (!account) return authReply({ error: "سجل الدخول أولاً" }, 401);
-      const server = request.headers.get("X-Player-Server") || request.headers.get("X-Game-Server") || "ME1";
-      const profile = account.serverProfiles[server] || account.serverProfiles.ME1;
+      const profileServer = request.headers.get("X-Game-Server") || "ME1";
+      const profile = account.serverProfiles[profileServer] || account.serverProfiles.ME1;
       const active = profile.activeMission;
       const body = await request.json().catch(() => null);
       if (!active || !body?.missionToken || body.missionToken !== active.token) return authReply({ error: "لا توجد مهمة صالحة للإكمال" }, 409);
