@@ -121,17 +121,17 @@ export function createWorld(T, scene) {
 
   // Continuous road network with clean flat geometry; all buildings and vehicles are loaded GLB assets.
   for(let p=-210;p<=210;p+=70){
-    plane(520,17,0,p,roadMat,-.105);plane(17,520,p,0,roadMat,-.105);
+    plane(500,17,0,p,roadMat,-.105);plane(17,500,p,0,roadMat,-.105);
     for(const s of [-1,1]){
-      plane(520,2.5,0,p+s*10.2,sidewalkMat,-.045);
-      plane(2.5,520,p+s*10.2,0,sidewalkMat,-.045);
+      plane(500,2.5,0,p+s*10.2,sidewalkMat,-.045);
+      plane(2.5,500,p+s*10.2,0,sidewalkMat,-.045);
       const curbH=.18;
-      const horizontalCurb=new T.Mesh(new T.BoxGeometry(520,curbH,.25),curbMat);
+      const horizontalCurb=new T.Mesh(new T.BoxGeometry(500,curbH,.25),curbMat);
       horizontalCurb.position.set(0,-.015,p+s*8.62);horizontalCurb.castShadow=true;horizontalCurb.receiveShadow=true;scene.add(horizontalCurb);
-      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,520),curbMat);
+      const verticalCurb=new T.Mesh(new T.BoxGeometry(.25,curbH,500),curbMat);
       verticalCurb.position.set(p+s*8.62,-.015,0);verticalCurb.castShadow=true;verticalCurb.receiveShadow=true;scene.add(verticalCurb);
     }
-    for(let q=-250;q<260;q+=18){
+    for(let q=-240;q<250;q+=18){
       plane(5.5,.13,q,p,markingMat,-.045);
       plane(.13,5.5,p,q,markingMat,-.045);
     }
