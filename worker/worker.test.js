@@ -215,6 +215,39 @@ test("ME1, ME2 and ME3 keep separate cash, jobs, missions and saved locations", 
   assert.equal((await me2.json()).account.job, "police");
   assert.equal((await me3.json()).account.job, "citizen");
 
+  const missionMe2 = await store.fetch(new Request("https://accounts.test/api/missions/start", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: "Bearer " + token, "X-Game-Server": "ME2" },
+    body: JSON.stringify({ missionId: "police_patrol", server: "ME2" })
+  }));
+  assert.equal(missionMe2.status, 200);
+  const missionsMe1 = await store.fetch(new Request("https://accounts.test/api/missions", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME1" }
+  }));
+  const missionsMe2 = await store.fetch(new Request("https://accounts.test/api/missions", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME2" }
+  }));
+  assert.equal((await missionsMe1.json()).activeMission, null);
+  assert.equal((await missionsMe2.json()).activeMission.id, "police_patrol");
+
+  const saveMe2 = await store.fetch(new Request("https://accounts.test/api/profile/save-position", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json", authorization: "Bearer " + token,
+      "X-Player-Server": "ME2", "X-Player-X": "42", "X-Player-Z": "-18"
+    },
+    body: JSON.stringify({ server: "ME2" })
+  }));
+  assert.equal(saveMe2.status, 200);
+  const locationMe1 = await store.fetch(new Request("https://accounts.test/api/profile", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME1" }
+  }));
+  const locationMe2 = await store.fetch(new Request("https://accounts.test/api/profile", {
+    headers: { authorization: "Bearer " + token, "X-Game-Server": "ME2" }
+  }));
+  assert.equal((await locationMe1.json()).account.spawnX, 0);
+  assert.equal((await locationMe2.json()).account.spawnX, 42);
+
   const stored = data.get("user:server_split");
   stored.serverProfiles.ME2.cash = 9999;
   await data.set("user:server_split", stored);
