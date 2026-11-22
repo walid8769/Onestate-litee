@@ -320,16 +320,25 @@ missionCompleteButton.addEventListener('click',async()=>{
     setTimeout(()=>{missionActive.classList.add('hidden');missionList.classList.remove('hidden');loadMissions();},1400);
   }catch(error){missionProgress.textContent=error.message||'تعذر إكمال المهمة.';missionCompleteButton.disabled=false;}
 });
+let profileSaveTimer=0,profileSavePromise=null;
 async function savePlayerPosition(){
-  if(!sessionToken||!realtime.connected||profileSaveInFlight)return;
-  profileSaveInFlight=true;
-  try{
-    const result=await accountApi('/api/profile/save-position','POST',{server:selectedServer});
-    currentAccount=result.account;
-  }catch(error){console.warn('[OneState Lite] Position save failed:',error);}
-  finally{profileSaveInFlight=false;}
+  if(!sessionToken||!realtime.connected)return;
+  if(profileSavePromise)return profileSavePromise;
+  profileSavePromise=(async()=>{
+    try{
+      const result=await accountApi('/api/profile/save-position','POST',{server:selectedServer});
+      currentAccount=result.account;
+      return true;
+    }catch(error){
+      console.warn('[OneState Lite] Position save failed:',error);
+      return false;
+    }finally{profileSavePromise=null;}
+  })();
+  return profileSavePromise;
 }
-let profileSaveTimer=0,profileSaveInFlight=false;
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')savePlayerPosition();
+});
 function updateMissionProgress(){
   if(!missionState)return;
   const destination=missionState.mission.destination;
