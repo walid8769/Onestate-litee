@@ -2,6 +2,13 @@ name: Deploy OneState realtime Worker
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'worker/index.js'
+      - 'wrangler.toml'
+      - '.github/workflows/deploy-realtime.yml'
 
 permissions:
   contents: read
