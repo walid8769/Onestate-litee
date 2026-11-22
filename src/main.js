@@ -38,6 +38,7 @@ async function refreshAccount(){
   currentAccount=result.account;
   $('#cash-value').textContent=Number(currentAccount.cash||0).toLocaleString('en-US');
   $('#level-value').textContent=String(currentAccount.level||1);
+  $('#level-top').textContent=String(currentAccount.level||1);
   $('#job-label').textContent=({citizen:'مواطن',police:'الشرطة',medic:'الإسعاف',mechanic:'ميكانيكي',taxi:'سائق أجرة',bus:'سائق حافلة',delivery:'التوصيل'})[currentAccount.job]||'مواطن';
   const jobsResult=await accountApi('/api/jobs');
   jobSelect.innerHTML='';
@@ -491,6 +492,8 @@ function animate(){
   const desired=player.position.clone().add(new THREE.Vector3(Math.sin(yaw)* (activeVehicle?11:8), (activeVehicle?4.5:3.4)+pitch*3,Math.cos(yaw)*(activeVehicle?11:8)));
   camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(player.position.x,1.25,player.position.z);
   if(!activeVehicle){const near=nearestVehicle();vehicleButton.style.display=near?'block':'none';vehicleButton.textContent='قيادة';}else vehicleButton.style.display='block';
+  if(missionMarker)missionMarker.rotation.y+=dt*.65;
+  updateMissionProgress();
   updateDistrict();realtime.move(player.position.x,player.position.z,player.rotation.y);mapTimer+=dt;if(mapTimer>.14){drawMiniMap();mapTimer=0;}
   renderer.render(scene,camera);
 }
