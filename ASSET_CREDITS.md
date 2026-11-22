@@ -11,6 +11,9 @@ The realistic city buildings are CC0 GLB models by Tevy, loaded from pinned mode
 - Fuel Station Canopy: https://tevy.dev/models/fuel-station
 - Steel Warehouse: https://tevy.dev/models/warehouse
 - Factory Hall: https://tevy.dev/models/factory-hall
+- General Store: https://tevy.dev/models/general-store
+- Noodle Shop: https://tevy.dev/models/noodle-shop
+- Mixed Tenant Block: https://tevy.dev/models/mixed-tenant-block
 - Village Grocery Shop: https://tevy.dev/models/village-shop
 - Police Station: https://tevy.dev/models/police-station
 - Fire Station: https://tevy.dev/models/fire-station
