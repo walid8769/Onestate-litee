@@ -16,7 +16,7 @@ const BUILDING_ASSETS={
   tower:['https://tevy.dev/models/office-tower/v2/lod0.glb','https://tevy.dev/models/office-tower/v2/lod1.glb','https://tevy.dev/models/office-tower/v2/lod2.glb'],
   apartment:['https://tevy.dev/models/apartment-block/v2/lod0.glb','https://tevy.dev/models/apartment-block/v2/lod1.glb','https://tevy.dev/models/apartment-block/v2/lod2.glb'],
   house:['https://tevy.dev/models/village-house/v2/lod0.glb','https://tevy.dev/models/village-house/v2/lod1.glb','https://tevy.dev/models/village-house/v2/lod2.glb'],
-  villa:['https://tevy.dev/models/timber-frame-house/v1/lod0.glb','https://tevy.dev/models/timber-frame-house/v1/lod1.glb','https://tevy.dev/models/timber-frame-house/v1/lod2.glb'],
+  villa:['https://tevy.dev/models/korean-villa-block/v1/lod0.glb','https://tevy.dev/models/korean-villa-block/v1/lod1.glb','https://tevy.dev/models/korean-villa-block/v1/lod2.glb'],
   cottage:['https://tevy.dev/models/red-cottage/v2/lod0.glb','https://tevy.dev/models/red-cottage/v2/lod1.glb','https://tevy.dev/models/red-cottage/v2/lod2.glb'],
   shop:['https://tevy.dev/models/corner-shop-block/v2/lod0.glb','https://tevy.dev/models/corner-shop-block/v2/lod1.glb','https://tevy.dev/models/corner-shop-block/v2/lod2.glb'],
   market:['https://tevy.dev/models/general-store/v1/lod0.glb','https://tevy.dev/models/general-store/v1/lod1.glb','https://tevy.dev/models/general-store/v1/lod2.glb'],
