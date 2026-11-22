@@ -324,10 +324,11 @@ export class AccountStore {
     if (url.pathname === "/api/auth/register" && request.method === "POST") {
       const ip = request.headers.get("CF-Connecting-IP") || "unknown";
       const registerWindow = Math.floor(Date.now() / 600000);
-      const registerKey = `register-attempt:${ip}:${registerWindow}`;
-      const registerAttempts = (await this.storage.get(registerKey)) || 0;
+      const registerKey = `register-attempt:${ip}`;
+      const registerState = await this.storage.get(registerKey);
+      const registerAttempts = registerState?.window === registerWindow ? registerState.count : 0;
       if (registerAttempts >= 5) return authReply({ error: "وصلت إلى حد إنشاء الحسابات، حاول بعد عشر دقائق" }, 429);
-      await this.storage.put(registerKey, registerAttempts + 1, { expirationTtl: 660 });
+      await this.storage.put(registerKey, { window: registerWindow, count: registerAttempts + 1 });
       const body = await request.json().catch(() => null);
       const username = String(body?.username || "").trim();
       const displayName = String(body?.displayName || username).trim().slice(0, 20);
@@ -363,10 +364,11 @@ export class AccountStore {
       const password = String(body?.password || "");
       const ip = request.headers.get("CF-Connecting-IP") || "unknown";
       const minute = Math.floor(Date.now() / 60000);
-      const attemptKey = `login-attempt:${ip}:${minute}`;
-      const attempts = (await this.storage.get(attemptKey)) || 0;
+      const attemptKey = `login-attempt:${ip}`;
+      const attemptState = await this.storage.get(attemptKey);
+      const attempts = attemptState?.window === minute ? attemptState.count : 0;
       if (attempts >= 12) return authReply({ error: "محاولات كثيرة، انتظر دقيقة ثم حاول مجدداً" }, 429);
-      await this.storage.put(attemptKey, attempts + 1, { expirationTtl: 120 });
+      await this.storage.put(attemptKey, { window: minute, count: attempts + 1 });
       const account = await this.storage.get("user:" + username);
       if (!account) return authReply({ error: "بيانات الدخول غير صحيحة" }, 401);
       const candidate = await passwordHash(password, account.passwordSalt);
