@@ -166,10 +166,10 @@ export class GameRoom {
 
 
 const AUTH_MISSIONS = [
-  { id: "citizen_walk", job: "citizen", title: "جولة في وسط المدينة", description: "توجه إلى ساحة المدينة", destination: { x: 0, z: 0 }, reward: 180, xp: 35, minSeconds: 20 },
+  { id: "citizen_walk", job: "citizen", title: "جولة في وسط المدينة", description: "توجه إلى ساحة المدينة", destination: { x: -54, z: -54 }, reward: 180, xp: 35, minSeconds: 20 },
   { id: "police_patrol", job: "police", title: "دورية أمنية", description: "توجه إلى الحديقة الغربية", destination: { x: -175, z: 35 }, reward: 350, xp: 70, minSeconds: 30 },
   { id: "medical_call", job: "medic", title: "استجابة طبية", description: "توجه إلى مدخل المستشفى", destination: { x: -76, z: 54 }, reward: 420, xp: 85, minSeconds: 30 },
-  { id: "repair_call", job: "mechanic", title: "طلب صيانة", description: "توجه إلى محطة الوقود", destination: { x: 105, z: -15 }, reward: 320, xp: 65, minSeconds: 25 },
+  { id: "repair_call", job: "mechanic", title: "طلب صيانة", description: "توجه إلى محطة الوقود", destination: { x: 105, z: -35 }, reward: 320, xp: 65, minSeconds: 25 },
   { id: "taxi_trip", job: "taxi", title: "رحلة أجرة", description: "أوصل الراكب إلى الحي التجاري", destination: { x: 125, z: -85 }, reward: 330, xp: 65, minSeconds: 30 },
   { id: "bus_route", job: "bus", title: "خط الحافلة", description: "توجه إلى نهاية الخط الشمالي", destination: { x: 0, z: 280 }, reward: 500, xp: 100, minSeconds: 45 },
   { id: "delivery_run", job: "delivery", title: "توصيل طلب", description: "وصل الطلب إلى السوبرماركت", destination: { x: 125, z: -85 }, reward: 360, xp: 70, minSeconds: 30 }
