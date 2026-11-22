@@ -571,7 +571,7 @@ function animate(){
       npc.group.position.x+=dx/distance*step;npc.group.position.z+=dz/distance*step;
       npc.group.rotation.y=Math.atan2(dx,dz);npc.phase+=dt*7;
     }
-    updateAvatar(npc.group,'walk',dt);
+    updateAvatar(npc.group,'walk',dt,npc.speed/1.3);
     if(!npc.group.userData.realAvatarLoaded){
       const swing=Math.sin(npc.phase)*.32;
       npc.group.userData.arms[0].rotation.x=swing;npc.group.userData.arms[1].rotation.x=-swing;
