@@ -577,6 +577,11 @@ function animate(){
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
   for(const vehicle of vehicles){
     vehicle.userData.mixer?.update(dt);
+    const emergencyLights=vehicle.userData.emergencyLights||[];
+    if(emergencyLights.length){
+      const phase=Math.floor(performance.now()/260)%2;
+      emergencyLights.forEach((light,index)=>{if(light.material)light.material.emissiveIntensity=(index%2===phase)?2.4:.08;});
+    }
     const traffic=vehicle.userData.traffic;
     if(traffic&&!activeVehicle){
       const target=traffic.points[traffic.index];
