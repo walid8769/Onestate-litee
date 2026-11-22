@@ -85,7 +85,15 @@ async function authenticate(mode){
       localStorage.setItem('onestate-realtime-url',realtimeUrlInput.value.trim());
     }catch{}
     passwordInput.value='';
-    await refreshAccount();
+    try {
+      await refreshAccount();
+    } catch (error) {
+      if (mode === 'register') {
+        setAccountStatus('تم إنشاء الحساب وحفظه. تعذر تحميل بيانات الشخصية حالياً؛ لا تنشئ حساباً آخر، جرّب تسجيل الدخول بنفس البيانات.','success');
+      } else {
+        setAccountStatus('تم تسجيل الدخول، لكن تعذر تحميل الشخصية: '+(error.message||'خطأ غير معروف'),'error');
+      }
+    }
   }catch(error){setAccountStatus(error.message||'تعذر الاتصال بالخادم','error');}
 }
 $('#account-register').addEventListener('click',()=>authenticate('register'));
