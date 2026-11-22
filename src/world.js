@@ -55,9 +55,14 @@ export function createWorld(T, scene) {
       const xx=x+n*w*.29;
       box(.18,h*.84,.2,xx,h*.52,z+side*(d/2+.09),mats.concrete,false);
     }
-    // Ground-floor storefronts and recessed dark entrances.
+    // Ground-floor storefronts, canopies, signage bands and recessed entrances.
     box(w*.66,2.25,.13,x,1.55,z-d/2-.12,mats.glass,false);
     box(w*.16,2.35,.16,x-w*.34,1.55,z-d/2-.16,mats.dark,false);
+    box(w*.78,.22,.72,x,2.82,z-d/2-.42,mats.dark,false);
+    box(w*.72,.09,.12,x,2.68,z-d/2-.82,mat(0xd2b477,.6),false);
+    for(let n=-1;n<=1;n++){box(.09,2.05,.12,x+n*w*.27,1.55,z-d/2-.2,mats.white,false);}
+    // Repeated balcony rails and slab edges make upper floors read as architecture.
+    if(kind!=='industrial')for(let f=1;f<Math.min(floors,7);f+=2){const by=1.55+f*3.05;box(w*.84,.12,.75,x,by-.82,z+d/2+.22,mats.concrete,false);box(w*.84,.08,.08,x,by-.38,z+d/2+.55,mats.metal,false);for(let q=-3;q<=3;q++)box(.055,.42,.055,x+q*w*.11,by-.59,z+d/2+.55,mats.metal,false);}
     if(kind==='homes'){
       box(w*.82,.45,d*.82,x,h+.22,z,mat(0x716b60),false);
       for(let k=-1;k<=1;k++)box(w*.76,.16,.7,x,2.7,z+k*d*.28,mats.white,false);
@@ -70,9 +75,11 @@ export function createWorld(T, scene) {
       for(let k=0;k<4;k++)box(.3,h*.78,.34,x-w*.42+k*w*.28,h*.52,z-d/2-.2,mats.white,false);
       box(w*.7,1.2,d*.7,x,h+.55,z,mats.dark,false);
     }
-    // Rooftop equipment.
+    // Rooftop equipment, parapets and HVAC units.
     box(w*.22,.9,d*.2,x-w*.25,h+.58,z,mats.dark,false);
     box(w*.12,.55,d*.16,x+w*.25,h+.4,z,mats.metal,false);
+    box(w+.35,.65,.28,x,h+.25,z-d/2,mats.concrete,false);box(w+.35,.65,.28,x,h+.25,z+d/2,mats.concrete,false);
+    for(let q=-1;q<=1;q++)box(.8,.65,.8,x+q*w*.28,h+.7,z,mats.metal,false);
   }
   let seed=731;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
   districts.forEach((d,di)=>{
