@@ -153,7 +153,7 @@ renderer.domElement.addEventListener('pointerup',endDrag);
 renderer.domElement.addEventListener('pointercancel',endDrag);
 
 $('#play').addEventListener('click',()=>{$('#server-label').textContent=selectedServer;menu.classList.add('hidden');game.classList.remove('hidden');const endpoint=window.ONESTATE_REALTIME_URL||'';realtime.connect(endpoint,selectedServer,'لاعب');});
-$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())scene.remove(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.style.display='none';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
+$('#exit').addEventListener('click',()=>{realtime.close();for(const p of remotePlayers.values())scene.remove(p.group);remotePlayers.clear();activeVehicle=null;vehicleSpeed=0;player.visible=true;vehicleButton.textContent='قيادة';vehicleButton.style.display='';runButton.textContent='ركض';vehiclePanel.style.display='none';game.classList.add('hidden');menu.classList.remove('hidden');running=false;resetStick();});
 const districtLabel=$('#district-label'),mapCanvas=$('#mini-map'),mapCtx=mapCanvas.getContext('2d');
 function drawMiniMap(){
   const ctx=mapCtx,w=mapCanvas.width,h=mapCanvas.height,s=1.05;
