@@ -102,7 +102,7 @@ export class NetworkClient {
 
   move(x, z, yaw) {
     const now = performance.now();
-    if (!this.connected || !this.socket || this.socket.readyState !== WebSocket.OPEN || now - this.lastSend < 70) return;
+    if (!this.connected || !this.socket || this.socket.readyState !== WebSocket.OPEN || now - this.lastSend < 100) return;
     if (this.socket.bufferedAmount > 128000) return;
     this.lastSend = now;
     try { this.socket.send(JSON.stringify({ type: 'move', x, z, yaw })); }
