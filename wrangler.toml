@@ -5,7 +5,8 @@ workers_dev = true
 
 [durable_objects]
 bindings = [
-  { name = "GAME_ROOMS", class_name = "GameRoom" }
+  { name = "GAME_ROOMS", class_name = "GameRoom" },
+  { name = "ACCOUNT_STORE", class_name = "AccountStore" }
 ]
 
 [[migrations]]
@@ -14,3 +15,7 @@ new_sqlite_classes = ["GameRoom"]
 
 [observability]
 enabled = true
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["AccountStore"]
