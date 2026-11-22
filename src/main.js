@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js';
 import { createWorld } from './world.js';
 import { NetworkClient } from './network.js';
+import { upgradeAvatar, updateAvatar } from './avatar.js';
 
 const $ = (s) => document.querySelector(s);
 const loading=$('#loading'), menu=$('#menu'), game=$('#game');
@@ -39,7 +40,7 @@ function createAvatar(bodyColor=0x087b9e,pantsColor=0x202a38){
   return root;
 }
 function makeRemotePlayer(id,name){
-  const group=createAvatar(0x9b3940,0x252b35);scene.add(group);
+  const group=createAvatar(0x9b3940,0x252b35);scene.add(group);upgradeAvatar(group);
   remotePlayers.set(id,{group,name});return group;
 }
 function handleNetworkEvent(event){
@@ -82,7 +83,7 @@ scene.add(sun);
 const fill=new THREE.DirectionalLight(0xb9d5ff,.45);fill.position.set(90,45,-100);scene.add(fill);
 
 const districts=createWorld(THREE,scene);
-const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);
+const player=createAvatar(0x087b9e,0x202c3c);scene.add(player);upgradeAvatar(player);
 player.position.set(0,0,36);
 
 let yaw=0,pitch=.2,moveX=0,moveY=0,running=false,dragPointer=null,lastX=0,lastY=0;
@@ -141,6 +142,8 @@ function animate(){
   player.position.x=THREE.MathUtils.clamp(player.position.x,-250,250);player.position.z=THREE.MathUtils.clamp(player.position.z,-250,250);
   if(moving){player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,Math.atan2(direction.x,direction.z),Math.min(1,dt*12));walkTime+=dt*(running?12:8);}
   const swing=moving?Math.sin(walkTime)*.58:0;
+  updateAvatar(player, moving?(running?'run':'walk'):'idle', dt);
+  for(const remote of remotePlayers.values())updateAvatar(remote.group,'idle',dt);
   player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;
   player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;
   player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);
