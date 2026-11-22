@@ -42,7 +42,7 @@ function createAvatar(bodyColor=0x087b9e,pantsColor=0x202a38){
 }
 function makeRemotePlayer(id,name){
   const group=createAvatar(0x9b3940,0x252b35);scene.add(group);upgradeAvatar(group);
-  remotePlayers.set(id,{group,name});return group;
+  remotePlayers.set(id,{group,name,target:new THREE.Vector3(),targetYaw:0,lastPosition:new THREE.Vector3()});return group;
 }
 function handleNetworkEvent(event){
   if(event.type==='connected'){networkStatus.textContent='متصل';networkStatus.dataset.state='online';}
@@ -53,7 +53,15 @@ function handleNetworkEvent(event){
   if(event.type==='player_left'){const p=remotePlayers.get(event.id);if(p){scene.remove(p.group);remotePlayers.delete(event.id);}if(Number.isFinite(event.online)){networkStatus.textContent=`متصل • ${event.online}/100`;networkStatus.dataset.state='online';}}
   if(event.type==='error'&&networkStatus){networkStatus.textContent=event.message||'تعذر الاتصال';networkStatus.dataset.state='offline';}
 }
-function updateRemote(p){if(!p||!p.id)return;let item=remotePlayers.get(p.id);if(!item)makeRemotePlayer(p.id,p.name);item=remotePlayers.get(p.id);item.group.position.set(p.x,0,p.z);item.group.rotation.y=p.yaw;}
+function updateRemote(p){
+  if(!p||!p.id||!Number.isFinite(p.x)||!Number.isFinite(p.z))return;
+  let item=remotePlayers.get(p.id);
+  if(!item)makeRemotePlayer(p.id,p.name);
+  item=remotePlayers.get(p.id);
+  item.name=p.name||item.name;
+  item.target.set(p.x,0,p.z);
+  if(Number.isFinite(p.yaw))item.targetYaw=p.yaw;
+}
 
 document.querySelectorAll('.server').forEach(button=>button.addEventListener('click',()=>{
   document.querySelectorAll('.server').forEach(x=>x.classList.remove('active'));
@@ -231,7 +239,14 @@ function animate(){
       npc.group.userData.legs[0].rotation.x=-swing;npc.group.userData.legs[1].rotation.x=swing;
     }
   }
-  for(const remote of remotePlayers.values())updateAvatar(remote.group,'idle',dt);
+  for(const remote of remotePlayers.values()){
+    remote.group.position.lerp(remote.target,1-Math.exp(-dt*13));
+    const angleDelta=Math.atan2(Math.sin(remote.targetYaw-remote.group.rotation.y),Math.cos(remote.targetYaw-remote.group.rotation.y));
+    remote.group.rotation.y+=angleDelta*(1-Math.exp(-dt*12));
+    const remoteMoving=remote.group.position.distanceToSquared(remote.lastPosition)>.0008;
+    updateAvatar(remote.group,remoteMoving?'walk':'idle',dt);
+    remote.lastPosition.copy(remote.group.position);
+  }
   if(!player.userData.realAvatarLoaded){player.userData.arms[0].rotation.x=swing;player.userData.arms[1].rotation.x=-swing;player.userData.legs[0].rotation.x=-swing;player.userData.legs[1].rotation.x=swing;player.userData.torso.position.y=1.32+(moving?Math.abs(Math.sin(walkTime*2))*.045:0);player.userData.torso.rotation.z=moving?Math.sin(walkTime)*.035:0;player.userData.headGroup.rotation.y=THREE.MathUtils.lerp(player.userData.headGroup.rotation.y,0,dt*3);}
   for(const vehicle of vehicles){
     vehicle.userData.mixer?.update(dt);
