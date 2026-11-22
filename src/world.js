@@ -245,6 +245,10 @@ export function createWorld(T, scene) {
   obstacles.push({x:-205,z:140,halfX:65,halfZ:21});
   plane(18,42,-131,140,sandMat,-.105);
   plane(9,42,-117,140,sidewalkMat,-.075);
+  const parkingMat=mat(0x292f32,.96);
+  plane(44,34,175,-105,parkingMat,-.095);
+  plane(43,.14,175,-120,markingMat,-.035);
+  for(let bay=0;bay<=7;bay++)plane(.13,5.8,153+bay*5.8,-117,markingMat,-.035);
 
   const propPlan=[];
   for(const [x,z] of [[-175,35],[175,-35],[35,175],[-35,-175],[-175,-105],[175,105]]){
@@ -308,7 +312,7 @@ export function createWorld(T, scene) {
     ['saloon',8,34,Math.PI/2,false],['ambulance',26,10,Math.PI/2,true],
     ['citycar',-102,-70,Math.PI/2,false],['van',102,-70,Math.PI/2,false],
     ['saloon',-70,102,0,false],['coupe',70,102,0,false],['ambulance',170,32,Math.PI/2,true],
-    ['car',-170,-30,Math.PI/2,false]
+    ['car',-170,-30,Math.PI/2,false],['citycar',157,-117,0,false],['saloon',169,-117,0,false],['coupe',181,-117,0,false],['electric',193,-117,0,false]
   ];
   for(const [key,x,z,rot,emergency] of carPlan)coreJobs.push(car(key,x,z,rot,emergency));
   const trafficLoop=[[-210,-140],[210,-140],[210,140],[-210,140]];
