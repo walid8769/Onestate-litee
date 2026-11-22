@@ -257,6 +257,19 @@ export function createWorld(T, scene) {
     ['car',-170,-30,Math.PI/2,false]
   ];
   for(const [key,x,z,rot,emergency] of carPlan)coreJobs.push(car(key,x,z,rot,emergency));
+  const trafficLoop=[[-210,-140],[210,-140],[210,140],[-210,140]];
+  const trafficPlan=[
+    {x:-165,z:-140,rot:Math.PI/2,index:1},
+    {x:210,z:-30,rot:Math.PI,index:2},
+    {x:165,z:140,rot:-Math.PI/2,index:3},
+    {x:-210,z:30,rot:0,index:0}
+  ];
+  for(const p of trafficPlan){
+    coreJobs.push(car('car',p.x,p.z,p.rot,false).then(vehicle=>{
+      if(vehicle)vehicle.userData.traffic={points:trafficLoop,index:p.index,speed:7.5};
+      return vehicle;
+    }));
+  }
 
   // Load the playable city first. Small street props stream in afterwards so a slow
   // bench/tree request cannot keep the player trapped on the loading screen.
