@@ -41,7 +41,7 @@ jobs:
           set -euo pipefail
           mkdir -p build/ios
           "$GODOT_BIN" --headless --editor --path godot --import
-          "$GODOT_BIN" --headless --verbose --path godot --export-debug "iOS" build/ios/OneStateLitee.xcodeproj
+          "$GODOT_BIN" --headless --verbose --path godot --export-debug "iOS" ../build/ios/OneStateLitee.xcodeproj
           test -d build/ios/OneStateLitee.xcodeproj
 
       - name: Build unsigned iPhone app
