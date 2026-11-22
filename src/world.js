@@ -20,7 +20,9 @@ const BUILDING_ASSETS={
   police:['https://tevy.dev/models/police-station/v1/lod0.glb','https://tevy.dev/models/police-station/v1/lod1.glb','https://tevy.dev/models/police-station/v1/lod2.glb'],
   firestation:['https://tevy.dev/models/fire-station/v1/lod0.glb','https://tevy.dev/models/fire-station/v1/lod1.glb','https://tevy.dev/models/fire-station/v1/lod2.glb'],
   hospital:['https://tevy.dev/models/hospital-building/v2/lod0.glb','https://tevy.dev/models/hospital-building/v2/lod1.glb','https://tevy.dev/models/hospital-building/v2/lod2.glb'],
-  cityhall:['https://tevy.dev/models/town-hall/v1/lod0.glb','https://tevy.dev/models/town-hall/v1/lod1.glb','https://tevy.dev/models/town-hall/v1/lod2.glb']
+  cityhall:['https://tevy.dev/models/town-hall/v1/lod0.glb','https://tevy.dev/models/town-hall/v1/lod1.glb','https://tevy.dev/models/town-hall/v1/lod2.glb'],
+  factory:['https://tevy.dev/models/factory-hall/v1/lod0.glb','https://tevy.dev/models/factory-hall/v1/lod1.glb','https://tevy.dev/models/factory-hall/v1/lod2.glb'],
+  warehouse:['https://tevy.dev/models/warehouse/v2/lod0.glb','https://tevy.dev/models/warehouse/v2/lod1.glb','https://tevy.dev/models/warehouse/v2/lod2.glb']
 };
 const FILES={
   house:`${KIT}/residencial/casa_sobrado.glb`,
@@ -61,10 +63,10 @@ export function createWorld(T, scene) {
   const vehicles=[];
   const districts=[
     {name:'وسط المدينة',cx:0,cz:0,kind:'tower'},
-    {name:'الحي السكني',cx:-140,cz:-140,kind:'homes'},
-    {name:'المنطقة التجارية',cx:140,cz:-140,kind:'shops'},
-    {name:'المنطقة الصناعية',cx:140,cz:140,kind:'industrial'},
-    {name:'الواجهة البحرية',cx:-140,cz:140,kind:'water'}
+    {name:'الحي السكني',cx:-105,cz:-105,kind:'homes'},
+    {name:'المنطقة التجارية',cx:105,cz:-105,kind:'shops'},
+    {name:'المنطقة الصناعية',cx:105,cz:105,kind:'industrial'},
+    {name:'الواجهة البحرية',cx:-105,cz:105,kind:'water'}
   ];
   const mat=(color,roughness=1,metalness=0)=>new T.MeshStandardMaterial({color,roughness,metalness});
   const groundMat=mat(0x64765b,1);
@@ -170,15 +172,16 @@ export function createWorld(T, scene) {
   const buildingPlan=[];
   const seeded=()=>{let s=731;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};};
   const random=seeded();
-  districts.forEach((district,di)=>{
-    for(let ix=-1;ix<=1;ix++)for(let iz=-1;iz<=1;iz++){
-      const x=district.cx+ix*20,z=district.cz+iz*20;
-      if(Math.abs(x)<25&&Math.abs(z)<25)continue;
+  districts.forEach((district)=>{
+    const slots=district.kind==='tower'?[-28,28]:district.kind==='industrial'?[-17.5,17.5]:[-20,0,20];
+    for(const ox of slots)for(const oz of slots){
+      const x=district.cx+ox,z=district.cz+oz;
+      if(district.kind==='tower'&&Math.abs(x)<25&&Math.abs(z)<25)continue;
       let key='house',h=12+random()*5,w=13,d=13;
-      if(district.kind==='tower'){key=random()>.45?'tower':'apartment';h=32+random()*18;w=16;d=16;}
+      if(district.kind==='tower'){key=random()>.45?'tower':'apartment';h=50+random()*15;w=24;d=20;}
       if(district.kind==='homes'){key=random()>.82?'apartment':'house';h=key==='house'?7+random()*4:10+random()*3;w=13;d=13;}
       if(district.kind==='shops'){const choices=['shop','market','hotel','bank','office','restaurant','mall'];key=choices[Math.floor(random()*choices.length)];h=key==='mall'?17:13+random()*7;w=key==='mall'?20:15;d=key==='mall'?20:14;}
-      if(district.kind==='industrial'){key=random()>.5?'factory':'warehouse';h=13+random()*5;w=17;d=17;}
+      if(district.kind==='industrial'){key=random()>.5?'factory':'warehouse';h=15;w=28;d=key==='factory'?34:20;}
       if(district.kind==='water'){key=random()>.5?'house':'shop';h=10+random()*5;w=14;d=14;}
       buildingPlan.push({key,x,z,w,h,d});
       obstacles.push({x,z,halfX:w*.48+1,halfZ:d*.48+1});
@@ -186,11 +189,10 @@ export function createWorld(T, scene) {
   });
 
   const landmarkPlan=[
-    {key:'cityhall',x:0,z:-48,w:25,h:24,d:25},
-    {key:'police',x:48,z:0,w:19,h:14,d:19},
-    {key:'hospital',x:-48,z:0,w:24,h:15,d:24},
-    {key:'firestation',x:-48,z:-48,w:21,h:15,d:21},
-    {key:'bank',x:48,z:-48,w:18,h:14,d:18}
+    {key:'cityhall',x:-48,z:-48,w:25,h:24,d:25},
+    {key:'police',x:48,z:-48,w:19,h:14,d:19},
+    {key:'hospital',x:-48,z:48,w:24,h:15,d:24},
+    {key:'firestation',x:48,z:48,w:21,h:15,d:21}
   ];
   for(const p of landmarkPlan){
     obstacles.push({x:p.x,z:p.z,halfX:p.w*.5+1,halfZ:p.d*.5+1});
