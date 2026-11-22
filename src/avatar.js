@@ -5,17 +5,22 @@ import { clone as cloneSkeleton } from 'https://cdn.jsdelivr.net/npm/three@0.161
 // Casual Walker by tevy — CC0 1.0; rigged humanoid with idle, walk, wave and look-around clips.
 // https://tevy.dev/models/casual-walker
 const MODEL_URL = 'https://tevy.dev/models/casual-walker/v1/lod0.glb';
+const REMOTE_MODEL_URL = 'https://tevy.dev/models/casual-walker/v1/lod1.glb';
 const loader = new GLTFLoader();
-let modelPromise;
+let modelPromise, remoteModelPromise;
 
-function getModel() {
-  if (!modelPromise) {
-    modelPromise = loader.loadAsync(MODEL_URL).catch(error => {
-      modelPromise = null; // permit a later retry after a transient network failure
-      throw error;
-    });
-  }
-  return modelPromise;
+function getModel(remote = false) {
+  const url = remote ? REMOTE_MODEL_URL : MODEL_URL;
+  const cache = remote ? remoteModelPromise : modelPromise;
+  if (cache) return cache;
+  const request = loader.loadAsync(url).catch(error => {
+    if (remote) remoteModelPromise = null;
+    else modelPromise = null;
+    throw error;
+  });
+  if (remote) remoteModelPromise = request;
+  else modelPromise = request;
+  return request;
 }
 function findClip(clips, expression, fallbackIndex=0) {
   return clips.find(c => expression.test(c.name)) || clips[fallbackIndex] || null;
@@ -24,7 +29,7 @@ export async function upgradeAvatar(root) {
   if (root.userData.avatarLoading || root.userData.realAvatarLoaded) return;
   root.userData.avatarLoading = true;
   try {
-    const gltf = await getModel();
+    const gltf = await getModel(!!root.userData.remote);
     const model = cloneSkeleton(gltf.scene);
     model.traverse(node => {
       if (!node.isMesh) return;
