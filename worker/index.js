@@ -1,6 +1,6 @@
 const SERVERS = new Set(["ME1", "ME2", "ME3"]);
 const MAX_PLAYERS = 100;
-const WORLD_LIMIT = 250;
+const WORLD_LIMIT = 350;
 
 export default {
   async fetch(request, env) {
