@@ -23,6 +23,23 @@ function setAccountStatus(message,state=''){
   accountStatus.textContent=message;
   accountStatus.dataset.state=state;
 }
+async function refreshServerCounts(){
+  const base=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
+  if(!base)return;
+  try{
+    const response=await fetch(new URL('/api/servers',base),{cache:'no-store'});
+    if(!response.ok)return;
+    const data=await response.json();
+    for(const server of data.servers||[]){
+      const node=$('#server-count-'+server.server);
+      if(!node)continue;
+      node.textContent=Number(server.online||0)+'/'+Number(server.capacity||100);
+      node.dataset.state=server.online>=server.capacity?'full':'online';
+    }
+  }catch{}
+}
+realtimeUrlInput.addEventListener('change',refreshServerCounts);
+setInterval(()=>{if(!menu.classList.contains('hidden'))refreshServerCounts();},15000);
 async function accountApi(path,method='GET',body=null){
   const base=(realtimeUrlInput.value||window.ONESTATE_REALTIME_URL||'').trim();
   if(!base)throw new Error('أدخل رابط خدمة اللعب الجماعي أولاً');
