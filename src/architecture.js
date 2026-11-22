@@ -20,8 +20,12 @@ const palettes = {
   tower: [0x9da8ad, 0x263d4a, 0x647780],
   apartment: [0xb7a995, 0x253d49, 0x6e6254],
   house: [0xd0c6b4, 0x344956, 0x8b765f],
+  villa: [0xd8d0bd, 0x294b59, 0x927b5c],
+  cottage: [0x9b5947, 0x253e4a, 0xe0d6c5],
   shop: [0xc4c0b6, 0x203b49, 0x8a744f],
   market: [0xaaaeb0, 0x243d48, 0x65767c],
+  supermarket: [0xb9c0bd, 0x1c4654, 0x64787d],
+  fuelstation: [0xe1e1d9, 0x244451, 0x8a9ca0],
   bank: [0xb9b7ae, 0x213946, 0x9a845b],
   office: [0xaab5b8, 0x1c3948, 0x7a8d92],
   restaurant: [0xc3b49e, 0x253d48, 0x966c4c],
@@ -37,6 +41,39 @@ const palettes = {
 export function createUrbanBuilding(T, key, width, height, depth) {
   const group = new T.Group();
   const palette = palettes[key] || palettes.apartment;
+  if (key === 'fuelstation') {
+    const concrete = new T.MeshStandardMaterial({color:0x777d7c,roughness:.9});
+    const canopy = new T.MeshStandardMaterial({color:0xe4e4dc,roughness:.42,metalness:.12});
+    const dark = new T.MeshStandardMaterial({color:0x26333a,roughness:.35,metalness:.25});
+    const glass = new T.MeshPhysicalMaterial({color:0x315363,roughness:.16,metalness:.18,transparent:true,opacity:.88});
+    const accent = new T.MeshStandardMaterial({color:0xc53d32,roughness:.5});
+    const floor = new T.Mesh(new T.BoxGeometry(width+5,.18,depth+5),concrete);
+    floor.position.y=.05;group.add(floor);
+    const roof = new T.Mesh(new T.BoxGeometry(width+1,.38,depth+.8),canopy);
+    roof.position.y=height-.35;roof.castShadow=true;group.add(roof);
+    const fascia = new T.Mesh(new T.BoxGeometry(width+1,.38,.22),dark);
+    fascia.position.set(0,height-.62,depth/2+.25);group.add(fascia);
+    for(const x of [-width*.43,width*.43])for(const z of [-depth*.38,depth*.38]){
+      const pillar = new T.Mesh(new T.CylinderGeometry(.14,.2,height-.75,12),canopy);
+      pillar.position.set(x,(height-.75)/2,z);pillar.castShadow=true;group.add(pillar);
+    }
+    for(const x of [-width*.25,width*.25]){
+      const island = new T.Mesh(new T.BoxGeometry(1.3,.22,2.5),concrete);island.position.set(x,.2,0);group.add(island);
+      const pump = new T.Group();pump.position.set(x,.32,0);group.add(pump);
+      const body = new T.Mesh(new T.BoxGeometry(.62,1.25,.48),canopy);body.position.y=.72;pump.add(body);
+      const screen = new T.Mesh(new T.BoxGeometry(.36,.23,.035),dark);screen.position.set(0,.92,.25);pump.add(screen);
+      const hose = new T.Mesh(new T.TorusGeometry(.24,.035,8,20,Math.PI*1.35),dark);hose.position.set(.32,.62,.2);hose.rotation.z=Math.PI/2;pump.add(hose);
+      const nozzle = new T.Mesh(new T.BoxGeometry(.08,.24,.08),dark);nozzle.position.set(.5,.55,.2);pump.add(nozzle);
+      const safety = new T.Mesh(new T.BoxGeometry(1.15,.08,.08),accent);safety.position.set(x,.18,1.25);group.add(safety);
+    }
+    const shop = new T.Mesh(new T.BoxGeometry(Math.min(6,width*.4),height*.68,Math.min(5,depth*.42)),canopy);
+    shop.position.set(0,(height*.68)/2,-depth*.28);shop.castShadow=true;group.add(shop);
+    const shopWindow = new T.Mesh(new T.BoxGeometry(Math.min(5,width*.34),height*.35,.07),glass);
+    shopWindow.position.set(0,height*.4,-depth*.28+Math.min(2.5,depth*.21));group.add(shopWindow);
+    const sign = new T.Mesh(new T.BoxGeometry(Math.min(5,width*.34),.55,.16),accent);
+    sign.position.set(0,height*.7,-depth*.28+Math.min(2.5,depth*.21));group.add(sign);
+    return group;
+  }
   const wall = new T.MeshStandardMaterial({color:palette[0], roughness:.82});
   const wallAsset = ['house','factory','warehouse'].includes(key) ? 'brick_wall_001' : 'plastered_wall';
   wallTextures(T, wallAsset).then(([map, normal, rough]) => {
