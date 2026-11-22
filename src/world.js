@@ -91,6 +91,10 @@ export function createWorld(T, scene, renderer) {
     {name:'ضواحي الشمال الشرقي',cx:245,cz:-245,kind:'homes'},
     {name:'ضواحي الجنوب الشرقي',cx:245,cz:245,kind:'shops'},
     {name:'الميناء الصناعي',cx:-245,cz:245,kind:'industrial'},
+    {name:'ضواحي الشمال',cx:385,cz:-245,kind:'homes'},
+    {name:'الحي الحكومي',cx:245,cz:-385,kind:'shops'},
+    {name:'ضواحي الغرب',cx:-385,cz:-385,kind:'homes'},
+    {name:'المنطقة اللوجستية',cx:245,cz:385,kind:'industrial'},
     {name:'المقر الفيدرالي FBI',cx:385,cz:-385,kind:'federal'},
     {name:'القاعدة العسكرية',cx:420,cz:490,kind:'military'}
   ];
@@ -280,6 +284,7 @@ export function createWorld(T, scene, renderer) {
     {key:'supermarket',x:105,z:-105,w:30,h:8,d:22},
     {key:'publicHousing',x:-245,z:-180,w:42,h:14,d:10},
     {key:'fbi',x:385,z:-385,w:46,h:71,d:29},
+    {key:'fbi',x:445,z:-385,w:30,h:46,d:19},
     {key:'militaryHangar',x:385,z:455,w:62,h:19,d:53},
     {key:'warehouse',x:455,z:455,w:36,h:13,d:24},
     {key:'warehouse',x:385,z:525,w:34,h:12,d:22}
@@ -333,7 +338,13 @@ export function createWorld(T, scene, renderer) {
     group.position.set(x,0,z);scene.add(group);return group;
   }
   agencySign('FEDERAL BUREAU OF INVESTIGATION','FBI • FEDERAL FIELD OFFICE',385,-368,17,'#173d67');
+  agencySign('POLICE DEPARTMENT','CITY POLICE • CENTRAL PRECINCT',54,-36,15,'#12385f');
+  agencySign('CITY HALL','MUNICIPAL GOVERNMENT',-54,-36,12,'#77613f');
+  agencySign('CENTRAL HOSPITAL','EMERGENCY • MEDICAL SERVICES',-82,76,16,'#287d83');
+  agencySign('FIRE & RESCUE','EMERGENCY SERVICES',54,66,14,'#9f302b');
   agencySign('ARMY BASE','MILITARY COMMAND • AUTHORIZED PERSONNEL ONLY',420,432,20,'#354b37');
+  agencySign('ARMY COMMAND','HEADQUARTERS',385,538,14,'#354b37');
+  agencySign('ARMY LOGISTICS','SUPPLY & TRANSPORT',455,469,14,'#46533b');
   // Guard booth, concrete gate posts and a striped boom arm at the base entrance.
   const gateGroup=new T.Group();
   const gateConcrete=new T.MeshStandardMaterial({color:0x6e777b,roughness:.88});
