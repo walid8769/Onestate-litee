@@ -269,8 +269,5 @@ func _animate_character(delta: float, input_amount: float) -> void:
 	_animation_clock += delta * (12.0 if _sprinting else 8.0)
 	var moving := input_amount > 0.08 and is_on_floor()
 	var swing := sin(_animation_clock) * (0.62 if moving else 0.0)
-	_left_leg.rotation.x = swing
-	_right_leg.rotation.x = -swing
-	_left_arm.rotation.x = -swing * 0.72
-	_right_arm.rotation.x = swing * 0.72
+	_visual_root.rotation.z = sin(_animation_clock) * 0.012 if moving else 0.0
 	_visual_root.position.y = absf(sin(_animation_clock * 2.0)) * 0.045 if moving else move_toward(_visual_root.position.y, 0.0, delta * 0.2)
