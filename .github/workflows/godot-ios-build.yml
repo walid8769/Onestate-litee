@@ -68,6 +68,7 @@ jobs:
           xcodebuild -version
           xcodebuild -project "$IOS_PROJECT" -list
           xcodebuild -project "$IOS_PROJECT" \
+            -scheme OneStateLitee \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
