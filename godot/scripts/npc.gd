@@ -2,6 +2,7 @@ extends CharacterBody3D
 
 @export var walk_speed: float = 1.35
 @export var outfit_color: Color = Color(0.16, 0.22, 0.29)
+@export var faction_name := "CIVILIAN"
 @export var patrol_points: Array[Vector3] = []
 
 var _target_index := 1
@@ -39,6 +40,20 @@ func _build_person() -> void:
 				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
 				model.set_surface_override_material(surface, two_sided)
 	_visual_root.add_child(model)
+	_add_faction_tag()
+
+func _add_faction_tag() -> void:
+	var tag := Label3D.new()
+	tag.name = "FactionNameplate"
+	tag.text = faction_name
+	tag.position = Vector3(0, 2.25, 0)
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.font_size = 28
+	tag.pixel_size = 0.006
+	tag.outline_size = 7
+	tag.modulate = Color(0.45, 0.78, 1.0) if faction_name == "POLICE" else Color(0.72, 0.82, 0.55) if faction_name == "ARMY" else Color(0.55, 0.92, 0.78) if faction_name == "MEDICAL" else Color(0.94, 0.94, 0.90)
+	_visual_root.add_child(tag)
+
 func _build_collision() -> void:
 	var collision := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
@@ -112,5 +127,7 @@ func _physics_process(delta: float) -> void:
 		look_at(global_position + direction, Vector3.UP)
 	_clock += delta * 7.0
 	var swing := sin(_clock) * 0.42 if Vector2(velocity.x, velocity.z).length() > 0.1 else 0.0
-	_visual_root.position.y = absf(sin(_clock * 2.0)) * 0.025 if swing != 0.0 else 0.0
+	_visual_root.position.y = absf(sin(_clock * 2.0)) * 0.035 if swing != 0.0 else move_toward(_visual_root.position.y, 0.0, delta * 0.12)
+	_visual_root.rotation.z = sin(_clock) * 0.018 if swing != 0.0 else move_toward(_visual_root.rotation.z, 0.0, delta * 0.08)
+	_visual_root.rotation.x = cos(_clock) * 0.012 if swing != 0.0 else move_toward(_visual_root.rotation.x, 0.0, delta * 0.08)
 	_visual_root.rotation.z = sin(_clock) * 0.012 if swing != 0.0 else 0.0
