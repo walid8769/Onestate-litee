@@ -83,6 +83,9 @@ func _build_city() -> void:
 	_make_facility("ARMY BASE", Vector3(-76, 0, 76), Vector3(27, 12, 23), Color(0.30, 0.36, 0.27), Color(0.72, 0.68, 0.48))
 	_make_facility("CITY HALL", Vector3(76, 0, 76), Vector3(25, 14, 22), Color(0.55, 0.49, 0.39), Color(0.84, 0.72, 0.43))
 	_make_facility("FEDERAL BUREAU", Vector3(0, 0, -78), Vector3(28, 16, 22), Color(0.19, 0.23, 0.29), Color(0.76, 0.78, 0.82))
+	_make_parked_vehicle(Vector3(-77, 0, -98), Color(0.055, 0.09, 0.15), true)
+	_make_parked_vehicle(Vector3(76, 0, -99), Color(0.86, 0.86, 0.82), false)
+	_make_parked_vehicle(Vector3(-76, 0, 99), Color(0.30, 0.34, 0.27), false)
 
 func _make_facility(label: String, at: Vector3, dimensions: Vector3, color: Color, accent: Color) -> void:
 	var center := at + Vector3(0, dimensions.y * 0.5, 0)
@@ -120,7 +123,51 @@ func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Colo
 			var window_color := Color(0.12, 0.22, 0.29) if (floor_index + column + variant) % 4 != 0 else Color(0.78, 0.66, 0.39)
 			_make_visual_box("FacadeWindow", Vector3(wx, wy, at.z - dimensions.z * 0.505), Vector3(2.1, 1.45, 0.08), window_color)
 			_make_visual_box("FacadeWindow", Vector3(wx, wy, at.z + dimensions.z * 0.505), Vector3(2.1, 1.45, 0.08), window_color)
+		for side in [-1.0, 1.0]:
+			var wz := at.z - dimensions.z * 0.32 + float(floor_index % 3) * dimensions.z * 0.32
+			_make_visual_box("SideFacadeWindow", Vector3(at.x + side * dimensions.x * 0.505, wy, wz), Vector3(0.08, 1.45, 2.1), Color(0.12, 0.22, 0.29))
 	_make_visual_box(label + "_Entrance", Vector3(at.x, 1.15, at.z - dimensions.z * 0.512), Vector3(2.0, 2.3, 0.1), Color(0.10, 0.15, 0.19))
+
+
+func _make_parked_vehicle(at: Vector3, paint: Color, police_lights: bool) -> void:
+	var body := MeshInstance3D.new()
+	body.name = "ParkedVehicleBody"
+	var body_mesh := BoxMesh.new()
+	body_mesh.size = Vector3(2.0, 0.72, 4.0)
+	body.mesh = body_mesh
+	body.position = at + Vector3(0, 0.78, 0)
+	var paint_material := StandardMaterial3D.new()
+	paint_material.albedo_color = paint
+	paint_material.metallic = 0.28
+	paint_material.roughness = 0.38
+	body.material_override = paint_material
+	add_child(body)
+	_make_visual_box("VehicleCabin", at + Vector3(0, 1.38, -0.12), Vector3(1.68, 0.72, 2.05), paint.darkened(0.12))
+	_make_visual_box("VehicleWindshield", at + Vector3(0, 1.43, -1.17), Vector3(1.48, 0.52, 0.06), Color(0.10, 0.19, 0.25))
+	_make_visual_box("VehicleRearGlass", at + Vector3(0, 1.43, 0.94), Vector3(1.48, 0.52, 0.06), Color(0.10, 0.19, 0.25))
+	for side in [-1.0, 1.0]:
+		_make_visual_box("VehicleSideGlass", at + Vector3(side * 0.86, 1.43, -0.12), Vector3(0.05, 0.48, 1.75), Color(0.10, 0.19, 0.25))
+		for axle in [-1.0, 1.0]:
+			var wheel := MeshInstance3D.new()
+			var wheel_mesh := CylinderMesh.new()
+			wheel_mesh.top_radius = 0.36
+			wheel_mesh.bottom_radius = 0.36
+			wheel_mesh.height = 0.22
+			wheel.mesh = wheel_mesh
+			wheel.rotation.z = PI * 0.5
+			wheel.position = at + Vector3(side * 1.02, 0.39, axle * 1.28)
+			wheel.material_override = _simple_material(Color(0.035, 0.04, 0.045))
+			add_child(wheel)
+	if police_lights:
+		_make_visual_box("PoliceLightbar", at + Vector3(0, 1.82, -0.12), Vector3(0.95, 0.16, 0.28), Color(0.12, 0.35, 0.92))
+		_make_visual_box("PoliceLightRed", at + Vector3(-0.27, 1.93, -0.12), Vector3(0.35, 0.12, 0.25), Color(0.88, 0.12, 0.10))
+		_make_visual_box("PoliceLightBlue", at + Vector3(0.27, 1.93, -0.12), Vector3(0.35, 0.12, 0.25), Color(0.10, 0.28, 0.92))
+
+func _simple_material(color: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.92
+	return material
 
 func _make_streetlight(at: Vector3) -> void:
 	_make_visual_box("LampPost", at + Vector3(0, 3.0, 0), Vector3(0.13, 6.0, 0.13), Color(0.12, 0.14, 0.16))
