@@ -7,6 +7,9 @@ extends CharacterBody3D
 
 var _target_index := 1
 var _clock := 0.0
+var _current_speed := 0.0
+var _pause_timer := 0.0
+var _turn_speed := 5.5
 var _visual_root: Node3D
 var _left_leg: Node3D
 var _right_leg: Node3D
@@ -111,25 +114,32 @@ func _physics_process(delta: float) -> void:
 	if patrol_points.size() < 2:
 		velocity = Vector3.ZERO
 		return
-	var offset := patrol_points[_target_index] - global_position
-	offset.y = 0.0
-	if offset.length() < 1.0:
-		_target_index = (_target_index + 1) % patrol_points.size()
-		offset = patrol_points[_target_index] - global_position
+	if _pause_timer > 0.0:
+		_pause_timer = maxf(0.0, _pause_timer - delta)
+		_current_speed = move_toward(_current_speed, 0.0, walk_speed * 2.5 * delta)
+	else:
+		var offset := patrol_points[_target_index] - global_position
 		offset.y = 0.0
-	var direction := offset.normalized()
-	velocity.x = direction.x * walk_speed
-	velocity.z = direction.z * walk_speed
+		if offset.length() < 1.2:
+			_target_index = (_target_index + 1) % patrol_points.size()
+			_pause_timer = 0.45 if faction_name == "CIVILIAN" else 0.2
+			offset = patrol_points[_target_index] - global_position
+			offset.y = 0.0
+		var direction := offset.normalized()
+		_current_speed = move_toward(_current_speed, walk_speed, walk_speed * 2.0 * delta)
+		velocity.x = direction.x * _current_speed
+		velocity.z = direction.z * _current_speed
+		if direction.length_squared() > 0.001:
+			var target_rotation := atan2(-direction.x, -direction.z)
+			rotation.y = lerp_angle(rotation.y, target_rotation, minf(1.0, _turn_speed * delta))
 	if is_on_floor():
 		velocity.y = -0.05
 	else:
 		velocity.y -= 22.0 * delta
 	move_and_slide()
-	if direction.length_squared() > 0.001:
-		look_at(global_position + direction, Vector3.UP)
-	_clock += delta * 7.0
-	var swing := sin(_clock) * 0.42 if Vector2(velocity.x, velocity.z).length() > 0.1 else 0.0
+	_clock += delta * (10.0 if _current_speed > walk_speed * 0.75 else 6.0)
+	var movement_ratio := clampf(_current_speed / maxf(walk_speed, 0.01), 0.0, 1.0)
+	var swing := sin(_clock) * 0.42 * movement_ratio
 	_visual_root.position.y = absf(sin(_clock * 2.0)) * 0.035 if swing != 0.0 else move_toward(_visual_root.position.y, 0.0, delta * 0.12)
 	_visual_root.rotation.z = sin(_clock) * 0.018 if swing != 0.0 else move_toward(_visual_root.rotation.z, 0.0, delta * 0.08)
 	_visual_root.rotation.x = cos(_clock) * 0.012 if swing != 0.0 else move_toward(_visual_root.rotation.x, 0.0, delta * 0.08)
-	_visual_root.rotation.z = sin(_clock) * 0.012 if swing != 0.0 else 0.0
