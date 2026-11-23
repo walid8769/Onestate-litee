@@ -205,10 +205,12 @@ func _make_camera() -> void:
 	spring.margin = 0.22
 	_pivot.add_child(spring)
 	_camera = Camera3D.new()
-	_camera.current = true
+	_camera.name = "GameplayCamera"
 	_camera.fov = 72.0
 	_camera.position.x = 0.55
 	spring.add_child(_camera)
+	# Activate the camera only after it is inside the live scene tree.
+	_camera.make_current()
 	_pivot.rotation.x = _camera_pitch
 
 
