@@ -1,0 +1,96 @@
+name: Build OneState Unity unsigned iOS IPA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: onestate-unity-unsigned-ios
+  cancel-in-progress: false
+
+jobs:
+  build-ios:
+    name: Export unsigned iOS IPA
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - name: Checkout Unity prototype branch
+        uses: actions/checkout@v4
+        with:
+          ref: unity-urp-prototype
+          lfs: true
+
+      - name: Build Unity iOS Xcode project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: unity
+          unityVersion: 6000.0.0f1
+          targetPlatform: iOS
+          buildMethod: OneStateBuild.BuildUnsignedIOS
+          buildsPath: build/gameci
+          buildName: UnityIOS
+          cacheUnityInstallationOnMac: true
+
+      - name: Build unsigned iPhone app with Xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROJECT="$(find build/ios-xcode -maxdepth 3 -name '*.xcodeproj' -type d -print -quit)"
+          if [ -z "$PROJECT" ]; then
+            echo "Unity did not export an Xcode project to build/ios-xcode."
+            find build -maxdepth 4 -print | head -n 200
+            exit 1
+          fi
+
+          xcodebuild -version
+          xcodebuild -project "$PROJECT" -list
+          xcodebuild -project "$PROJECT" \
+            -scheme Unity-iPhone \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/OneStateDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            clean build
+
+          APP_PATH="$(find "$RUNNER_TEMP/OneStateDerivedData/Build/Products/Release-iphoneos" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$APP_PATH"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist"
+          EXECUTABLE="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist")"
+          test -f "$APP_PATH/$EXECUTABLE"
+          if [ -d "$APP_PATH/_CodeSignature" ]; then
+            echo "Unexpected code signature found in unsigned build."
+            exit 1
+          fi
+          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
+
+      - name: Package and verify unsigned IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "$RUNNER_TEMP/ipa"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          ditto "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/$(basename "$APP_PATH")"
+          cd "$RUNNER_TEMP/ipa"
+          zip -qry "$GITHUB_WORKSPACE/OneState-Unity-unsigned.ipa" Payload
+          cd "$GITHUB_WORKSPACE"
+          test -s OneState-Unity-unsigned.ipa
+          unzip -t OneState-Unity-unsigned.ipa
+          unzip -Z1 OneState-Unity-unsigned.ipa | grep -E '^Payload/[^/]+\.app/Info\.plist$'
+          shasum -a 256 OneState-Unity-unsigned.ipa
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: OneState-Unity-unsigned-IPA
+          path: OneState-Unity-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14
