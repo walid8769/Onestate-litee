@@ -33,6 +33,14 @@ var _vehicle_exit_rect := Rect2()
 var _touch_hud: Control
 var _stick_base: Panel
 var _stick_knob: Panel
+var _interact_label: Label
+var _mission_label: Label
+var _mission_active := false
+var _mission_destination := Vector3.ZERO
+var _mission_reward := 0
+var _mission_title := ""
+var _cash_balance := 0
+var _mission_beacon: Node3D
 
 func _ready() -> void:
 	_make_character()
@@ -174,8 +182,21 @@ func _make_touch_hud() -> void:
 	var interact := _make_touch_panel(Vector2(82, 42), Color(0.12, 0.28, 0.36, 0.82), 12)
 	interact.name = "InteractButton"
 	_touch_hud.add_child(interact)
+	_mission_label = Label.new()
+	_mission_label.name = "MissionStatus"
+	_mission_label.position = Vector2(300, 22)
+	_mission_label.size = Vector2(480, 64)
+	_mission_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_mission_label.add_theme_font_size_override("font_size", 15)
+	_mission_label.add_theme_color_override("font_color", Color(0.96, 0.91, 0.76))
+	_mission_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	_mission_label.add_theme_constant_override("shadow_offset_x", 2)
+	_mission_label.add_theme_constant_override("shadow_offset_y", 2)
+	_touch_hud.add_child(_mission_label)
+	_update_mission_label()
 	var interact_label := Label.new()
 	interact_label.text = "DRIVE"
+	_interact_label = interact_label
 	interact_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	interact_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	interact_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -209,10 +230,8 @@ func _set_vehicle_controls_visible(visible_value: bool) -> void:
 		if node != null:
 			node.visible = visible_value
 	var drive := _touch_hud.get_node_or_null("InteractButton") if _touch_hud != null else null
-	if drive != null:
-		var label := drive.get_child(0) as Label
-		if label != null:
-			label.text = "EXIT" if visible_value else "DRIVE"
+	if drive != null and _interact_label != null:
+		_interact_label.text = "EXIT" if visible_value else ("JOB" if _nearest_city_job_point() != null else "DRIVE")
 
 func _make_touch_panel(panel_size: Vector2, fill: Color, corner: int) -> Panel:
 	var panel := Panel.new()
@@ -269,6 +288,8 @@ func _update_touch_hud() -> void:
 		var style := sprint.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 		style.bg_color = Color(0.88, 0.66, 0.20, 0.92) if _sprint_touch else Color(0.65, 0.48, 0.18, 0.78)
 		sprint.add_theme_stylebox_override("panel", style)
+	if _active_vehicle == null and _interact_label != null:
+		_interact_label.text = "JOB" if _nearest_city_job_point() != null else "DRIVE"
 
 func _is_interact_button(position: Vector2) -> bool:
 	var size := get_viewport().get_visible_rect().size
@@ -327,6 +348,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_toggle_vehicle()
 
 func _toggle_vehicle() -> void:
+	if _active_vehicle == null and _try_interact_with_city_job():
+		return
 	if _active_vehicle != null and is_instance_valid(_active_vehicle):
 		var vehicle := _active_vehicle
 		vehicle.call("exit_vehicle")
@@ -366,12 +389,96 @@ func get_vehicle_control_state() -> Dictionary:
 			steer = _move_touch.x
 	return {"throttle": throttle, "steer": steer}
 
+func _nearest_city_job_point() -> Node3D:
+	var nearest: Node3D
+	var nearest_distance := 5.0
+	for candidate in get_tree().get_nodes_in_group("city_interactable"):
+		var point := candidate as Node3D
+		if point == null or not is_instance_valid(point):
+			continue
+		var distance := global_position.distance_to(point.global_position)
+		if distance < nearest_distance:
+			nearest = point
+			nearest_distance = distance
+	return nearest
+
+func _try_interact_with_city_job() -> bool:
+	var point := _nearest_city_job_point()
+	if point == null:
+		return false
+	point.call("interact", self)
+	return true
+
+func start_city_job(role_id: String, title: String, description: String, destination: Vector3, reward: int) -> void:
+	if _mission_active:
+		_update_mission_label("Finish your current assignment first.")
+		return
+	_mission_active = true
+	_mission_destination = destination
+	_mission_reward = reward
+	_mission_title = title
+	_update_mission_label(description + "\\nTARGET: " + role_id + "  •  REWARD: $" + str(reward))
+	_create_mission_beacon()
+
+func _create_mission_beacon() -> void:
+	if is_instance_valid(_mission_beacon):
+		_mission_beacon.queue_free()
+	_mission_beacon = Node3D.new()
+	_mission_beacon.name = "ActiveMissionWaypoint"
+	_mission_beacon.global_position = _mission_destination
+	var pole := MeshInstance3D.new()
+	var pole_mesh := CylinderMesh.new()
+	pole_mesh.top_radius = 0.07
+	pole_mesh.bottom_radius = 0.07
+	pole_mesh.height = 3.0
+	pole.mesh = pole_mesh
+	pole.position.y = 1.5
+	var pole_material := StandardMaterial3D.new()
+	pole_material.albedo_color = Color(0.95, 0.68, 0.18)
+	pole_material.emission_enabled = true
+	pole_material.emission = Color(0.95, 0.48, 0.08)
+	pole_material.emission_energy_multiplier = 1.8
+	pole.material_override = pole_material
+	_mission_beacon.add_child(pole)
+	var orb := MeshInstance3D.new()
+	var orb_mesh := SphereMesh.new()
+	orb_mesh.radius = 0.42
+	orb_mesh.height = 0.84
+	orb.mesh = orb_mesh
+	orb.position.y = 3.1
+	orb.material_override = pole_material
+	_mission_beacon.add_child(orb)
+	get_tree().current_scene.add_child(_mission_beacon)
+
+func _update_mission_label(message: String = "") -> void:
+	if _mission_label == null:
+		return
+	if not message.is_empty():
+		_mission_label.text = message
+	elif _mission_active:
+		_mission_label.text = _mission_title + "  •  " + str(roundi(global_position.distance_to(_mission_destination))) + " m remaining"
+	else:
+		_mission_label.text = "CITY LIFE  •  Explore the city and visit a department"
+
+func _update_city_job(delta: float) -> void:
+	if not _mission_active:
+		return
+	_update_mission_label()
+	if global_position.distance_to(_mission_destination) <= 4.5:
+		_mission_active = false
+		_cash_balance += _mission_reward
+		if is_instance_valid(_mission_beacon):
+			_mission_beacon.queue_free()
+		_mission_beacon = null
+		_update_mission_label("ASSIGNMENT COMPLETE  •  +$" + str(_mission_reward) + "  •  BALANCE: $" + str(_cash_balance))
+
 func _apply_look(delta: Vector2) -> void:
 	rotate_y(-delta.x * look_sensitivity)
 	_camera_pitch = clampf(_camera_pitch - delta.y * look_sensitivity, deg_to_rad(-48), deg_to_rad(28))
 	_pivot.rotation.x = _camera_pitch
 
 func _physics_process(delta: float) -> void:
+	_update_city_job(delta)
 	if _active_vehicle != null and is_instance_valid(_active_vehicle):
 		global_position = _active_vehicle.global_position + Vector3(0.0, 0.95, 0.0)
 		return
