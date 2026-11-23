@@ -21,6 +21,7 @@ var _right_arm: Node3D
 var _animation_clock := 0.0
 var _sprinting := false
 var _sprint_touch := false
+var _active_vehicle: CharacterBody3D
 var _touch_hud: Control
 var _stick_base: Panel
 var _stick_knob: Panel
@@ -153,6 +154,17 @@ func _make_touch_hud() -> void:
 	var sprint := _make_touch_panel(Vector2(78, 42), Color(0.65, 0.48, 0.18, 0.78), 12)
 	sprint.name = "SprintButton"
 	_touch_hud.add_child(sprint)
+	var interact := _make_touch_panel(Vector2(82, 42), Color(0.12, 0.28, 0.36, 0.82), 12)
+	interact.name = "InteractButton"
+	_touch_hud.add_child(interact)
+	var interact_label := Label.new()
+	interact_label.text = "DRIVE"
+	interact_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	interact_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	interact_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	interact_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.96))
+	interact_label.add_theme_font_size_override("font_size", 14)
+	interact.add_child(interact_label)
 	var sprint_label := Label.new()
 	sprint_label.text = "RUN"
 	sprint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -194,6 +206,9 @@ func _layout_touch_hud() -> void:
 	var sprint := _touch_hud.get_node_or_null("SprintButton")
 	if sprint:
 		sprint.position = Vector2(size.x - 102, size.y - 245)
+	var interact := _touch_hud.get_node_or_null("InteractButton")
+	if interact:
+		interact.position = Vector2(size.x - 104, size.y - 188)
 
 func _update_touch_hud() -> void:
 	if _stick_knob == null:
@@ -207,6 +222,10 @@ func _update_touch_hud() -> void:
 		style.bg_color = Color(0.88, 0.66, 0.20, 0.92) if _sprint_touch else Color(0.65, 0.48, 0.18, 0.78)
 		sprint.add_theme_stylebox_override("panel", style)
 
+func _is_interact_button(position: Vector2) -> bool:
+	var size := get_viewport().get_visible_rect().size
+	return Rect2(Vector2(size.x - 104, size.y - 188), Vector2(82, 42)).has_point(position)
+
 func _is_sprint_button(position: Vector2) -> bool:
 	var size := get_viewport().get_visible_rect().size
 	var button_rect := Rect2(Vector2(size.x - 102, size.y - 245), Vector2(78, 42))
@@ -216,7 +235,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			var width := get_viewport().get_visible_rect().size.x
-			if event.position.x < width * 0.48 and _move_finger == -1:
+			if _is_interact_button(event.position):
+				_toggle_vehicle()
+			elif event.position.x < width * 0.48 and _move_finger == -1:
 				_move_finger = event.index
 				_move_touch = Vector2.ZERO
 			elif _is_sprint_button(event.position):
@@ -242,6 +263,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F:
+		_toggle_vehicle()
+
+func _toggle_vehicle() -> void:
+	if _active_vehicle != null and is_instance_valid(_active_vehicle):
+		var vehicle := _active_vehicle
+		vehicle.call("exit_vehicle")
+		global_position = vehicle.global_position + vehicle.global_transform.basis.x * 2.0 + Vector3(0, 0.15, 0)
+		_visual_root.visible = true
+		_active_vehicle = null
+		return
+	for candidate in get_tree().get_nodes_in_group("driveable_vehicle"):
+		var vehicle := candidate as CharacterBody3D
+		if vehicle == null or vehicle.call("has_driver"):
+			continue
+		if global_position.distance_to(vehicle.global_position) <= 7.0:
+			_active_vehicle = vehicle
+			vehicle.call("enter_vehicle", self)
+			_visual_root.visible = false
+			return
 
 func _apply_look(delta: Vector2) -> void:
 	rotate_y(-delta.x * look_sensitivity)
@@ -249,6 +290,10 @@ func _apply_look(delta: Vector2) -> void:
 	_pivot.rotation.x = _camera_pitch
 
 func _physics_process(delta: float) -> void:
+	if _active_vehicle != null and is_instance_valid(_active_vehicle):
+		global_position = _active_vehicle.global_position + Vector3(0.0, 0.95, 0.0)
+		return
+	_active_vehicle = null
 	var input_vector := Vector2(
 		Input.get_action_strength("move_right") - Input.get_action_strength("move_left"),
 		Input.get_action_strength("move_back") - Input.get_action_strength("move_forward")
