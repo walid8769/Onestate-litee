@@ -44,7 +44,7 @@ var _mission_beacon: Node3D
 
 func _ready() -> void:
 	_make_character()
-	_make_camera()
+	# The world owns the only active camera; this avoids mobile camera takeover.
 	_make_touch_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
@@ -537,8 +537,9 @@ func _update_city_job(delta: float) -> void:
 
 func _apply_look(delta: Vector2) -> void:
 	rotate_y(-delta.x * look_sensitivity)
-	_camera_pitch = clampf(_camera_pitch - delta.y * look_sensitivity, deg_to_rad(-48), deg_to_rad(28))
-	_pivot.rotation.x = _camera_pitch
+	if _pivot != null:
+		_camera_pitch = clampf(_camera_pitch - delta.y * look_sensitivity, deg_to_rad(-48), deg_to_rad(28))
+		_pivot.rotation.x = _camera_pitch
 
 func _physics_process(delta: float) -> void:
 	_update_city_job(delta)
