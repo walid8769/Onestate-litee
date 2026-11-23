@@ -43,10 +43,32 @@ var _cash_balance := 0
 var _mission_beacon: Node3D
 
 func _ready() -> void:
+	_ensure_input_actions()
 	_make_character()
 	# The world owns the only active camera; this avoids mobile camera takeover.
 	_make_touch_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+func _ensure_input_actions() -> void:
+	_add_key_binding("move_forward", KEY_W)
+	_add_key_binding("move_forward", KEY_UP)
+	_add_key_binding("move_back", KEY_S)
+	_add_key_binding("move_back", KEY_DOWN)
+	_add_key_binding("move_left", KEY_A)
+	_add_key_binding("move_left", KEY_LEFT)
+	_add_key_binding("move_right", KEY_D)
+	_add_key_binding("move_right", KEY_RIGHT)
+	_add_key_binding("run", KEY_SHIFT)
+	_add_key_binding("jump", KEY_SPACE)
+
+
+func _add_key_binding(action_name: String, keycode: Key) -> void:
+	if not InputMap.has_action(action_name):
+		InputMap.add_action(action_name)
+	var key_event := InputEventKey.new()
+	key_event.physical_keycode = keycode
+	InputMap.action_add_event(action_name, key_event)
 
 func _make_character() -> void:
 	_visual_root = Node3D.new()
