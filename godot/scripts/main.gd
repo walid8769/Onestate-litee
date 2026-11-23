@@ -150,39 +150,24 @@ func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Colo
 
 
 func _make_parked_vehicle(at: Vector3, paint: Color, police_lights: bool) -> void:
-	var body := MeshInstance3D.new()
-	body.name = "ParkedVehicleBody"
-	var body_mesh := BoxMesh.new()
-	body_mesh.size = Vector3(2.0, 0.72, 4.0)
-	body.mesh = body_mesh
-	body.position = at + Vector3(0, 0.78, 0)
-	var paint_material := StandardMaterial3D.new()
-	paint_material.albedo_color = paint
-	paint_material.metallic = 0.28
-	paint_material.roughness = 0.38
-	body.material_override = paint_material
+	var vehicle := MeshInstance3D.new()
+	vehicle.name = "DetailedServiceSUV"
+	vehicle.mesh = load("res://assets/models/service_suv.obj") as Mesh
+	vehicle.position = at
+	add_child(vehicle)
+	var body := StaticBody3D.new()
+	body.name = "ParkedVehicleCollision"
+	body.position = at + Vector3(0, 0.85, 0)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.0, 1.7, 4.5)
+	collision.shape = shape
+	body.add_child(collision)
 	add_child(body)
-	_make_visual_box("VehicleCabin", at + Vector3(0, 1.38, -0.12), Vector3(1.68, 0.72, 2.05), paint.darkened(0.12))
-	_make_visual_box("VehicleWindshield", at + Vector3(0, 1.43, -1.17), Vector3(1.48, 0.52, 0.06), Color(0.10, 0.19, 0.25))
-	_make_visual_box("VehicleRearGlass", at + Vector3(0, 1.43, 0.94), Vector3(1.48, 0.52, 0.06), Color(0.10, 0.19, 0.25))
-	for side in [-1.0, 1.0]:
-		_make_visual_box("VehicleSideGlass", at + Vector3(side * 0.86, 1.43, -0.12), Vector3(0.05, 0.48, 1.75), Color(0.10, 0.19, 0.25))
-		for axle in [-1.0, 1.0]:
-			var wheel := MeshInstance3D.new()
-			var wheel_mesh := CylinderMesh.new()
-			wheel_mesh.top_radius = 0.36
-			wheel_mesh.bottom_radius = 0.36
-			wheel_mesh.height = 0.22
-			wheel.mesh = wheel_mesh
-			wheel.rotation.z = PI * 0.5
-			wheel.position = at + Vector3(side * 1.02, 0.39, axle * 1.28)
-			wheel.material_override = _simple_material(Color(0.035, 0.04, 0.045))
-			add_child(wheel)
 	if police_lights:
-		_make_visual_box("PoliceLightbar", at + Vector3(0, 1.82, -0.12), Vector3(0.95, 0.16, 0.28), Color(0.12, 0.35, 0.92))
-		_make_visual_box("PoliceLightRed", at + Vector3(-0.27, 1.93, -0.12), Vector3(0.35, 0.12, 0.25), Color(0.88, 0.12, 0.10))
-		_make_visual_box("PoliceLightBlue", at + Vector3(0.27, 1.93, -0.12), Vector3(0.35, 0.12, 0.25), Color(0.10, 0.28, 0.92))
-
+		_make_visual_box("PoliceLightbar", at + Vector3(0, 1.83, -0.05), Vector3(0.95, 0.13, 0.25), Color(0.08, 0.13, 0.22))
+		_make_visual_box("PoliceLightRed", at + Vector3(-0.27, 1.92, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.92, 0.045, 0.035))
+		_make_visual_box("PoliceLightBlue", at + Vector3(0.27, 1.92, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.035, 0.15, 0.95))
 func _simple_material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
