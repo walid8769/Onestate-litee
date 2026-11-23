@@ -417,7 +417,7 @@ func start_city_job(role_id: String, title: String, description: String, destina
 	_mission_destination = destination
 	_mission_reward = reward
 	_mission_title = title
-	_update_mission_label(description + "\\nTARGET: " + role_id + "  •  REWARD: $" + str(reward))
+	_update_mission_label(description + "\nTARGET: " + role_id + "  •  REWARD: $" + str(reward))
 	_create_mission_beacon()
 
 func _create_mission_beacon() -> void:
