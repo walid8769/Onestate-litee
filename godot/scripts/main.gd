@@ -62,12 +62,51 @@ func _build_city() -> void:
 		var height := 15.0 + float((i * 7) % 5) * 5.0
 		_make_building("CityBuilding_%02d" % i, building_positions[i], Vector3(17, height, 17), palettes[i % palettes.size()], i)
 
+	# Secondary avenues connect the residential blocks to the city center.
+	for avenue in [-45.0, 45.0]:
+		_make_visual_box("NorthSouthAvenue", Vector3(avenue, 0.015, 0), Vector3(9.0, 0.07, 210), Color(0.085, 0.095, 0.105))
+		_make_visual_box("EastWestAvenue", Vector3(0, 0.02, avenue), Vector3(210, 0.07, 9.0), Color(0.085, 0.095, 0.105))
+		for offset in range(-90, 100, 15):
+			_make_visual_box("AvenueDash", Vector3(avenue, 0.07, float(offset)), Vector3(0.12, 0.025, 5.5), Color(0.88, 0.82, 0.58))
+			_make_visual_box("AvenueDash", Vector3(float(offset), 0.075, avenue), Vector3(5.5, 0.025, 0.12), Color(0.88, 0.82, 0.58))
+
 	for z in range(-84, 90, 28):
 		_make_streetlight(Vector3(-11.2, 0, float(z)))
 		_make_streetlight(Vector3(11.2, 0, float(z)))
 	for x in range(-84, 90, 28):
 		_make_tree(Vector3(float(x), 0, -11.5))
 		_make_tree(Vector3(float(x), 0, 11.5))
+
+	# Distinct civic and emergency-service buildings give the city recognizable destinations.
+	_make_facility("POLICE DEPARTMENT", Vector3(-76, 0, -76), Vector3(25, 13, 22), Color(0.12, 0.20, 0.29), Color(0.28, 0.58, 0.88))
+	_make_facility("CITY HOSPITAL", Vector3(76, 0, -76), Vector3(27, 15, 23), Color(0.78, 0.80, 0.78), Color(0.80, 0.20, 0.20))
+	_make_facility("ARMY BASE", Vector3(-76, 0, 76), Vector3(27, 12, 23), Color(0.30, 0.36, 0.27), Color(0.72, 0.68, 0.48))
+	_make_facility("CITY HALL", Vector3(76, 0, 76), Vector3(25, 14, 22), Color(0.55, 0.49, 0.39), Color(0.84, 0.72, 0.43))
+	_make_facility("FEDERAL BUREAU", Vector3(0, 0, -78), Vector3(28, 16, 22), Color(0.19, 0.23, 0.29), Color(0.76, 0.78, 0.82))
+
+func _make_facility(label: String, at: Vector3, dimensions: Vector3, color: Color, accent: Color) -> void:
+	var center := at + Vector3(0, dimensions.y * 0.5, 0)
+	_make_visual_box(label.replace(" ", "_"), center, dimensions, color)
+	_make_static_box(label.replace(" ", "_") + "_Collision", center, dimensions)
+	_make_visual_box("FacilityRoof", at + Vector3(0, dimensions.y + 0.2, 0), Vector3(dimensions.x + 0.8, 0.4, dimensions.z + 0.8), color.darkened(0.25))
+	_make_visual_box("FacilityEntrance", at + Vector3(0, 1.35, -dimensions.z * 0.505), Vector3(3.4, 2.7, 0.18), Color(0.075, 0.09, 0.11))
+	_make_visual_box("FacilityCanopy", at + Vector3(0, 2.9, -dimensions.z * 0.58), Vector3(7.0, 0.32, 2.2), accent)
+	for column in range(5):
+		var window_x := at.x - dimensions.x * 0.38 + float(column) * dimensions.x * 0.19
+		_make_visual_box("FacilityWindow", Vector3(window_x, dimensions.y * 0.62, at.z - dimensions.z * 0.505), Vector3(2.5, 2.2, 0.08), Color(0.10, 0.20, 0.28))
+	var sign := Label3D.new()
+	sign.name = "FacilitySign"
+	sign.text = label
+	sign.font_size = 42
+	sign.outline_size = 8
+	sign.modulate = accent
+	sign.position = at + Vector3(0, dimensions.y + 2.1, -dimensions.z * 0.54)
+	sign.pixel_size = 0.008
+	add_child(sign)
+	# Marked visitor parking in front of each facility.
+	for slot in range(4):
+		var px := at.x - 7.5 + float(slot) * 5.0
+		_make_visual_box("ParkingBayLine", Vector3(px, 0.075, at.z - dimensions.z * 0.5 - 7.0), Vector3(0.12, 0.025, 6.0), Color(0.82, 0.85, 0.84))
 
 func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Color, variant: int) -> void:
 	_make_visual_box(label, at + Vector3(0, dimensions.y * 0.5, 0), dimensions, color)
