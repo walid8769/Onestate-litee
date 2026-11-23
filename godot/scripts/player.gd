@@ -35,17 +35,10 @@ func _make_character() -> void:
 	_visual_root = Node3D.new()
 	_visual_root.name = "CharacterVisual"
 	add_child(_visual_root)
-
-	_add_capsule("Torso", Vector3(0, 1.12, 0), 0.34, 0.82, Color(0.075, 0.16, 0.24))
-	_add_sphere("Head", Vector3(0, 1.91, 0), 0.235, Color(0.72, 0.54, 0.40))
-	_add_box("Jacket", Vector3(0, 1.27, -0.015), Vector3(0.61, 0.54, 0.34), Color(0.10, 0.20, 0.29))
-	_add_box("Belt", Vector3(0, 0.91, 0), Vector3(0.57, 0.10, 0.33), Color(0.075, 0.085, 0.09))
-	_add_box("ChestPatch", Vector3(0.19, 1.43, -0.19), Vector3(0.13, 0.10, 0.025), Color(0.78, 0.64, 0.32))
-	_left_arm = _add_limb("LeftArm", Vector3(-0.40, 1.28, 0), Color(0.10, 0.20, 0.29))
-	_right_arm = _add_limb("RightArm", Vector3(0.40, 1.28, 0), Color(0.10, 0.20, 0.29))
-	_left_leg = _add_limb("LeftLeg", Vector3(-0.17, 0.62, 0), Color(0.10, 0.12, 0.15))
-	_right_leg = _add_limb("RightLeg", Vector3(0.17, 0.62, 0), Color(0.10, 0.12, 0.15))
-
+	var model := MeshInstance3D.new()
+	model.name = "PlayerDetailedCharacter"
+	model.mesh = load("res://assets/models/civilian_character.obj") as Mesh
+	_visual_root.add_child(model)
 	var collision := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.36
@@ -53,7 +46,6 @@ func _make_character() -> void:
 	collision.shape = shape
 	collision.position.y = 0.98
 	add_child(collision)
-
 func _add_capsule(label: String, at: Vector3, radius: float, height: float, color: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
 	node.name = label
