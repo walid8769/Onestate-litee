@@ -153,6 +153,13 @@ func _make_parked_vehicle(at: Vector3, paint: Color, police_lights: bool) -> voi
 	var vehicle := MeshInstance3D.new()
 	vehicle.name = "DetailedServiceSUV"
 	vehicle.mesh = load("res://assets/models/service_suv.obj") as Mesh
+	if vehicle.mesh != null:
+		for surface in range(vehicle.mesh.get_surface_count()):
+			var source_material := vehicle.mesh.surface_get_material(surface)
+			if source_material is BaseMaterial3D:
+				var two_sided := source_material.duplicate() as BaseMaterial3D
+				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
+				vehicle.set_surface_override_material(surface, two_sided)
 	vehicle.position = at
 	add_child(vehicle)
 	var body := StaticBody3D.new()
