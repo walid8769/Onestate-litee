@@ -221,9 +221,9 @@ func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Colo
 	_make_visual_box(label + "_Roof", at + Vector3(0, dimensions.y + 0.18, 0), Vector3(dimensions.x + 0.7, 0.36, dimensions.z + 0.7), color.darkened(0.28))
 	var floors := int(dimensions.y / 3.2)
 	for floor_index in range(floors):
+		var wy := at.y + 2.0 + float(floor_index) * 3.1
 		for column in range(3):
 			var wx := at.x - dimensions.x * 0.32 + float(column) * dimensions.x * 0.32
-			var wy := at.y + 2.0 + float(floor_index) * 3.1
 			var window_color := Color(0.12, 0.22, 0.29) if (floor_index + column + variant) % 4 != 0 else Color(0.78, 0.66, 0.39)
 			_make_visual_box("FacadeWindow", Vector3(wx, wy, at.z - dimensions.z * 0.505), Vector3(2.1, 1.45, 0.08), window_color)
 			_make_visual_box("FacadeWindow", Vector3(wx, wy, at.z + dimensions.z * 0.505), Vector3(2.1, 1.45, 0.08), window_color)
