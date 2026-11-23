@@ -23,16 +23,15 @@ func _build_person() -> void:
 	_visual_root = Node3D.new()
 	_visual_root.name = "NPCVisual"
 	add_child(_visual_root)
-	_add_box("Jacket", Vector3(0, 1.23, 0), Vector3(0.52, 0.62, 0.30), outfit_color)
-	_add_box("ShoulderLine", Vector3(0, 1.48, 0), Vector3(0.58, 0.13, 0.32), outfit_color.darkened(0.12))
-	_add_sphere("Head", Vector3(0, 1.88, 0), 0.19, Color(0.67, 0.49, 0.36))
-	_add_sphere("Hair", Vector3(0, 2.02, 0.015), 0.19, Color(0.12, 0.085, 0.06))
-	_add_box("Belt", Vector3(0, 0.91, 0), Vector3(0.48, 0.10, 0.29), Color(0.08, 0.085, 0.09))
-	_left_arm = _make_limb("LeftArm", Vector3(-0.34, 1.30, 0), outfit_color, 0.085)
-	_right_arm = _make_limb("RightArm", Vector3(0.34, 1.30, 0), outfit_color, 0.085)
-	_left_leg = _make_limb("LeftLeg", Vector3(-0.14, 0.66, 0), Color(0.10, 0.12, 0.15), 0.095)
-	_right_leg = _make_limb("RightLeg", Vector3(0.14, 0.66, 0), Color(0.10, 0.12, 0.15), 0.095)
-
+	var model_path := "res://assets/models/civilian_character.obj"
+	if outfit_color.b > outfit_color.r * 1.18 and outfit_color.b > outfit_color.g * 0.95:
+		model_path = "res://assets/models/police_character.obj"
+	elif outfit_color.g > outfit_color.r * 1.05 and outfit_color.g > outfit_color.b * 0.88:
+		model_path = "res://assets/models/military_character.obj"
+	var model := MeshInstance3D.new()
+	model.name = "DetailedCharacterModel"
+	model.mesh = load(model_path) as Mesh
+	_visual_root.add_child(model)
 func _build_collision() -> void:
 	var collision := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
@@ -106,7 +105,5 @@ func _physics_process(delta: float) -> void:
 		look_at(global_position + direction, Vector3.UP)
 	_clock += delta * 7.0
 	var swing := sin(_clock) * 0.42 if Vector2(velocity.x, velocity.z).length() > 0.1 else 0.0
-	_left_leg.rotation.x = swing
-	_right_leg.rotation.x = -swing
-	_left_arm.rotation.x = -swing * 0.65
-	_right_arm.rotation.x = swing * 0.65
+	_visual_root.position.y = absf(sin(_clock * 2.0)) * 0.025 if swing != 0.0 else 0.0
+	_visual_root.rotation.z = sin(_clock) * 0.012 if swing != 0.0 else 0.0
