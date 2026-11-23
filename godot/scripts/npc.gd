@@ -45,7 +45,74 @@ func _build_person() -> void:
 				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
 				model.set_surface_override_material(surface, two_sided)
 	_visual_root.add_child(model)
+	_add_npc_appearance()
 	_add_faction_tag()
+
+
+func _add_npc_appearance() -> void:
+	var skin := _npc_material(Color(0.68, 0.45, 0.32), 0.84)
+	var hair_color := Color(0.055, 0.045, 0.04) if faction_name != "ARMY" else Color(0.12, 0.13, 0.10)
+	var hair := _npc_material(hair_color, 0.92)
+	var eye := _npc_material(Color(0.91, 0.88, 0.79), 0.3)
+	var dark := _npc_material(Color(0.035, 0.045, 0.055), 0.7)
+	var uniform := outfit_color
+	# Face, hairline, ears and eyes.
+	_npc_sphere("HairCap", Vector3(0, 2.075, 0.012), Vector3(0.132, 0.064, 0.125), hair)
+	for side in [-1.0, 1.0]:
+		_npc_sphere("Ear", Vector3(side * 0.139, 1.94, 0), Vector3(0.026, 0.041, 0.024), skin)
+		_npc_sphere("Eye", Vector3(side * 0.047, 1.985, -0.116), Vector3(0.020, 0.014, 0.010), eye)
+	_npc_sphere("Nose", Vector3(0, 1.936, -0.132), Vector3(0.020, 0.029, 0.023), skin)
+	# Department-specific protective equipment and recognizable uniform details.
+	_npc_box("DutyBelt", Vector3(0, 1.035, -0.151), Vector3(0.39, 0.065, 0.31), dark)
+	_npc_box("BeltBuckle", Vector3(0, 1.04, -0.177), Vector3(0.07, 0.05, 0.018), _npc_material(Color(0.67, 0.53, 0.28), 0.3, 0.62))
+	if faction_name == "POLICE":
+		_npc_box("BallisticVest", Vector3(0, 1.34, -0.145), Vector3(0.36, 0.43, 0.055), _npc_material(Color(0.055, 0.085, 0.12), 0.88))
+		_npc_box("PoliceBadge", Vector3(-0.105, 1.48, -0.181), Vector3(0.055, 0.075, 0.012), _npc_material(Color(0.78, 0.63, 0.29), 0.28, 0.7))
+		_npc_box("Radio", Vector3(0.17, 1.46, -0.17), Vector3(0.065, 0.13, 0.045), dark)
+	elif faction_name == "ARMY":
+		_npc_sphere("CombatHelmet", Vector3(0, 2.055, 0.015), Vector3(0.155, 0.085, 0.145), _npc_material(Color(0.24, 0.29, 0.20), 0.9))
+		_npc_box("PlateCarrier", Vector3(0, 1.35, -0.15), Vector3(0.39, 0.42, 0.07), _npc_material(Color(0.23, 0.28, 0.19), 0.95))
+		for side in [-1.0, 1.0]:
+			_npc_box("AmmoPouch", Vector3(side * 0.17, 1.13, -0.18), Vector3(0.095, 0.13, 0.075), _npc_material(Color(0.17, 0.21, 0.15), 0.94))
+	elif faction_name == "MEDICAL":
+		_npc_box("MedicalChestPatch", Vector3(0.11, 1.48, -0.154), Vector3(0.105, 0.105, 0.014), _npc_material(Color(0.94, 0.94, 0.88), 0.55))
+		_npc_box("MedicalCrossVertical", Vector3(0.11, 1.48, -0.166), Vector3(0.025, 0.075, 0.008), _npc_material(Color(0.78, 0.08, 0.08), 0.5))
+		_npc_box("MedicalCrossHorizontal", Vector3(0.11, 1.48, -0.167), Vector3(0.075, 0.025, 0.008), _npc_material(Color(0.78, 0.08, 0.08), 0.5))
+	else:
+		_npc_box("JacketFront", Vector3(0, 1.36, -0.147), Vector3(0.32, 0.34, 0.025), _npc_material(uniform.darkened(0.12), 0.9))
+		_npc_box("ClothingButton", Vector3(0, 1.38, -0.168), Vector3(0.018, 0.018, 0.012), _npc_material(Color(0.66, 0.58, 0.39), 0.35, 0.35))
+
+func _npc_material(color: Color, roughness: float, metallic: float = 0.0) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = roughness
+	material.metallic = metallic
+	material.specular = 0.48
+	return material
+
+func _npc_sphere(label: String, at: Vector3, dimensions: Vector3, material: Material) -> void:
+	var node := MeshInstance3D.new()
+	node.name = label
+	var mesh := SphereMesh.new()
+	mesh.radius = 1.0
+	mesh.height = 2.0
+	mesh.radial_segments = 16
+	mesh.rings = 10
+	node.mesh = mesh
+	node.position = at
+	node.scale = dimensions
+	node.material_override = material
+	_visual_root.add_child(node)
+
+func _npc_box(label: String, at: Vector3, dimensions: Vector3, material: Material) -> void:
+	var node := MeshInstance3D.new()
+	node.name = label
+	var mesh := BoxMesh.new()
+	mesh.size = dimensions
+	node.mesh = mesh
+	node.position = at
+	node.material_override = material
+	_visual_root.add_child(node)
 
 func _add_faction_tag() -> void:
 	var tag := Label3D.new()
