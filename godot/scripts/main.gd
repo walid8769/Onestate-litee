@@ -18,19 +18,21 @@ func _ready() -> void:
 
 
 func _spawn_npcs() -> void:
-	_spawn_npc([Vector3(-8.7, 0, -34), Vector3(-8.7, 0, 34)], Color(0.18, 0.23, 0.29), 1.25)
-	_spawn_npc([Vector3(8.7, 0, 34), Vector3(8.7, 0, -34)], Color(0.42, 0.25, 0.17), 1.35)
-	_spawn_npc([Vector3(-34, 0, -8.7), Vector3(34, 0, -8.7)], Color(0.25, 0.32, 0.20), 1.15)
-	_spawn_npc([Vector3(34, 0, 8.7), Vector3(-34, 0, 8.7)], Color(0.30, 0.18, 0.24), 1.30)
-	_spawn_npc([Vector3(-61, 0, -91), Vector3(-61, 0, -61)], Color(0.08, 0.14, 0.22), 1.20)
-	_spawn_npc([Vector3(92, 0, -91), Vector3(92, 0, -61)], Color(0.78, 0.79, 0.76), 1.10)
-	_spawn_npc([Vector3(-92, 0, 61), Vector3(-92, 0, 91)], Color(0.28, 0.34, 0.22), 1.15)
+	_spawn_npc([Vector3(-8.7, 0, -34), Vector3(-8.7, 0, 34)], Color(0.18, 0.23, 0.29), 1.25, "POLICE")
+	_spawn_npc([Vector3(8.7, 0, 34), Vector3(8.7, 0, -34)], Color(0.42, 0.25, 0.17), 1.35, "CIVILIAN")
+	_spawn_npc([Vector3(-34, 0, -8.7), Vector3(34, 0, -8.7)], Color(0.25, 0.32, 0.20), 1.15, "ARMY")
+	_spawn_npc([Vector3(34, 0, 8.7), Vector3(-34, 0, 8.7)], Color(0.30, 0.18, 0.24), 1.30, "CIVILIAN")
+	_spawn_npc([Vector3(-61, 0, -91), Vector3(-61, 0, -61)], Color(0.08, 0.14, 0.22), 1.20, "POLICE")
+	_spawn_npc([Vector3(92, 0, -91), Vector3(92, 0, -61)], Color(0.78, 0.79, 0.76), 1.10, "MEDICAL")
+	_spawn_npc([Vector3(-92, 0, 61), Vector3(-92, 0, 91)], Color(0.28, 0.34, 0.22), 1.15, "ARMY")
+	_spawn_npc([Vector3(70, 0, -91), Vector3(82, 0, -91)], Color(0.82, 0.84, 0.86), 1.05, "MEDICAL")
 
-func _spawn_npc(route: Array[Vector3], outfit: Color, speed: float) -> void:
+func _spawn_npc(route: Array[Vector3], outfit: Color, speed: float, faction_name: String = "CIVILIAN") -> void:
 	var npc := NPC_SCRIPT.new() as CharacterBody3D
 	npc.set("patrol_points", route)
 	npc.set("outfit_color", outfit)
 	npc.set("walk_speed", speed)
+	npc.set("faction_name", faction_name)
 	npc.position = route[0]
 	add_child(npc)
 
