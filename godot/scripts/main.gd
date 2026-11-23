@@ -8,6 +8,10 @@ const CITY_JOB_SCRIPT = preload("res://scripts/city_job_point.gd")
 func _ready() -> void:
 	_build_environment()
 	_build_city()
+	# Keep a world-level camera active before player initialization. If any
+	# player model/HUD setup fails on iOS, the city still renders instead of
+	# showing only the blue clear-color background.
+	_make_fallback_camera()
 	_spawn_npcs()
 	_build_hud()
 	var player := CharacterBody3D.new()
@@ -16,6 +20,18 @@ func _ready() -> void:
 	player.position = Vector3(0, 1.2, 18)
 	add_child(player)
 	_make_driveable_vehicle(Vector3(5.0, 0.15, 18.0), Color(0.07, 0.10, 0.15), true)
+
+
+func _make_fallback_camera() -> void:
+	var camera := Camera3D.new()
+	camera.name = "WorldFallbackCamera"
+	camera.fov = 70.0
+	camera.near = 0.08
+	camera.far = 650.0
+	camera.position = Vector3(0.0, 8.0, 31.0)
+	add_child(camera)
+	camera.look_at(Vector3(0.0, 1.0, 18.0), Vector3.UP)
+	camera.make_current()
 
 
 func _spawn_npcs() -> void:
