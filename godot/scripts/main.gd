@@ -4,11 +4,12 @@ const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 
 func _ready() -> void:
 	_build_environment()
-	_build_city_block()
+	_build_city()
+	_build_hud()
 	var player := CharacterBody3D.new()
 	player.set_script(PLAYER_SCRIPT)
 	player.name = "Player"
-	player.position = Vector3(0, 1.2, 8)
+	player.position = Vector3(0, 1.2, 18)
 	add_child(player)
 
 func _build_environment() -> void:
@@ -16,55 +17,120 @@ func _build_environment() -> void:
 	var environment := Environment.new()
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = Sky.new()
-	environment.sky.sky_material = ProceduralSkyMaterial.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color(0.12, 0.25, 0.43)
+	sky_material.sky_horizon_color = Color(0.72, 0.79, 0.84)
+	sky_material.ground_bottom_color = Color(0.12, 0.14, 0.16)
+	sky_material.ground_horizon_color = Color(0.48, 0.53, 0.56)
+	environment.sky.sky_material = sky_material
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.68, 0.73, 0.82)
-	environment.ambient_light_energy = 0.65
+	environment.ambient_light_color = Color(0.68, 0.75, 0.86)
+	environment.ambient_light_energy = 0.8
+	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	world.environment = environment
 	add_child(world)
 
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -32, 0)
-	sun.light_energy = 1.15
+	sun.light_energy = 1.25
 	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 110.0
 	add_child(sun)
 
-func _build_city_block() -> void:
-	_make_box("Ground", Vector3(0, -0.25, 0), Vector3(180, 0.5, 180), Color(0.22, 0.28, 0.24))
-	_make_box("MainRoad", Vector3(0, 0.015, 0), Vector3(12, 0.03, 180), Color(0.10, 0.11, 0.12))
-	_make_box("CrossRoad", Vector3(0, 0.02, 0), Vector3(180, 0.04, 12), Color(0.10, 0.11, 0.12))
-	for z in [-1, 1]:
-		for x in [-1, 1]:
-			_make_box("Sidewalk", Vector3(x * 8.2, 0.08, 0), Vector3(3.8, 0.16, 180), Color(0.48, 0.49, 0.47))
-			_make_box("Sidewalk", Vector3(0, 0.08, z * 8.2), Vector3(180, 0.16, 3.8), Color(0.48, 0.49, 0.47))
-	var colors := [Color(0.56,0.59,0.61), Color(0.68,0.62,0.52), Color(0.43,0.50,0.56), Color(0.62,0.64,0.60)]
-	var positions := [
-		Vector3(-25,0,-25), Vector3(25,0,-25), Vector3(-25,0,25), Vector3(25,0,25),
-		Vector3(-52,0,-48), Vector3(52,0,-48), Vector3(-52,0,48), Vector3(52,0,48)
+func _build_city() -> void:
+	_make_visual_box("Ground", Vector3(0, -0.3, 0), Vector3(220, 0.5, 220), Color(0.19, 0.25, 0.21))
+	_make_visual_box("MainRoad", Vector3(0, 0.01, 0), Vector3(13, 0.08, 210), Color(0.075, 0.085, 0.095))
+	_make_visual_box("CrossRoad", Vector3(0, 0.02, 0), Vector3(210, 0.08, 13), Color(0.075, 0.085, 0.095))
+
+	for side in [-1.0, 1.0]:
+		_make_visual_box("Sidewalk", Vector3(side * 8.7, 0.12, 0), Vector3(4.2, 0.24, 210), Color(0.48, 0.50, 0.49))
+		_make_visual_box("Sidewalk", Vector3(0, 0.12, side * 8.7), Vector3(210, 0.24, 4.2), Color(0.48, 0.50, 0.49))
+
+	for z in range(-95, 100, 12):
+		_make_visual_box("LaneDash", Vector3(0, 0.07, float(z)), Vector3(0.16, 0.025, 5.2), Color(0.88, 0.82, 0.58))
+	for x in range(-95, 100, 12):
+		_make_visual_box("LaneDash", Vector3(float(x), 0.075, 0), Vector3(5.2, 0.025, 0.16), Color(0.88, 0.82, 0.58))
+
+	var building_positions := [
+		Vector3(-27, 0, -28), Vector3(27, 0, -28), Vector3(-27, 0, 28), Vector3(27, 0, 28),
+		Vector3(-58, 0, -52), Vector3(58, 0, -52), Vector3(-58, 0, 52), Vector3(58, 0, 52),
+		Vector3(-88, 0, -28), Vector3(88, 0, -28), Vector3(-88, 0, 28), Vector3(88, 0, 28)
 	]
-	for i in range(positions.size()):
-		var height := 12.0 + float((i * 7) % 4) * 5.0
-		_make_building("Building_%02d" % i, positions[i], Vector3(18, height, 18), colors[i % colors.size()])
+	var palettes := [Color(0.48, 0.53, 0.57), Color(0.64, 0.59, 0.50), Color(0.38, 0.46, 0.52), Color(0.66, 0.67, 0.63)]
+	for i in range(building_positions.size()):
+		var height := 15.0 + float((i * 7) % 5) * 5.0
+		_make_building("CityBuilding_%02d" % i, building_positions[i], Vector3(17, height, 17), palettes[i % palettes.size()], i)
 
-func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Color) -> void:
-	_make_box(label, at + Vector3(0, dimensions.y * 0.5, 0), dimensions, color)
+	for z in range(-84, 90, 28):
+		_make_streetlight(Vector3(-11.2, 0, float(z)))
+		_make_streetlight(Vector3(11.2, 0, float(z)))
+	for x in range(-84, 90, 28):
+		_make_tree(Vector3(float(x), 0, -11.5))
+		_make_tree(Vector3(float(x), 0, 11.5))
 
-func _make_box(label: String, at: Vector3, dimensions: Vector3, color: Color) -> void:
-	var body := StaticBody3D.new()
-	body.name = label
-	body.position = at
+func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Color, variant: int) -> void:
+	_make_visual_box(label, at + Vector3(0, dimensions.y * 0.5, 0), dimensions, color)
+	_make_visual_box(label + "_Roof", at + Vector3(0, dimensions.y + 0.18, 0), Vector3(dimensions.x + 0.7, 0.36, dimensions.z + 0.7), color.darkened(0.28))
+	var floors := int(dimensions.y / 3.2)
+	for floor_index in range(floors):
+		for column in range(3):
+			var wx := at.x - dimensions.x * 0.32 + float(column) * dimensions.x * 0.32
+			var wy := at.y + 2.0 + float(floor_index) * 3.1
+			var window_color := Color(0.12, 0.22, 0.29) if (floor_index + column + variant) % 4 != 0 else Color(0.78, 0.66, 0.39)
+			_make_visual_box("FacadeWindow", Vector3(wx, wy, at.z - dimensions.z * 0.505), Vector3(2.1, 1.45, 0.08), window_color)
+			_make_visual_box("FacadeWindow", Vector3(wx, wy, at.z + dimensions.z * 0.505), Vector3(2.1, 1.45, 0.08), window_color)
+	_make_visual_box(label + "_Entrance", Vector3(at.x, 1.15, at.z - dimensions.z * 0.512), Vector3(2.0, 2.3, 0.1), Color(0.10, 0.15, 0.19))
+
+func _make_streetlight(at: Vector3) -> void:
+	_make_visual_box("LampPost", at + Vector3(0, 3.0, 0), Vector3(0.13, 6.0, 0.13), Color(0.12, 0.14, 0.16))
+	_make_visual_box("LampArm", at + Vector3(0.55, 5.8, 0), Vector3(1.2, 0.12, 0.12), Color(0.12, 0.14, 0.16))
+	_make_visual_box("LampHead", at + Vector3(1.0, 5.68, 0), Vector3(0.65, 0.16, 0.38), Color(0.92, 0.82, 0.58))
+
+func _make_tree(at: Vector3) -> void:
+	_make_visual_box("TreeTrunk", at + Vector3(0, 1.2, 0), Vector3(0.42, 2.4, 0.42), Color(0.27, 0.18, 0.12))
+	var crown := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 1.6
+	sphere.height = 3.2
+	crown.mesh = sphere
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.13, 0.32, 0.19)
+	material.roughness = 1.0
+	crown.material_override = material
+	crown.position = at + Vector3(0, 3.0, 0)
+	add_child(crown)
+
+func _make_visual_box(label: String, at: Vector3, dimensions: Vector3, color: Color) -> void:
 	var mesh := MeshInstance3D.new()
+	mesh.name = label
 	var box := BoxMesh.new()
 	box.size = dimensions
 	mesh.mesh = box
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
-	material.roughness = 0.88
+	material.roughness = 0.82
 	mesh.material_override = material
-	body.add_child(mesh)
-	var collider := CollisionShape3D.new()
-	var shape := BoxShape3D.new()
-	shape.size = dimensions
-	collider.shape = shape
-	body.add_child(collider)
-	add_child(body)
+	mesh.position = at
+	add_child(mesh)
+
+func _build_hud() -> void:
+	var layer := CanvasLayer.new()
+	layer.name = "GameHUD"
+	add_child(layer)
+	var panel := ColorRect.new()
+	panel.position = Vector2(22, 18)
+	panel.size = Vector2(250, 66)
+	panel.color = Color(0.035, 0.055, 0.075, 0.78)
+	layer.add_child(panel)
+	var title := Label.new()
+	title.text = "ONESTATE  |  LITEE"
+	title.position = Vector2(38, 25)
+	title.add_theme_font_size_override("font_size", 21)
+	title.add_theme_color_override("font_color", Color(0.91, 0.79, 0.49))
+	layer.add_child(title)
+	var subtitle := Label.new()
+	subtitle.text = "CITY ROLEPLAY  •  DEVELOPMENT BUILD"
+	subtitle.position = Vector2(39, 53)
+	subtitle.add_theme_font_size_override("font_size", 10)
+	subtitle.add_theme_color_override("font_color", Color(0.82, 0.87, 0.91))
+	layer.add_child(subtitle)
