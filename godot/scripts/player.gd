@@ -41,6 +41,8 @@ var _mission_reward := 0
 var _mission_title := ""
 var _cash_balance := 0
 var _mission_beacon: Node3D
+var _character_animation: AnimationPlayer
+var _active_character_animation := ""
 
 func _ready() -> void:
 	_ensure_input_actions()
@@ -74,18 +76,15 @@ func _make_character() -> void:
 	_visual_root = Node3D.new()
 	_visual_root.name = "CharacterVisual"
 	add_child(_visual_root)
-	var model := MeshInstance3D.new()
-	model.name = "PlayerDetailedCharacter"
-	model.mesh = load("res://assets/models/civilian_character.obj") as Mesh
-	if model.mesh != null:
-		for surface in range(model.mesh.get_surface_count()):
-			var source_material := model.mesh.surface_get_material(surface)
-			if source_material is BaseMaterial3D:
-				var two_sided := source_material.duplicate() as BaseMaterial3D
-				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
-				model.set_surface_override_material(surface, two_sided)
-	_visual_root.add_child(model)
-	_add_player_appearance()
+	var character_scene := load("res://assets/models/realistic_character.glb") as PackedScene
+	if character_scene != null:
+		var character := character_scene.instantiate()
+		character.name = "RealisticPlayerCharacter"
+		_visual_root.add_child(character)
+		_character_animation = _find_animation_player(character)
+		_play_character_animation("idle")
+	else:
+		push_warning("Realistic character asset missing; player visual is unavailable.")
 	var collision := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.36
@@ -94,6 +93,29 @@ func _make_character() -> void:
 	collision.position.y = 0.98
 	_player_collision = collision
 	add_child(collision)
+
+
+func _find_animation_player(root: Node) -> AnimationPlayer:
+	if root is AnimationPlayer:
+		return root as AnimationPlayer
+	for child in root.get_children():
+		var found := _find_animation_player(child)
+		if found != null:
+			return found
+	return null
+
+
+func _play_character_animation(requested: String) -> void:
+	if _character_animation == null:
+		return
+	var wanted := requested.to_lower()
+	for animation_name in _character_animation.get_animation_list():
+		if String(animation_name).to_lower().contains(wanted):
+			if _active_character_animation != animation_name:
+				_character_animation.play(animation_name, 0.22)
+				_active_character_animation = animation_name
+			return
+
 
 func _add_player_appearance() -> void:
 	# Face details are layered onto the existing head mesh to give it readable features.
@@ -593,8 +615,10 @@ func _physics_process(delta: float) -> void:
 	_animate_character(delta, input_vector.length())
 
 func _animate_character(delta: float, input_amount: float) -> void:
-	_animation_clock += delta * (12.0 if _sprinting else 8.0)
 	var moving := input_amount > 0.08 and is_on_floor()
-	var swing := sin(_animation_clock) * (0.62 if moving else 0.0)
-	_visual_root.rotation.z = sin(_animation_clock) * 0.012 if moving else 0.0
-	_visual_root.position.y = absf(sin(_animation_clock * 2.0)) * 0.045 if moving else move_toward(_visual_root.position.y, 0.0, delta * 0.2)
+	if not moving:
+		_play_character_animation("idle")
+	elif _sprinting:
+		_play_character_animation("run")
+	else:
+		_play_character_animation("walk")
