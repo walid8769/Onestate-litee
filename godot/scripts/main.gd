@@ -20,9 +20,9 @@ func _spawn_npcs() -> void:
 	_spawn_npc([Vector3(8.7, 0, 34), Vector3(8.7, 0, -34)], Color(0.42, 0.25, 0.17), 1.35)
 	_spawn_npc([Vector3(-34, 0, -8.7), Vector3(34, 0, -8.7)], Color(0.25, 0.32, 0.20), 1.15)
 	_spawn_npc([Vector3(34, 0, 8.7), Vector3(-34, 0, 8.7)], Color(0.30, 0.18, 0.24), 1.30)
-	_spawn_npc([Vector3(-66, 0, -86), Vector3(-66, 0, -66)], Color(0.08, 0.14, 0.22), 1.20)
-	_spawn_npc([Vector3(66, 0, -86), Vector3(86, 0, -66)], Color(0.78, 0.79, 0.76), 1.10)
-	_spawn_npc([Vector3(-86, 0, 66), Vector3(-66, 0, 86)], Color(0.28, 0.34, 0.22), 1.15)
+	_spawn_npc([Vector3(-61, 0, -91), Vector3(-61, 0, -61)], Color(0.08, 0.14, 0.22), 1.20)
+	_spawn_npc([Vector3(92, 0, -91), Vector3(92, 0, -61)], Color(0.78, 0.79, 0.76), 1.10)
+	_spawn_npc([Vector3(-92, 0, 61), Vector3(-92, 0, 91)], Color(0.28, 0.34, 0.22), 1.15)
 
 func _spawn_npc(route: Array[Vector3], outfit: Color, speed: float) -> void:
 	var npc := NPC_SCRIPT.new() as CharacterBody3D
