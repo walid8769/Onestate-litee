@@ -75,7 +75,7 @@ func _make_character() -> void:
 
 func _add_player_appearance() -> void:
 	# Face details are layered onto the existing head mesh to give it readable features.
-	var skin := _detail_material(Color(0.72, 0.48, 0.34), 0.82)
+	var skin := _detail_material(Color(0.72, 0.48, 0.34), 0.76)
 	var hair := _detail_material(Color(0.075, 0.052, 0.038), 0.9)
 	var eye_white := _detail_material(Color(0.92, 0.90, 0.82), 0.28)
 	var iris := _detail_material(Color(0.20, 0.12, 0.07), 0.24)
@@ -86,7 +86,10 @@ func _add_player_appearance() -> void:
 		_add_detail_sphere("EyeWhite", Vector3(side * 0.047, 1.985, -0.111), Vector3(0.025, 0.017, 0.012), eye_white)
 		_add_detail_sphere("Iris", Vector3(side * 0.047, 1.984, -0.123), Vector3(0.010, 0.011, 0.006), iris)
 	_add_detail_sphere("Nose", Vector3(0, 1.936, -0.132), Vector3(0.022, 0.032, 0.026), skin)
+	_add_detail_box("LeftEyebrow", Vector3(-0.047, 2.018, -0.118), Vector3(0.046, 0.009, 0.012), hair)
+	_add_detail_box("RightEyebrow", Vector3(0.047, 2.018, -0.118), Vector3(0.046, 0.009, 0.012), hair)
 	_add_detail_box("Mouth", Vector3(0, 1.882, -0.119), Vector3(0.052, 0.009, 0.012), dark)
+	_add_detail_sphere("LowerLip", Vector3(0, 1.872, -0.116), Vector3(0.025, 0.006, 0.008), skin)
 	# Tailored collar, shoulder seams and utility belt.
 	_add_detail_box("ShirtCollar", Vector3(0, 1.61, -0.142), Vector3(0.17, 0.055, 0.035), _detail_material(Color(0.13, 0.17, 0.20), 0.82))
 	_add_detail_box("BeltBuckle", Vector3(0, 1.025, -0.169), Vector3(0.075, 0.055, 0.025), _detail_material(Color(0.62, 0.48, 0.24), 0.32, 0.65))
@@ -99,6 +102,10 @@ func _detail_material(color: Color, roughness: float, metallic: float = 0.0) -> 
 	material.roughness = roughness
 	material.metallic = metallic
 	material.specular = 0.48
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	if color.r > 0.4 and color.g > 0.25 and color.b < 0.55:
+		material.subsurf_scatter_enabled = true
+		material.subsurf_scatter_strength = 0.28
 	return material
 
 func _add_detail_sphere(label: String, at: Vector3, dimensions: Vector3, material: Material) -> void:
