@@ -277,7 +277,25 @@ func _make_driveable_vehicle(at: Vector3, paint: Color, police_lights: bool) -> 
 	collision.position.y = 0.88
 	vehicle.add_child(collision)
 	if police_lights:
-		_make_visual_box("DriveablePoliceLightbar", at + Vector3(0, 2.0, -0.05), Vector3(0.95, 0.13, 0.25), Color(0.08, 0.13, 0.22))
-		_make_visual_box("DriveablePoliceRed", at + Vector3(-0.27, 2.08, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.92, 0.045, 0.035))
-		_make_visual_box("DriveablePoliceBlue", at + Vector3(0.27, 2.08, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.035, 0.15, 0.95))
+		_add_vehicle_box(visual, "PoliceLightbar", Vector3(0, 1.95, -0.05), Vector3(0.95, 0.13, 0.25), Color(0.08, 0.13, 0.22))
+		_add_vehicle_box(visual, "PoliceLightRed", Vector3(-0.27, 2.03, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.92, 0.045, 0.035), true)
+		_add_vehicle_box(visual, "PoliceLightBlue", Vector3(0.27, 2.03, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.035, 0.15, 0.95), true)
 	add_child(vehicle)
+
+
+func _add_vehicle_box(parent: Node3D, label: String, at: Vector3, dimensions: Vector3, color: Color, emissive: bool = false) -> void:
+	var mesh := MeshInstance3D.new()
+	mesh.name = label
+	var box := BoxMesh.new()
+	box.size = dimensions
+	mesh.mesh = box
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.35
+	if emissive:
+		material.emission_enabled = true
+		material.emission = color
+		material.emission_energy_multiplier = 1.6
+	mesh.material_override = material
+	mesh.position = at
+	parent.add_child(mesh)
