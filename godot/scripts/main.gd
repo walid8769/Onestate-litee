@@ -52,6 +52,8 @@ func _build_environment() -> void:
 	environment.ambient_light_color = Color(0.68, 0.75, 0.86)
 	environment.ambient_light_energy = 0.8
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.tonemap_exposure = 1.05
+	environment.tonemap_white = 1.18
 	world.environment = environment
 	add_child(world)
 
@@ -60,6 +62,9 @@ func _build_environment() -> void:
 	sun.light_energy = 1.25
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 110.0
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+	sun.shadow_bias = 0.035
+	sun.shadow_normal_bias = 1.2
 	add_child(sun)
 
 func _build_city() -> void:
