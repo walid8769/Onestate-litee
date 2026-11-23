@@ -117,6 +117,8 @@ func _physics_process(delta: float) -> void:
 	if _pause_timer > 0.0:
 		_pause_timer = maxf(0.0, _pause_timer - delta)
 		_current_speed = move_toward(_current_speed, 0.0, walk_speed * 2.5 * delta)
+		velocity.x = move_toward(velocity.x, 0.0, walk_speed * 2.5 * delta)
+		velocity.z = move_toward(velocity.z, 0.0, walk_speed * 2.5 * delta)
 	else:
 		var offset := patrol_points[_target_index] - global_position
 		offset.y = 0.0
