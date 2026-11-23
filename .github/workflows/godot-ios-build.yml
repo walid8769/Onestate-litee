@@ -41,7 +41,7 @@ jobs:
           chmod +x "$GODOT_BIN"
           echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
           "$GODOT_BIN" --version
-          test "$("$GODOT_BIN" --version)" = "4.4.1.stable.official"
+          "$GODOT_BIN" --version | grep -Eq "^4\.4\.1\.stable\.official\."
 
       - name: Import and validate Godot project
         shell: bash
