@@ -25,7 +25,9 @@ func _build_person() -> void:
 	_visual_root.name = "NPCVisual"
 	add_child(_visual_root)
 	var model_path := "res://assets/models/civilian_character.obj"
-	if outfit_color.b > outfit_color.r * 1.18 and outfit_color.b > outfit_color.g * 0.95:
+	if faction_name == "MEDICAL":
+		model_path = "res://assets/models/medical_character.obj"
+	elif outfit_color.b > outfit_color.r * 1.18 and outfit_color.b > outfit_color.g * 0.95:
 		model_path = "res://assets/models/police_character.obj"
 	elif outfit_color.g > outfit_color.r * 1.05 and outfit_color.g > outfit_color.b * 0.88:
 		model_path = "res://assets/models/military_character.obj"
