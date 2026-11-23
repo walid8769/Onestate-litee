@@ -50,7 +50,9 @@ func _build_person() -> void:
 
 
 func _add_npc_appearance() -> void:
-	var skin := _npc_material(Color(0.68, 0.45, 0.32), 0.84)
+	var tone_seed := abs(hash(str(get_instance_id()))) % 5
+	var skin_tones := [Color(0.88, 0.67, 0.49), Color(0.72, 0.48, 0.34), Color(0.55, 0.34, 0.23), Color(0.39, 0.25, 0.19), Color(0.94, 0.76, 0.60)]
+	var skin := _npc_material(skin_tones[tone_seed], 0.76)
 	var hair_color := Color(0.055, 0.045, 0.04) if faction_name != "ARMY" else Color(0.12, 0.13, 0.10)
 	var hair := _npc_material(hair_color, 0.92)
 	var eye := _npc_material(Color(0.91, 0.88, 0.79), 0.3)
@@ -88,6 +90,10 @@ func _npc_material(color: Color, roughness: float, metallic: float = 0.0) -> Sta
 	material.roughness = roughness
 	material.metallic = metallic
 	material.specular = 0.48
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+	if color.r > 0.35 and color.g > 0.20 and color.b < 0.55:
+		material.subsurf_scatter_enabled = true
+		material.subsurf_scatter_strength = 0.26
 	return material
 
 func _npc_sphere(label: String, at: Vector3, dimensions: Vector3, material: Material) -> void:
