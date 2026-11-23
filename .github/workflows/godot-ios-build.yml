@@ -11,55 +11,95 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: onestate-ios-ipa
+  cancel-in-progress: false
+
 jobs:
   build-ios:
-    runs-on: macos-15-intel
-    timeout-minutes: 45
+    runs-on: macos-15
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download Godot 4.4.1 and export templates
+      - name: Install Godot 4.4.1 and matching export templates
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/godot" "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable"
-          curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_macos.universal.zip" -o "$RUNNER_TEMP/godot/godot.zip"
-          unzip -q "$RUNNER_TEMP/godot/godot.zip" -d "$RUNNER_TEMP/godot/app"
-          curl -L --fail --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz" -o "$RUNNER_TEMP/godot/templates.tpz"
-          unzip -q "$RUNNER_TEMP/godot/templates.tpz" -d "$RUNNER_TEMP/godot/templates"
-          cp -R "$RUNNER_TEMP/godot/templates/templates/." "$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable/"
-          GODOT_BIN="$(find "$RUNNER_TEMP/godot/app" -type f -path '*/Contents/MacOS/Godot' | head -n 1)"
+          GODOT_DIR="$RUNNER_TEMP/godot"
+          TEMPLATE_DIR="$HOME/Library/Application Support/Godot/export_templates/4.4.1.stable"
+          mkdir -p "$GODOT_DIR" "$TEMPLATE_DIR"
+          curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_macos.universal.zip" -o "$GODOT_DIR/godot.zip"
+          unzip -q "$GODOT_DIR/godot.zip" -d "$GODOT_DIR/app"
+          curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz" -o "$GODOT_DIR/templates.tpz"
+          unzip -q "$GODOT_DIR/templates.tpz" -d "$GODOT_DIR/templates"
+          test -d "$GODOT_DIR/templates/templates"
+          cp -R "$GODOT_DIR/templates/templates/." "$TEMPLATE_DIR/"
+          GODOT_BIN="$(find "$GODOT_DIR/app" -type f -path '*/Contents/MacOS/Godot' -print -quit)"
           test -n "$GODOT_BIN"
-          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
           chmod +x "$GODOT_BIN"
+          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
           "$GODOT_BIN" --version
+          test "$("$GODOT_BIN" --version)" = "4.4.1.stable.official"
 
-      - name: Import project and export Xcode project
+      - name: Import and validate Godot project
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --editor --path godot --import
+          "$GODOT_BIN" --headless --path godot --editor --quit
+
+      - name: Export iOS Xcode project
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p build/ios
-          "$GODOT_BIN" --headless --editor --path godot --import
           "$GODOT_BIN" --headless --verbose --path godot --export-debug "iOS" ../build/ios/OneStateLitee.xcodeproj
-          test -d build/ios/OneStateLitee.xcodeproj
+          PROJECT="$(find build/ios -maxdepth 3 -name '*.xcodeproj' -type d -print -quit)"
+          test -n "$PROJECT"
+          echo "IOS_PROJECT=$PROJECT" >> "$GITHUB_ENV"
+          echo "Exported Xcode project: $PROJECT"
 
-      - name: Build unsigned iPhone app
+      - name: Build unsigned arm64 iPhone app
         shell: bash
         run: |
           set -euo pipefail
-          xcodebuild -project build/ios/OneStateLitee.xcodeproj -list
-          xcodebuild -project build/ios/OneStateLitee.xcodeproj -scheme OneStateLitee -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/derived CODE_SIGNING_ALLOWED=NO build
-          APP_PATH="$(find build/derived/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -type d | head -n 1)"
+          xcodebuild -version
+          xcodebuild -project "$IOS_PROJECT" -list
+          xcodebuild -project "$IOS_PROJECT" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$GITHUB_WORKSPACE/build/derived" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            clean build
+          APP_PATH="$(find build/derived/Build/Products/Release-iphoneos -maxdepth 1 -type d -name '*.app' -print -quit)"
           test -n "$APP_PATH"
-          mkdir -p build/ipa/Payload
-          cp -R "$APP_PATH" build/ipa/Payload/
-          cd build/ipa
-          /usr/bin/zip -qry ../../OneState-Litee-unsigned.ipa Payload
-          cd ../..
-          test -s OneState-Litee-unsigned.ipa
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist"
+          test -f "$APP_PATH/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist")"
+          echo "APP_PATH=$APP_PATH" >> "$GITHUB_ENV"
 
-      - name: Upload unsigned IPA
+      - name: Package and verify IPA structure
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf build/ipa
+          mkdir -p build/ipa/Payload
+          ditto "$APP_PATH" "build/ipa/Payload/$(basename "$APP_PATH")"
+          cd build/ipa
+          /usr/bin/zip -qry "$GITHUB_WORKSPACE/OneState-Litee-unsigned.ipa" Payload
+          cd "$GITHUB_WORKSPACE"
+          test -s OneState-Litee-unsigned.ipa
+          unzip -t OneState-Litee-unsigned.ipa
+          unzip -Z1 OneState-Litee-unsigned.ipa | grep -E '^Payload/[^/]+\.app/Info\.plist$'
+          unzip -Z1 OneState-Litee-unsigned.ipa | grep -E '^Payload/[^/]+\.app/[^/]+$' | head -n 1
+          shasum -a 256 OneState-Litee-unsigned.ipa
+
+      - name: Upload verified unsigned IPA
         uses: actions/upload-artifact@v4
         with:
           name: OneState-Litee-unsigned-IPA
