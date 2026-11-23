@@ -50,6 +50,24 @@ jobs:
           "$GODOT_BIN" --headless --editor --path godot --import
           "$GODOT_BIN" --headless --path godot --editor --quit
 
+      - name: Run main-scene startup smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          LOG="$RUNNER_TEMP/godot-scene-smoke.log"
+          set +e
+          "$GODOT_BIN" --headless --path godot --quit-after 5 --verbose 2>&1 | tee "$LOG"
+          GODOT_STATUS=${PIPESTATUS[0]}
+          set -e
+          if [ "$GODOT_STATUS" -ne 0 ]; then
+            echo "Godot scene smoke test exited with status $GODOT_STATUS"
+            exit "$GODOT_STATUS"
+          fi
+          if grep -E "SCRIPT ERROR:|Parse Error:|ERROR:" "$LOG"; then
+            echo "Godot reported runtime or resource errors during scene startup."
+            exit 1
+          fi
+
       - name: Export iOS Xcode project
         shell: bash
         run: |
