@@ -1,12 +1,13 @@
 Third-party runtime assets
 ===========================
 
-1. Mid-Size SUV
+1. Generic compact SUV
    File fetched during iOS build as godot/assets/models/realistic_suv.glb
-   Source: https://tevy.dev/models/suv
-   License: CC0 1.0
-   The model is a 44,605-triangle, 4.65 m SUV with separately named wheel nodes.
-   Its pinned v1 LOD0 file is used by the build workflow.
+   Source: https://www.innerscene.com/tools/library/3d-parts/generic-compact-suv-9f157ee5
+   License: CC0 1.0 (public domain dedication), as stated on the source page.
+   Original unbranded, textured GLB model, approximately 4.5 x 2.2 x 1.7 m.
+   The build validates the GLB header and rejects unsupported meshopt and
+   mesh-quantization extensions before importing the model.
 
 2. Realistic humanoid character
    File fetched during iOS build as godot/assets/models/realistic_character.glb
