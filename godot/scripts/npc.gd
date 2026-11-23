@@ -15,6 +15,8 @@ var _left_leg: Node3D
 var _right_leg: Node3D
 var _left_arm: Node3D
 var _right_arm: Node3D
+var _character_animation: AnimationPlayer
+var _active_character_animation := ""
 
 func _ready() -> void:
 	_build_person()
@@ -27,26 +29,38 @@ func _build_person() -> void:
 	_visual_root = Node3D.new()
 	_visual_root.name = "NPCVisual"
 	add_child(_visual_root)
-	var model_path := "res://assets/models/civilian_character.obj"
-	if faction_name == "MEDICAL":
-		model_path = "res://assets/models/medical_character.obj"
-	elif outfit_color.b > outfit_color.r * 1.18 and outfit_color.b > outfit_color.g * 0.95:
-		model_path = "res://assets/models/police_character.obj"
-	elif outfit_color.g > outfit_color.r * 1.05 and outfit_color.g > outfit_color.b * 0.88:
-		model_path = "res://assets/models/military_character.obj"
-	var model := MeshInstance3D.new()
-	model.name = "DetailedCharacterModel"
-	model.mesh = load(model_path) as Mesh
-	if model.mesh != null:
-		for surface in range(model.mesh.get_surface_count()):
-			var source_material := model.mesh.surface_get_material(surface)
-			if source_material is BaseMaterial3D:
-				var two_sided := source_material.duplicate() as BaseMaterial3D
-				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
-				model.set_surface_override_material(surface, two_sided)
-	_visual_root.add_child(model)
-	_add_npc_appearance()
+	var character_scene := load("res://assets/models/realistic_character.glb") as PackedScene
+	if character_scene != null:
+		var character := character_scene.instantiate()
+		character.name = "RealisticNPCCharacter"
+		_visual_root.add_child(character)
+		_character_animation = _find_animation_player(character)
+		_play_npc_animation("idle")
+	else:
+		push_warning("Realistic character asset missing; NPC visual is unavailable.")
 	_add_faction_tag()
+
+
+func _find_animation_player(root: Node) -> AnimationPlayer:
+	if root is AnimationPlayer:
+		return root as AnimationPlayer
+	for child in root.get_children():
+		var found := _find_animation_player(child)
+		if found != null:
+			return found
+	return null
+
+
+func _play_npc_animation(requested: String) -> void:
+	if _character_animation == null:
+		return
+	var wanted := requested.to_lower()
+	for animation_name in _character_animation.get_animation_list():
+		if String(animation_name).to_lower().contains(wanted):
+			if _active_character_animation != animation_name:
+				_character_animation.play(animation_name, 0.2)
+				_active_character_animation = animation_name
+			return
 
 
 func _add_npc_appearance() -> void:
@@ -124,7 +138,7 @@ func _add_faction_tag() -> void:
 	var tag := Label3D.new()
 	tag.name = "FactionNameplate"
 	tag.text = faction_name
-	tag.position = Vector3(0, 2.25, 0)
+	tag.position = Vector3(0, 2.0, 0)
 	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	tag.font_size = 28
 	tag.pixel_size = 0.006
@@ -212,6 +226,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y -= 22.0 * delta
 	move_and_slide()
+	_play_npc_animation("walk" if _current_speed > 0.12 else "idle")
 	_clock += delta * (10.0 if _current_speed > walk_speed * 0.75 else 6.0)
 	var movement_ratio := clampf(_current_speed / maxf(walk_speed, 0.01), 0.0, 1.0)
 	var swing := sin(_clock) * 0.42 * movement_ratio
