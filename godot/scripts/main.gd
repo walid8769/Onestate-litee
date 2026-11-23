@@ -234,16 +234,13 @@ func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Colo
 
 
 func _make_parked_vehicle(at: Vector3, paint: Color, police_lights: bool) -> void:
-	var vehicle := MeshInstance3D.new()
-	vehicle.name = "DetailedServiceSUV"
-	vehicle.mesh = load("res://assets/models/service_suv.obj") as Mesh
-	if vehicle.mesh != null:
-		for surface in range(vehicle.mesh.get_surface_count()):
-			var source_material := vehicle.mesh.surface_get_material(surface)
-			if source_material is BaseMaterial3D:
-				var two_sided := source_material.duplicate() as BaseMaterial3D
-				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
-				vehicle.set_surface_override_material(surface, two_sided)
+	var vehicle := Node3D.new()
+	vehicle.name = "RealisticParkedSUV"
+	var model_scene := load("res://assets/models/realistic_suv.glb") as PackedScene
+	if model_scene != null:
+		var model := model_scene.instantiate()
+		model.name = "RealisticSUVModel"
+		vehicle.add_child(model)
 	vehicle.position = at
 	add_child(vehicle)
 	var body := StaticBody3D.new()
@@ -251,7 +248,7 @@ func _make_parked_vehicle(at: Vector3, paint: Color, police_lights: bool) -> voi
 	body.position = at + Vector3(0, 0.85, 0)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(2.0, 1.7, 4.5)
+	shape.size = Vector3(2.15, 1.75, 4.7)
 	collision.shape = shape
 	body.add_child(collision)
 	add_child(body)
@@ -259,6 +256,7 @@ func _make_parked_vehicle(at: Vector3, paint: Color, police_lights: bool) -> voi
 		_make_visual_box("PoliceLightbar", at + Vector3(0, 1.83, -0.05), Vector3(0.95, 0.13, 0.25), Color(0.08, 0.13, 0.22))
 		_make_visual_box("PoliceLightRed", at + Vector3(-0.27, 1.92, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.92, 0.045, 0.035))
 		_make_visual_box("PoliceLightBlue", at + Vector3(0.27, 1.92, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.035, 0.15, 0.95))
+
 func _simple_material(color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
@@ -339,17 +337,11 @@ func _make_driveable_vehicle(at: Vector3, paint: Color, police_lights: bool) -> 
 	var visual := Node3D.new()
 	visual.name = "VehicleVisual"
 	vehicle.add_child(visual)
-	var model := MeshInstance3D.new()
-	model.name = "SUVModel"
-	model.mesh = load("res://assets/models/service_suv.obj") as Mesh
-	if model.mesh != null:
-		for surface in range(model.mesh.get_surface_count()):
-			var source_material := model.mesh.surface_get_material(surface)
-			if source_material is BaseMaterial3D:
-				var material := source_material.duplicate() as BaseMaterial3D
-				material.cull_mode = BaseMaterial3D.CULL_DISABLED
-				model.set_surface_override_material(surface, material)
-	visual.add_child(model)
+	var model_scene := load("res://assets/models/realistic_suv.glb") as PackedScene
+	if model_scene != null:
+		var model := model_scene.instantiate()
+		model.name = "RealisticSUVModel"
+		visual.add_child(model)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = Vector3(2.15, 1.75, 4.7)
