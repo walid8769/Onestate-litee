@@ -1,0 +1,47 @@
+newmtl skin
+Kd 0.68 0.48 0.34
+Ka 0.12 0.09 0.06
+Ks 0.08 0.08 0.08
+Ns 24
+newmtl hair_dark
+Kd 0.045 0.032 0.025
+Ns 18
+newmtl hair_brown
+Kd 0.12 0.065 0.035
+Ns 18
+newmtl eyes
+Kd 0.025 0.02 0.018
+newmtl shirt
+Kd 0.30 0.34 0.39
+newmtl denim
+Kd 0.075 0.12 0.20
+newmtl boots
+Kd 0.055 0.045 0.038
+newmtl sole
+Kd 0.025 0.025 0.025
+newmtl fabric_dark
+Kd 0.10 0.12 0.14
+newmtl belt
+Kd 0.045 0.04 0.035
+newmtl gear_black
+Kd 0.035 0.045 0.055
+newmtl metal
+Kd 0.42 0.46 0.48
+Ks 0.7
+Ns 100
+newmtl uniform_blue
+Kd 0.045 0.10 0.20
+newmtl uniform_dark
+Kd 0.055 0.075 0.10
+newmtl police_gear
+Kd 0.025 0.04 0.065
+newmtl police_cap
+Kd 0.035 0.065 0.12
+newmtl badge_gold
+Kd 0.78 0.55 0.12
+Ks 0.8
+Ns 120
+newmtl uniform_olive
+Kd 0.19 0.23 0.13
+newmtl tactical_gear
+Kd 0.11 0.14 0.09
