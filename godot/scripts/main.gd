@@ -2,6 +2,7 @@ extends Node3D
 
 const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 const NPC_SCRIPT = preload("res://scripts/npc.gd")
+const VEHICLE_SCRIPT = preload("res://scripts/driveable_vehicle.gd")
 
 func _ready() -> void:
 	_build_environment()
@@ -13,6 +14,7 @@ func _ready() -> void:
 	player.name = "Player"
 	player.position = Vector3(0, 1.2, 18)
 	add_child(player)
+	_make_driveable_vehicle(Vector3(5.0, 0.15, 18.0), Color(0.07, 0.10, 0.15), true)
 
 
 func _spawn_npcs() -> void:
@@ -245,3 +247,35 @@ func _make_static_box(label: String, at: Vector3, dimensions: Vector3) -> void:
 	collision.shape = shape
 	body.add_child(collision)
 	add_child(body)
+
+
+func _make_driveable_vehicle(at: Vector3, paint: Color, police_lights: bool) -> void:
+	var vehicle := CharacterBody3D.new()
+	vehicle.name = "PlayerDriveableSUV"
+	vehicle.set_script(VEHICLE_SCRIPT)
+	vehicle.position = at
+	var visual := Node3D.new()
+	visual.name = "VehicleVisual"
+	vehicle.add_child(visual)
+	var model := MeshInstance3D.new()
+	model.name = "SUVModel"
+	model.mesh = load("res://assets/models/service_suv.obj") as Mesh
+	if model.mesh != null:
+		for surface in range(model.mesh.get_surface_count()):
+			var source_material := model.mesh.surface_get_material(surface)
+			if source_material is BaseMaterial3D:
+				var material := source_material.duplicate() as BaseMaterial3D
+				material.cull_mode = BaseMaterial3D.CULL_DISABLED
+				model.set_surface_override_material(surface, material)
+	visual.add_child(model)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.15, 1.75, 4.7)
+	collision.shape = shape
+	collision.position.y = 0.88
+	vehicle.add_child(collision)
+	if police_lights:
+		_make_visual_box("DriveablePoliceLightbar", at + Vector3(0, 2.0, -0.05), Vector3(0.95, 0.13, 0.25), Color(0.08, 0.13, 0.22))
+		_make_visual_box("DriveablePoliceRed", at + Vector3(-0.27, 2.08, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.92, 0.045, 0.035))
+		_make_visual_box("DriveablePoliceBlue", at + Vector3(0.27, 2.08, -0.05), Vector3(0.34, 0.10, 0.22), Color(0.035, 0.15, 0.95))
+	add_child(vehicle)
