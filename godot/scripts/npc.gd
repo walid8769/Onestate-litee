@@ -50,7 +50,7 @@ func _build_person() -> void:
 
 
 func _add_npc_appearance() -> void:
-	var tone_seed := abs(hash(str(get_instance_id()))) % 5
+	var tone_seed: int = abs(hash(str(get_instance_id()))) % 5
 	var skin_tones := [Color(0.88, 0.67, 0.49), Color(0.72, 0.48, 0.34), Color(0.55, 0.34, 0.23), Color(0.39, 0.25, 0.19), Color(0.94, 0.76, 0.60)]
 	var skin := _npc_material(skin_tones[tone_seed], 0.76)
 	var hair_color := Color(0.055, 0.045, 0.04) if faction_name != "ARMY" else Color(0.12, 0.13, 0.10)
