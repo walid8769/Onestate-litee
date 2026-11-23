@@ -76,3 +76,6 @@ newmtl light_red
 Kd 0.8 0.025 0.02
 newmtl light_blue
 Kd 0.025 0.08 0.85
+
+newmtl radio_black
+Kd 0.025 0.03 0.035
