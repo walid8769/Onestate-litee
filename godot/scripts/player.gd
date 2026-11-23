@@ -22,6 +22,13 @@ var _animation_clock := 0.0
 var _sprinting := false
 var _sprint_touch := false
 var _active_vehicle: CharacterBody3D
+var _gas_finger := -1
+var _brake_finger := -1
+var _vehicle_gas := false
+var _vehicle_brake := false
+var _vehicle_gas_rect := Rect2()
+var _vehicle_brake_rect := Rect2()
+var _vehicle_exit_rect := Rect2()
 var _touch_hud: Control
 var _stick_base: Panel
 var _stick_knob: Panel
@@ -151,6 +158,14 @@ func _make_touch_hud() -> void:
 	var look_ring := _make_touch_panel(Vector2(82, 82), Color(0.06, 0.09, 0.12, 0.20), 41)
 	look_ring.name = "LookRing"
 	_touch_hud.add_child(look_ring)
+	var gas := _make_touch_panel(Vector2(84, 48), Color(0.12, 0.42, 0.30, 0.88), 12)
+	gas.name = "GasButton"
+	_touch_hud.add_child(gas)
+	_add_button_label(gas, "GAS")
+	var brake := _make_touch_panel(Vector2(84, 48), Color(0.55, 0.18, 0.16, 0.88), 12)
+	brake.name = "BrakeButton"
+	_touch_hud.add_child(brake)
+	_add_button_label(brake, "BRAKE")
 	var sprint := _make_touch_panel(Vector2(78, 42), Color(0.65, 0.48, 0.18, 0.78), 12)
 	sprint.name = "SprintButton"
 	_touch_hud.add_child(sprint)
@@ -174,6 +189,28 @@ func _make_touch_hud() -> void:
 	sprint_label.add_theme_font_size_override("font_size", 15)
 	sprint.add_child(sprint_label)
 	_layout_touch_hud()
+	_set_vehicle_controls_visible(false)
+
+func _add_button_label(panel: Panel, text_value: String) -> void:
+	var label := Label.new()
+	label.text = text_value
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	label.add_theme_color_override("font_color", Color(1, 1, 1, 0.96))
+	label.add_theme_font_size_override("font_size", 13)
+	panel.add_child(label)
+
+func _set_vehicle_controls_visible(visible_value: bool) -> void:
+	for node_name in ["GasButton", "BrakeButton"]:
+		var node := _touch_hud.get_node_or_null(node_name) if _touch_hud != null else null
+		if node != null:
+			node.visible = visible_value
+	var drive := _touch_hud.get_node_or_null("InteractButton") if _touch_hud != null else null
+	if drive != null:
+		var label := drive.get_child(0) as Label
+		if label != null:
+			label.text = "EXIT" if visible_value else "DRIVE"
 
 func _make_touch_panel(panel_size: Vector2, fill: Color, corner: int) -> Panel:
 	var panel := Panel.new()
@@ -209,6 +246,15 @@ func _layout_touch_hud() -> void:
 	var interact := _touch_hud.get_node_or_null("InteractButton")
 	if interact:
 		interact.position = Vector2(size.x - 104, size.y - 188)
+	var gas := _touch_hud.get_node_or_null("GasButton")
+	if gas:
+		gas.position = Vector2(size.x - 104, size.y - 296)
+	var brake := _touch_hud.get_node_or_null("BrakeButton")
+	if brake:
+		brake.position = Vector2(size.x - 104, size.y - 242)
+	_vehicle_gas_rect = Rect2(Vector2(size.x - 104, size.y - 296), Vector2(84, 48))
+	_vehicle_brake_rect = Rect2(Vector2(size.x - 104, size.y - 242), Vector2(84, 48))
+	_vehicle_exit_rect = Rect2(Vector2(size.x - 104, size.y - 188), Vector2(82, 42))
 
 func _update_touch_hud() -> void:
 	if _stick_knob == null:
@@ -235,7 +281,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			var width := get_viewport().get_visible_rect().size.x
-			if _is_interact_button(event.position):
+			if _active_vehicle != null and _vehicle_gas_rect.has_point(event.position):
+				_gas_finger = event.index
+				_vehicle_gas = true
+			elif _active_vehicle != null and _vehicle_brake_rect.has_point(event.position):
+				_brake_finger = event.index
+				_vehicle_brake = true
+			elif _is_interact_button(event.position):
 				_toggle_vehicle()
 			elif event.position.x < width * 0.48 and _move_finger == -1:
 				_move_finger = event.index
@@ -245,6 +297,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif _look_finger == -1:
 				_look_finger = event.index
 		else:
+			if event.index == _gas_finger:
+				_gas_finger = -1
+				_vehicle_gas = false
+			if event.index == _brake_finger:
+				_brake_finger = -1
+				_vehicle_brake = false
 			if event.index == _move_finger:
 				_move_finger = -1
 				_move_touch = Vector2.ZERO
@@ -273,6 +331,11 @@ func _toggle_vehicle() -> void:
 		global_position = vehicle.global_position + vehicle.global_transform.basis.x * 2.0 + Vector3(0, 0.15, 0)
 		_visual_root.visible = true
 		_active_vehicle = null
+		_vehicle_gas = false
+		_vehicle_brake = false
+		_gas_finger = -1
+		_brake_finger = -1
+		_set_vehicle_controls_visible(false)
 		return
 	for candidate in get_tree().get_nodes_in_group("driveable_vehicle"):
 		var vehicle := candidate as CharacterBody3D
@@ -283,6 +346,18 @@ func _toggle_vehicle() -> void:
 			vehicle.call("enter_vehicle", self)
 			_visual_root.visible = false
 			return
+
+func get_vehicle_control_state() -> Dictionary:
+	var throttle := Input.get_action_strength("move_forward") - Input.get_action_strength("move_back")
+	var steer := Input.get_action_strength("move_left") - Input.get_action_strength("move_right")
+	if _active_vehicle != null:
+		if _vehicle_gas:
+			throttle = 1.0
+		elif _vehicle_brake:
+			throttle = -1.0
+		if _move_finger != -1:
+			steer = _move_touch.x
+	return {"throttle": throttle, "steer": steer}
 
 func _apply_look(delta: Vector2) -> void:
 	rotate_y(-delta.x * look_sensitivity)
