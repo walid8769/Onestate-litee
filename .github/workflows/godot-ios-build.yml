@@ -48,9 +48,23 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p godot/assets/models
-          curl -fL --retry 4 --retry-delay 2 "https://tevy.dev/models/suv/v1/lod0.glb" -o godot/assets/models/realistic_suv.glb
+          curl -fL --retry 4 --retry-delay 2 "https://files.innerscene.com/library/generic-compact-suv-9f157ee5/fbafbd81b04c3d969f9c/generic-compact-suv.glb" -o godot/assets/models/realistic_suv.glb
           curl -fL --retry 4 --retry-delay 2 "https://raw.githubusercontent.com/memoriesrohit/avatar-studio/2fd9ec82fbe1613d40ae38aadcca3f410725f740/models/andre_casual.glb" -o godot/assets/models/realistic_character.glb
-          test "$(wc -c < godot/assets/models/realistic_suv.glb)" -gt 500000
+          test "$(wc -c < godot/assets/models/realistic_suv.glb)" -gt 3000000
+          python3 - <<'PY'
+          import json, struct
+          path = "godot/assets/models/realistic_suv.glb"
+          with open(path, "rb") as f:
+              magic, version, length = struct.unpack("<4sII", f.read(12))
+              assert magic == b"glTF" and version == 2 and length > 3000000, "Invalid GLB header"
+              chunk_length, chunk_type = struct.unpack("<II", f.read(8))
+              assert chunk_type == 0x4E4F534A, "Missing GLB JSON chunk"
+              doc = json.loads(f.read(chunk_length).decode("utf-8"))
+          required = doc.get("extensionsRequired", [])
+          unsupported = {"EXT_meshopt_compression", "KHR_mesh_quantization"} & set(required)
+          assert not unsupported, f"Unsupported required glTF extensions: {sorted(unsupported)}"
+          print("SUV GLB header valid; required extensions:", required)
+          PY
           test "$(wc -c < godot/assets/models/realistic_character.glb)" -gt 10000000
           file godot/assets/models/realistic_suv.glb godot/assets/models/realistic_character.glb
 
