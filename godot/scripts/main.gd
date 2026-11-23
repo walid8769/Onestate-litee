@@ -5,6 +5,9 @@ const NPC_SCRIPT = preload("res://scripts/npc.gd")
 const VEHICLE_SCRIPT = preload("res://scripts/driveable_vehicle.gd")
 const CITY_JOB_SCRIPT = preload("res://scripts/city_job_point.gd")
 
+var _world_camera: Camera3D
+var _tracked_player: CharacterBody3D
+
 func _ready() -> void:
 	_build_environment()
 	_build_city()
@@ -19,19 +22,25 @@ func _ready() -> void:
 	player.name = "Player"
 	player.position = Vector3(0, 1.2, 18)
 	add_child(player)
+	_tracked_player = player
+	_process(0.0)
 	_make_driveable_vehicle(Vector3(5.0, 0.15, 18.0), Color(0.07, 0.10, 0.15), true)
 
 
 func _make_fallback_camera() -> void:
-	var camera := Camera3D.new()
-	camera.name = "WorldFallbackCamera"
-	camera.fov = 70.0
-	camera.near = 0.08
-	camera.far = 650.0
-	camera.position = Vector3(0.0, 8.0, 31.0)
-	add_child(camera)
-	camera.look_at(Vector3(0.0, 1.0, 18.0), Vector3.UP)
-	camera.make_current()
+	_world_camera = Camera3D.new()
+	_world_camera.name = "WorldFollowCamera"
+	_world_camera.fov = 70.0
+	_world_camera.near = 0.08
+	_world_camera.far = 650.0
+	add_child(_world_camera)
+	_world_camera.make_current()
+
+func _process(_delta: float) -> void:
+	if _world_camera == null or not is_instance_valid(_tracked_player):
+		return
+	_world_camera.global_position = _tracked_player.global_position + Vector3(0.0, 8.0, 13.0)
+	_world_camera.look_at(_tracked_player.global_position + Vector3(0.0, 1.0, -8.0), Vector3.UP)
 
 
 func _spawn_npcs() -> void:
