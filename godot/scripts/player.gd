@@ -109,12 +109,24 @@ func _play_character_animation(requested: String) -> void:
 	if _character_animation == null:
 		return
 	var wanted := requested.to_lower()
+	var selected := ""
 	for animation_name in _character_animation.get_animation_list():
 		if String(animation_name).to_lower().contains(wanted):
-			if _active_character_animation != animation_name:
-				_character_animation.play(animation_name, 0.22)
-				_active_character_animation = animation_name
-			return
+			selected = animation_name
+			break
+	# The source character has a mocap walk clip but no sprint clip; use the
+	# same grounded gait at a faster playback rate instead of freezing on walk.
+	if selected.is_empty() and wanted == "run":
+		for animation_name in _character_animation.get_animation_list():
+			if String(animation_name).to_lower().contains("walk"):
+				selected = animation_name
+				break
+	if selected.is_empty():
+		return
+	_character_animation.speed_scale = 1.55 if wanted == "run" else 1.0
+	if _active_character_animation != selected:
+		_character_animation.play(selected, 0.22)
+		_active_character_animation = selected
 
 
 func _add_player_appearance() -> void:
