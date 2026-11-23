@@ -43,6 +43,17 @@ jobs:
           "$GODOT_BIN" --version
           "$GODOT_BIN" --version | grep -Eq "^4\.4\.1\.stable\.official\."
 
+      - name: Fetch pinned realistic 3D assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p godot/assets/models
+          curl -fL --retry 4 --retry-delay 2 "https://tevy.dev/models/suv/v1/lod0.glb" -o godot/assets/models/realistic_suv.glb
+          curl -fL --retry 4 --retry-delay 2 "https://raw.githubusercontent.com/memoriesrohit/avatar-studio/2fd9ec82fbe1613d40ae38aadcca3f410725f740/models/andre_casual.glb" -o godot/assets/models/realistic_character.glb
+          test "$(wc -c < godot/assets/models/realistic_suv.glb)" -gt 500000
+          test "$(wc -c < godot/assets/models/realistic_character.glb)" -gt 10000000
+          file godot/assets/models/realistic_suv.glb godot/assets/models/realistic_character.glb
+
       - name: Import and validate Godot project
         shell: bash
         run: |
