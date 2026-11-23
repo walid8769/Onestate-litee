@@ -20,10 +20,15 @@ var _left_arm: Node3D
 var _right_arm: Node3D
 var _animation_clock := 0.0
 var _sprinting := false
+var _sprint_touch := false
+var _touch_hud: Control
+var _stick_base: Panel
+var _stick_knob: Panel
 
 func _ready() -> void:
 	_make_character()
 	_make_camera()
+	_make_touch_hud()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _make_character() -> void:
@@ -128,6 +133,86 @@ func _make_camera() -> void:
 	spring.add_child(_camera)
 	_pivot.rotation.x = _camera_pitch
 
+
+func _make_touch_hud() -> void:
+	_touch_hud = Control.new()
+	_touch_hud.name = "MobileControls"
+	_touch_hud.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_touch_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_touch_hud.z_index = 20
+	var layer := CanvasLayer.new()
+	layer.name = "TouchControlsLayer"
+	add_child(layer)
+	layer.add_child(_touch_hud)
+	_stick_base = _make_touch_panel(Vector2(108, 108), Color(0.06, 0.09, 0.12, 0.42), 54)
+	_stick_knob = _make_touch_panel(Vector2(46, 46), Color(0.82, 0.86, 0.89, 0.62), 23)
+	_touch_hud.add_child(_stick_base)
+	_touch_hud.add_child(_stick_knob)
+	var look_ring := _make_touch_panel(Vector2(82, 82), Color(0.06, 0.09, 0.12, 0.20), 41)
+	look_ring.name = "LookRing"
+	_touch_hud.add_child(look_ring)
+	var sprint := _make_touch_panel(Vector2(78, 42), Color(0.65, 0.48, 0.18, 0.78), 12)
+	sprint.name = "SprintButton"
+	_touch_hud.add_child(sprint)
+	var sprint_label := Label.new()
+	sprint_label.text = "RUN"
+	sprint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sprint_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	sprint_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sprint_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.95))
+	sprint_label.add_theme_font_size_override("font_size", 15)
+	sprint.add_child(sprint_label)
+	_layout_touch_hud()
+
+func _make_touch_panel(panel_size: Vector2, fill: Color, corner: int) -> Panel:
+	var panel := Panel.new()
+	panel.size = panel_size
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.corner_radius_top_left = corner
+	style.corner_radius_top_right = corner
+	style.corner_radius_bottom_left = corner
+	style.corner_radius_bottom_right = corner
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.85, 0.88, 0.92, 0.35)
+	panel.add_theme_stylebox_override("panel", style)
+	return panel
+
+func _layout_touch_hud() -> void:
+	if _touch_hud == null:
+		return
+	var size := get_viewport().get_visible_rect().size
+	var center := Vector2(size.x * 0.22, size.y * 0.78)
+	_stick_base.position = center - Vector2(54, 54)
+	_stick_knob.position = center - Vector2(23, 23)
+	var look := _touch_hud.get_node_or_null("LookRing")
+	if look:
+		look.position = Vector2(size.x * 0.82 - 41, size.y * 0.78 - 41)
+	var sprint := _touch_hud.get_node_or_null("SprintButton")
+	if sprint:
+		sprint.position = Vector2(size.x - 102, size.y - 245)
+
+func _update_touch_hud() -> void:
+	if _stick_knob == null:
+		return
+	var size := get_viewport().get_visible_rect().size
+	var center := Vector2(size.x * 0.22, size.y * 0.78)
+	_stick_knob.position = center + _move_touch * 34.0 - Vector2(23, 23)
+	var sprint := _touch_hud.get_node_or_null("SprintButton")
+	if sprint:
+		var style := sprint.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+		style.bg_color = Color(0.88, 0.66, 0.20, 0.92) if _sprint_touch else Color(0.65, 0.48, 0.18, 0.78)
+		sprint.add_theme_stylebox_override("panel", style)
+
+func _is_sprint_button(position: Vector2) -> bool:
+	var size := get_viewport().get_visible_rect().size
+	var button_rect := Rect2(Vector2(size.x - 102, size.y - 245), Vector2(78, 42))
+	return button_rect.has_point(position)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
@@ -135,6 +220,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.position.x < width * 0.48 and _move_finger == -1:
 				_move_finger = event.index
 				_move_touch = Vector2.ZERO
+			elif _is_sprint_button(event.position):
+				_sprint_touch = not _sprint_touch
 			elif _look_finger == -1:
 				_look_finger = event.index
 		else:
@@ -172,7 +259,7 @@ func _physics_process(delta: float) -> void:
 	input_vector = input_vector.limit_length(1.0)
 	var local_direction := Vector3(input_vector.x, 0, input_vector.y)
 	var direction := (transform.basis * local_direction).normalized()
-	_sprinting = Input.is_action_pressed("run") and input_vector.length() > 0.1
+	_sprinting = (Input.is_action_pressed("run") or _sprint_touch) and input_vector.length() > 0.1
 	var target_speed := sprint_speed if _sprinting else walk_speed
 	var target_velocity := direction * target_speed
 	velocity.x = move_toward(velocity.x, target_velocity.x, acceleration * delta)
@@ -183,6 +270,7 @@ func _physics_process(delta: float) -> void:
 	elif Input.is_action_just_pressed("jump"):
 		velocity.y = jump_velocity
 	move_and_slide()
+	_update_touch_hud()
 	_animate_character(delta, input_vector.length())
 
 func _animate_character(delta: float, input_amount: float) -> void:
