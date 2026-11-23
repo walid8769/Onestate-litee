@@ -31,6 +31,13 @@ func _build_person() -> void:
 	var model := MeshInstance3D.new()
 	model.name = "DetailedCharacterModel"
 	model.mesh = load(model_path) as Mesh
+	if model.mesh != null:
+		for surface in range(model.mesh.get_surface_count()):
+			var source_material := model.mesh.surface_get_material(surface)
+			if source_material is BaseMaterial3D:
+				var two_sided := source_material.duplicate() as BaseMaterial3D
+				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
+				model.set_surface_override_material(surface, two_sided)
 	_visual_root.add_child(model)
 func _build_collision() -> void:
 	var collision := CollisionShape3D.new()
