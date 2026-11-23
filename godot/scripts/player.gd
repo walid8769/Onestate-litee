@@ -63,6 +63,7 @@ func _make_character() -> void:
 				two_sided.cull_mode = BaseMaterial3D.CULL_DISABLED
 				model.set_surface_override_material(surface, two_sided)
 	_visual_root.add_child(model)
+	_add_player_appearance()
 	var collision := CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.36
@@ -71,6 +72,59 @@ func _make_character() -> void:
 	collision.position.y = 0.98
 	_player_collision = collision
 	add_child(collision)
+
+func _add_player_appearance() -> void:
+	# Face details are layered onto the existing head mesh to give it readable features.
+	var skin := _detail_material(Color(0.72, 0.48, 0.34), 0.82)
+	var hair := _detail_material(Color(0.075, 0.052, 0.038), 0.9)
+	var eye_white := _detail_material(Color(0.92, 0.90, 0.82), 0.28)
+	var iris := _detail_material(Color(0.20, 0.12, 0.07), 0.24)
+	var dark := _detail_material(Color(0.035, 0.043, 0.052), 0.7)
+	_add_detail_sphere("HairCap", Vector3(0, 2.075, 0.012), Vector3(0.132, 0.065, 0.125), hair)
+	for side in [-1.0, 1.0]:
+		_add_detail_sphere("Ear", Vector3(side * 0.139, 1.94, 0), Vector3(0.027, 0.043, 0.025), skin)
+		_add_detail_sphere("EyeWhite", Vector3(side * 0.047, 1.985, -0.111), Vector3(0.025, 0.017, 0.012), eye_white)
+		_add_detail_sphere("Iris", Vector3(side * 0.047, 1.984, -0.123), Vector3(0.010, 0.011, 0.006), iris)
+	_add_detail_sphere("Nose", Vector3(0, 1.936, -0.132), Vector3(0.022, 0.032, 0.026), skin)
+	_add_detail_box("Mouth", Vector3(0, 1.882, -0.119), Vector3(0.052, 0.009, 0.012), dark)
+	# Tailored collar, shoulder seams and utility belt.
+	_add_detail_box("ShirtCollar", Vector3(0, 1.61, -0.142), Vector3(0.17, 0.055, 0.035), _detail_material(Color(0.13, 0.17, 0.20), 0.82))
+	_add_detail_box("BeltBuckle", Vector3(0, 1.025, -0.169), Vector3(0.075, 0.055, 0.025), _detail_material(Color(0.62, 0.48, 0.24), 0.32, 0.65))
+	for side in [-1.0, 1.0]:
+		_add_detail_box("ShoulderSeam", Vector3(side * 0.215, 1.54, -0.012), Vector3(0.018, 0.20, 0.20), _detail_material(Color(0.12, 0.15, 0.18), 0.86))
+
+func _detail_material(color: Color, roughness: float, metallic: float = 0.0) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = roughness
+	material.metallic = metallic
+	material.specular = 0.48
+	return material
+
+func _add_detail_sphere(label: String, at: Vector3, dimensions: Vector3, material: Material) -> void:
+	var node := MeshInstance3D.new()
+	node.name = label
+	var mesh := SphereMesh.new()
+	mesh.radius = 1.0
+	mesh.height = 2.0
+	mesh.radial_segments = 16
+	mesh.rings = 10
+	node.mesh = mesh
+	node.position = at
+	node.scale = dimensions
+	node.material_override = material
+	_visual_root.add_child(node)
+
+func _add_detail_box(label: String, at: Vector3, dimensions: Vector3, material: Material) -> void:
+	var node := MeshInstance3D.new()
+	node.name = label
+	var mesh := BoxMesh.new()
+	mesh.size = dimensions
+	node.mesh = mesh
+	node.position = at
+	node.material_override = material
+	_visual_root.add_child(node)
+
 func _add_capsule(label: String, at: Vector3, radius: float, height: float, color: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
 	node.name = label
