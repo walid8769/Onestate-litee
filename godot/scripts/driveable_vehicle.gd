@@ -10,10 +10,24 @@ var _driver: CharacterBody3D
 var _current_speed := 0.0
 var _visual: Node3D
 var _wheel_visuals: Array[Node3D] = []
+var _steering_wheels: Array[Node3D] = []
 
 func _ready() -> void:
 	add_to_group("driveable_vehicle")
 	_visual = get_node_or_null("VehicleVisual")
+	if _visual != null:
+		_collect_vehicle_parts(_visual)
+
+
+func _collect_vehicle_parts(root: Node) -> void:
+	for child in root.get_children():
+		var node_name := child.name.to_lower()
+		if node_name.contains("wheel_fl") or node_name.contains("wheel_fr") or node_name.contains("wheel_rl") or node_name.contains("wheel_rr"):
+			_wheel_visuals.append(child as Node3D)
+		elif node_name.contains("steering_wheel"):
+			_steering_wheels.append(child as Node3D)
+		_collect_vehicle_parts(child)
+
 
 func enter_vehicle(player: CharacterBody3D) -> void:
 	_driver = player
@@ -49,6 +63,11 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.05
 	move_and_slide()
+	var wheel_spin := -_current_speed * delta / 0.37
+	for wheel in _wheel_visuals:
+		wheel.rotate_x(wheel_spin)
+	for steering_wheel in _steering_wheels:
+		steering_wheel.rotation.y = steer * 0.42
 
 	if is_instance_valid(_driver):
 		_driver.global_position = global_position + Vector3(0.0, 0.95, 0.0)
