@@ -196,22 +196,22 @@ func _material(color: Color) -> StandardMaterial3D:
 	return mat
 
 func _make_camera() -> void:
+	# Use a fixed, explicit third-person camera transform. SpringArm3D can
+	# push the camera into the player/ground on some mobile render paths,
+	# leaving only the clear-color sky visible.
 	_pivot = Node3D.new()
 	_pivot.name = "CameraPivot"
 	_pivot.position.y = 1.55
 	add_child(_pivot)
-	var spring := SpringArm3D.new()
-	spring.spring_length = 5.8
-	spring.margin = 0.22
-	_pivot.add_child(spring)
 	_camera = Camera3D.new()
 	_camera.name = "GameplayCamera"
 	_camera.fov = 72.0
-	_camera.position.x = 0.55
-	spring.add_child(_camera)
-	# Activate the camera only after it is inside the live scene tree.
+	_camera.near = 0.08
+	_camera.far = 650.0
+	_camera.position = Vector3(0.55, 0.85, 6.2)
+	_pivot.add_child(_camera)
+	_camera.look_at(_pivot.to_global(Vector3(0.0, -0.55, 0.0)), Vector3.UP)
 	_camera.make_current()
-	_pivot.rotation.x = _camera_pitch
 
 
 func _make_touch_hud() -> void:
