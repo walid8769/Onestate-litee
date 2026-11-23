@@ -3,6 +3,7 @@ extends Node3D
 const PLAYER_SCRIPT = preload("res://scripts/player.gd")
 const NPC_SCRIPT = preload("res://scripts/npc.gd")
 const VEHICLE_SCRIPT = preload("res://scripts/driveable_vehicle.gd")
+const CITY_JOB_SCRIPT = preload("res://scripts/city_job_point.gd")
 
 func _ready() -> void:
 	_build_environment()
@@ -110,6 +111,27 @@ func _build_city() -> void:
 	_make_parked_vehicle(Vector3(-77, 0, -98), Color(0.055, 0.09, 0.15), true)
 	_make_parked_vehicle(Vector3(76, 0, -99), Color(0.86, 0.86, 0.82), false)
 	_make_parked_vehicle(Vector3(-76, 0, 99), Color(0.30, 0.34, 0.27), false)
+	_spawn_city_job_points()
+
+func _spawn_city_job_points() -> void:
+	_add_job_point("POLICE HQ", "POLICE", "Patrol the central avenue", "Drive to the central avenue and secure the patrol checkpoint.", Vector3(0, 0, -34), 450, Vector3(-76, 0, -61))
+	_add_job_point("CITY HOSPITAL", "MEDICAL", "Emergency medical response", "Reach the marked medical response point near the city center.", Vector3(34, 0, 0), 500, Vector3(76, 0, -58))
+	_add_job_point("ARMY BASE", "ARMY", "Secure the eastern checkpoint", "Reach the eastern checkpoint and report that the area is secure.", Vector3(45, 0, 0), 550, Vector3(-76, 0, 61))
+	_add_job_point("CITY HALL", "COUNCIL", "Civic services inspection", "Visit the civic inspection point in the central district.", Vector3(0, 0, 35), 400, Vector3(76, 0, 61))
+	_add_job_point("FEDERAL BUREAU", "FBI", "Federal evidence transfer", "Deliver the sealed evidence to the federal meeting point.", Vector3(0, 0, -15), 650, Vector3(0, 0, -61))
+
+func _add_job_point(department: String, role_id: String, mission_title: String, mission_description: String, destination: Vector3, reward: int, at: Vector3) -> void:
+	var point := Node3D.new()
+	point.name = role_id + "JobTerminal"
+	point.set_script(CITY_JOB_SCRIPT)
+	point.set("department", department)
+	point.set("role_id", role_id)
+	point.set("mission_title", mission_title)
+	point.set("mission_description", mission_description)
+	point.set("destination", destination)
+	point.set("reward", reward)
+	point.position = at
+	add_child(point)
 
 func _make_facility(label: String, at: Vector3, dimensions: Vector3, color: Color, accent: Color) -> void:
 	var center := at + Vector3(0, dimensions.y * 0.5, 0)
