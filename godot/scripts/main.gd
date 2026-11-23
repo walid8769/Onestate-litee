@@ -9,12 +9,12 @@ var _world_camera: Camera3D
 var _tracked_player: CharacterBody3D
 
 func _ready() -> void:
+	# Establish a valid camera and visible fallback ground before building
+	# procedural content. A later setup error must not leave the viewport blue.
+	_make_fallback_camera()
+	_make_emergency_ground()
 	_build_environment()
 	_build_city()
-	# Keep a world-level camera active before player initialization. If any
-	# player model/HUD setup fails on iOS, the city still renders instead of
-	# showing only the blue clear-color background.
-	_make_fallback_camera()
 	_spawn_npcs()
 	_build_hud()
 	var player := CharacterBody3D.new()
@@ -23,24 +23,52 @@ func _ready() -> void:
 	player.position = Vector3(0, 1.2, 18)
 	add_child(player)
 	_tracked_player = player
-	_process(0.0)
+	_update_follow_camera(1.0)
 	_make_driveable_vehicle(Vector3(5.0, 0.15, 18.0), Color(0.07, 0.10, 0.15), true)
 
 
 func _make_fallback_camera() -> void:
 	_world_camera = Camera3D.new()
 	_world_camera.name = "WorldFollowCamera"
-	_world_camera.fov = 70.0
+	_world_camera.fov = 68.0
 	_world_camera.near = 0.08
 	_world_camera.far = 650.0
+	_world_camera.position = Vector3(0.0, 9.0, 30.0)
 	add_child(_world_camera)
+	_world_camera.look_at(Vector3(0.0, 1.0, 0.0), Vector3.UP)
 	_world_camera.make_current()
 
-func _process(_delta: float) -> void:
+
+func _make_emergency_ground() -> void:
+	var ground := MeshInstance3D.new()
+	ground.name = "EmergencyVisibleGround"
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(320.0, 320.0)
+	ground.mesh = plane
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.19, 0.25, 0.21)
+	material.roughness = 1.0
+	ground.material_override = material
+	ground.position.y = -0.08
+	add_child(ground)
+
+
+func _process(delta: float) -> void:
+	_update_follow_camera(delta)
+
+
+func _update_follow_camera(delta: float) -> void:
 	if _world_camera == null or not is_instance_valid(_tracked_player):
 		return
-	_world_camera.global_position = _tracked_player.global_position + Vector3(0.0, 8.0, 13.0)
-	_world_camera.look_at(_tracked_player.global_position + Vector3(0.0, 1.0, -8.0), Vector3.UP)
+	var backward := _tracked_player.global_transform.basis.z.normalized()
+	var desired_position := _tracked_player.global_position + Vector3.UP * 7.0 + backward * 12.0
+	if delta >= 1.0:
+		_world_camera.global_position = desired_position
+	else:
+		_world_camera.global_position = _world_camera.global_position.lerp(desired_position, clampf(delta * 6.0, 0.0, 1.0))
+	_world_camera.look_at(_tracked_player.global_position + Vector3.UP * 1.25, Vector3.UP)
+	if get_viewport().get_camera_3d() != _world_camera:
+		_world_camera.make_current()
 
 
 func _spawn_npcs() -> void:
