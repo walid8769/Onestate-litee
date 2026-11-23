@@ -39,6 +39,7 @@ func _build_environment() -> void:
 
 func _build_city() -> void:
 	_make_visual_box("Ground", Vector3(0, -0.3, 0), Vector3(220, 0.5, 220), Color(0.19, 0.25, 0.21))
+	_make_static_box("GroundCollision", Vector3(0, -0.3, 0), Vector3(220, 0.5, 220))
 	_make_visual_box("MainRoad", Vector3(0, 0.01, 0), Vector3(13, 0.08, 210), Color(0.075, 0.085, 0.095))
 	_make_visual_box("CrossRoad", Vector3(0, 0.02, 0), Vector3(210, 0.08, 13), Color(0.075, 0.085, 0.095))
 
@@ -70,6 +71,7 @@ func _build_city() -> void:
 
 func _make_building(label: String, at: Vector3, dimensions: Vector3, color: Color, variant: int) -> void:
 	_make_visual_box(label, at + Vector3(0, dimensions.y * 0.5, 0), dimensions, color)
+	_make_static_box(label + "_Collision", at + Vector3(0, dimensions.y * 0.5, 0), dimensions)
 	_make_visual_box(label + "_Roof", at + Vector3(0, dimensions.y + 0.18, 0), Vector3(dimensions.x + 0.7, 0.36, dimensions.z + 0.7), color.darkened(0.28))
 	var floors := int(dimensions.y / 3.2)
 	for floor_index in range(floors):
@@ -134,3 +136,14 @@ func _build_hud() -> void:
 	subtitle.add_theme_font_size_override("font_size", 10)
 	subtitle.add_theme_color_override("font_color", Color(0.82, 0.87, 0.91))
 	layer.add_child(subtitle)
+
+func _make_static_box(label: String, at: Vector3, dimensions: Vector3) -> void:
+	var body := StaticBody3D.new()
+	body.name = label
+	body.position = at
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = dimensions
+	collision.shape = shape
+	body.add_child(collision)
+	add_child(body)
