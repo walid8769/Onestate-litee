@@ -79,3 +79,17 @@ Kd 0.025 0.08 0.85
 
 newmtl radio_black
 Kd 0.025 0.03 0.035
+
+newmtl medical_scrubs
+Kd 0.72 0.82 0.80
+Ks 0.12 0.12 0.12
+Ns 28
+newmtl medical_pants
+Kd 0.045 0.085 0.13
+Ns 24
+newmtl medical_trim
+Kd 0.025 0.28 0.30
+Ns 32
+newmtl medical_gear
+Kd 0.035 0.065 0.075
+Ns 40
