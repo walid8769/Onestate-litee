@@ -1,0 +1,20 @@
+Third-party runtime assets
+===========================
+
+1. Mid-Size SUV
+   File fetched during iOS build as godot/assets/models/realistic_suv.glb
+   Source: https://tevy.dev/models/suv
+   License: CC0 1.0
+   The model is a 44,605-triangle, 4.65 m SUV with separately named wheel nodes.
+   Its pinned v1 LOD0 file is used by the build workflow.
+
+2. Realistic humanoid character
+   File fetched during iOS build as godot/assets/models/realistic_character.glb
+   Source: https://github.com/memoriesrohit/avatar-studio
+   Source file: models/andre_casual.glb
+   License: Microsoft Rocketbox Avatar Library, MIT; see the source repository's
+   THIRD_PARTY_NOTICES.md for the full Microsoft notice.
+   The GLB includes a rig and 13 motion-captured animation clips.
+
+These assets are fetched at build time and bundled into the iOS app. They are
+not downloaded by the game at runtime.
