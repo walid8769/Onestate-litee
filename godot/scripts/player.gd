@@ -14,6 +14,7 @@ var _camera_pitch := deg_to_rad(-12.0)
 var _camera: Camera3D
 var _pivot: Node3D
 var _visual_root: Node3D
+var _player_collision: CollisionShape3D
 var _left_leg: Node3D
 var _right_leg: Node3D
 var _left_arm: Node3D
@@ -60,6 +61,7 @@ func _make_character() -> void:
 	shape.height = 1.95
 	collision.shape = shape
 	collision.position.y = 0.98
+	_player_collision = collision
 	add_child(collision)
 func _add_capsule(label: String, at: Vector3, radius: float, height: float, color: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
@@ -329,6 +331,8 @@ func _toggle_vehicle() -> void:
 		var vehicle := _active_vehicle
 		vehicle.call("exit_vehicle")
 		global_position = vehicle.global_position + vehicle.global_transform.basis.x * 2.0 + Vector3(0, 0.15, 0)
+		if _player_collision != null:
+			_player_collision.set_deferred("disabled", false)
 		_visual_root.visible = true
 		_active_vehicle = null
 		_vehicle_gas = false
@@ -344,7 +348,10 @@ func _toggle_vehicle() -> void:
 		if global_position.distance_to(vehicle.global_position) <= 7.0:
 			_active_vehicle = vehicle
 			vehicle.call("enter_vehicle", self)
+			if _player_collision != null:
+				_player_collision.set_deferred("disabled", true)
 			_visual_root.visible = false
+			_set_vehicle_controls_visible(true)
 			return
 
 func get_vehicle_control_state() -> Dictionary:
